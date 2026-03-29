@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-outline-variant: #ffcc00;
+  --color-tertiary-container: #ffcc00;
+  --color-surface-tint: #d80000;
+  --color-on-secondary-fixed-variant: #454747;
+  --color-on-background: #1a1c1c;
+  --color-primary: #d80000;
+  --color-surface-bright: #f9f9f9;
+  --color-outline: #d80000;
+  --color-tertiary: #ffcc00;
+  --color-surface: #f9f9f9;
+  --color-on-error-container: #d80000;
+  --color-on-tertiary-container: #1a1a1a;
+  --color-primary-fixed: #ffdada;
+  --color-secondary: #5d5f5f;
+  --color-background: #f9f9f9;
+  --color-surface-container-highest: #e2e2e2;
+  --color-on-tertiary-fixed-variant: #1a1a1a;
+  --color-on-primary-fixed: #410000;
+  --color-on-primary-container: #ffffff;
+  --color-surface-variant: #e2e2e2;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-surface-variant: #5e3f3a;
+  --color-on-primary: #ffffff;
+  --color-surface-container-high: #e8e8e8;
+  --color-on-error: #ffffff;
+  --color-on-secondary-container: #616363;
+  --color-tertiary-fixed: #ffeb99;
+  --color-secondary-fixed-dim: #c6c6c7;
+  --color-primary-fixed-dim: #ffb4a8;
+  --color-on-primary-fixed-variant: #930000;
+  --color-on-surface: #1a1c1c;
+  --color-on-tertiary: #1a1a1a;
+  --color-surface-container-low: #f3f3f3;
+  --color-on-secondary-fixed: #1a1c1c;
+  --color-secondary-fixed: #e2e2e2;
+  --color-inverse-surface: #2f3131;
+  --color-on-tertiary-fixed: #1a1a1a;
+  --color-inverse-primary: #ffb4a8;
+  --color-secondary-container: #dfe0e0;
+  --color-surface-dim: #dadada;
+  --color-error-container: #ffdada;
+  --color-error: #d80000;
+  --color-primary-container: #d80000;
+  --color-surface-container: #eeeeee;
+  --color-inverse-on-surface: #f1f1f1;
+  --color-tertiary-fixed-dim: #ffcc00;
+  --color-on-secondary: #ffffff;
+
+  --font-headline: var(--font-work-sans), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-label: var(--font-inter), sans-serif;
+}
+
+@layer utilities {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+  }
+  .bg-subtle-flag {
+    background-image: linear-gradient(to bottom, rgba(249, 249, 249, 0.96), rgba(249, 249, 249, 0.92)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuCcfcitln-qVWuejsQMsO0M1XYh0cw3YbWBnMPCb4p6N1DDxM6Ca4aHB2-sCXxY-xQfEg9pB7bkAYIeR_H27gN97HEKMwZn6uDVT9HiQn2cDXJsbyVWLlf-APX7aQpIvsczZVWXrCgxLJkqBw9REkGakrwqAIRjygOl7OF3KNtFYI19ANrnYgGcvWFSwNOdYgPlonAyjrrpKvYgQdfiE-OUTM_mt5YKR4U9POM_9sjTgSalY5F17V34TIgfNnAQxGeSqpm1NMGirLxV);
+    background-size: cover;
+    background-attachment: fixed;
+  }
+}
