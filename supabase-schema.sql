@@ -59,4 +59,42 @@ INSERT INTO projetos (descricao, municipio, valor_projeto, total_empenhado, tota
 VALUES 
 ('Complexo Hospitalar Sul', 'São Paulo - SP', 1250000, 1250000, 937500, (SELECT id FROM areas_tematicas WHERE nome = 'Saúde & Bem-estar' LIMIT 1), 'Em Execução'),
 ('Reforma de Escola Estadual Central', 'Campinas - SP', 890000, 890000, 400500, (SELECT id FROM areas_tematicas WHERE nome = 'Educação' LIMIT 1), 'Em Execução'),
-('Saneamento Básico Rural - Lote 04', 'Ribeirão Preto - SP', 2100000, 2100000, 315000, (SELECT id FROM areas_tematicas WHERE nome = 'Infraestrutura' LIMIT 1), 'Em Licitação');
+-- 6. Tabela de Unidade de Federação
+CREATE TABLE unidade_federacao (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sigla VARCHAR(2) NOT NULL UNIQUE,
+  nome VARCHAR(100) NOT NULL
+);
+
+-- 7. Tabela de Município
+CREATE TABLE municipio (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nome VARCHAR(255) NOT NULL,
+  id_uf UUID REFERENCES unidade_federacao(id),
+  latitude NUMERIC(10, 8),
+  longitude NUMERIC(11, 8),
+  populacao INTEGER
+);
+
+-- Inserir UFs
+INSERT INTO unidade_federacao (sigla, nome) VALUES
+('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapá'), ('AM', 'Amazonas'),
+('BA', 'Bahia'), ('CE', 'Ceará'), ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'),
+('GO', 'Goiás'), ('MA', 'Maranhão'), ('MT', 'Mato Grosso'), ('MS', 'Mato Grosso do Sul'),
+('MG', 'Minas Gerais'), ('PA', 'Pará'), ('PB', 'Paraíba'), ('PR', 'Paraná'),
+('PE', 'Pernambuco'), ('PI', 'Piauí'), ('RJ', 'Rio de Janeiro'), ('RN', 'Rio Grande do Norte'),
+('RS', 'Rio Grande do Sul'), ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'),
+('SP', 'São Paulo'), ('SE', 'Sergipe'), ('TO', 'Tocantins');
+
+-- Inserir alguns municípios de exemplo
+INSERT INTO municipio (nome, id_uf, latitude, longitude, populacao) VALUES
+('São Paulo', (SELECT id FROM unidade_federacao WHERE sigla = 'SP'), -23.5505, -46.6333, 12325232),
+('Rio de Janeiro', (SELECT id FROM unidade_federacao WHERE sigla = 'RJ'), -22.9068, -43.1729, 6747815),
+('Brasília', (SELECT id FROM unidade_federacao WHERE sigla = 'DF'), -15.7942, -47.8822, 3055149),
+('Salvador', (SELECT id FROM unidade_federacao WHERE sigla = 'BA'), -12.9714, -38.5014, 2886698),
+('Fortaleza', (SELECT id FROM unidade_federacao WHERE sigla = 'CE'), -3.7172, -38.5433, 2686612),
+('Belo Horizonte', (SELECT id FROM unidade_federacao WHERE sigla = 'MG'), -19.9167, -43.9345, 2521564),
+('Manaus', (SELECT id FROM unidade_federacao WHERE sigla = 'AM'), -3.1190, -60.0217, 2219580),
+('Curitiba', (SELECT id FROM unidade_federacao WHERE sigla = 'PR'), -25.4284, -49.2733, 1948626),
+('Recife', (SELECT id FROM unidade_federacao WHERE sigla = 'PE'), -8.0476, -34.8770, 1653461),
+('Goiânia', (SELECT id FROM unidade_federacao WHERE sigla = 'GO'), -16.6869, -49.2648, 1536097);

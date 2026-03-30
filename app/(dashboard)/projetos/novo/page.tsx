@@ -12,20 +12,40 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
   const isEditing = !!resolvedParams?.id;
   
   const [areas, setAreas] = useState<any[]>([]);
+  const [municipios, setMunicipios] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
   const [formData, setFormData] = useState({
     descricao: '',
     municipio: '',
     valor_projeto: 0,
+    valor_projeto_formatted: '',
     id_area_tematica: '',
     status: 'Em Execução'
   });
+
+  const formatCurrency = (value: string | number) => {
+    const stringValue = String(value).replace(/\D/g, '');
+    const amount = Number(stringValue) / 100;
+    return amount.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  };
+
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCurrency(e.target.value);
+    const numericValue = Number(e.target.value.replace(/\D/g, '')) / 100;
+    setFormData({ ...formData, valor_projeto_formatted: formatted, valor_projeto: numericValue });
+  };
 
   useEffect(() => {
     async function fetchData() {
       const { data: areasData } = await supabase.from('areas_tematicas').select('*');
       if (areasData) setAreas(areasData);
+
+      const { data: municipiosData } = await supabase.from('municipio').select('*, unidade_federacao(sigla)');
+      if (municipiosData) setMunicipios(municipiosData);
 
       if (isEditing) {
         const { data: projetoData } = await supabase.from('projetos').select('*').eq('id', resolvedParams.id).single();
@@ -34,6 +54,7 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
             descricao: projetoData.descricao,
             municipio: projetoData.municipio || '',
             valor_projeto: projetoData.valor_projeto,
+            valor_projeto_formatted: formatCurrency(projetoData.valor_projeto * 100),
             id_area_tematica: projetoData.id_area_tematica || '',
             status: projetoData.status || 'Em Execução'
           });
@@ -49,11 +70,13 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
     setLoading(true);
     
     if (isEditing) {
-      const { error } = await supabase.from('projetos').update(formData).eq('id', resolvedParams.id);
+      const { valor_projeto_formatted, ...payload } = formData;
+      const { error } = await supabase.from('projetos').update(payload).eq('id', resolvedParams.id);
       if (!error) router.push('/projetos');
       else alert('Erro ao atualizar projeto');
     } else {
-      const { error } = await supabase.from('projetos').insert([formData]);
+      const { valor_projeto_formatted, ...payload } = formData;
+      const { error } = await supabase.from('projetos').insert([payload]);
       if (!error) router.push('/projetos');
       else alert('Erro ao salvar projeto');
     }
@@ -92,13 +115,19 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
           
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Município</label>
-            <input 
-              type="text" 
-              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+            <select 
+              required
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
               value={formData.municipio}
               onChange={e => setFormData({...formData, municipio: e.target.value})}
-              placeholder="Ex: São Paulo - SP"
-            />
+            >
+              <option value="" disabled>Selecione um município</option>
+              {municipios.map(mun => (
+                <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
+                  {mun.nome} - {mun.unidade_federacao?.sigla}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-2">
@@ -117,14 +146,14 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Valor do Projeto (R$)</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Valor do Projeto</label>
             <input 
               required
-              type="number" 
-              step="0.01"
+              type="text" 
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
-              value={formData.valor_projeto}
-              onChange={e => setFormData({...formData, valor_projeto: parseFloat(e.target.value)})}
+              value={formData.valor_projeto_formatted}
+              onChange={handleCurrencyChange}
+              placeholder="R$ 0,00"
             />
           </div>
 
