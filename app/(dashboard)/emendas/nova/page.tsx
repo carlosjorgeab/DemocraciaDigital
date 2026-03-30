@@ -58,7 +58,8 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
     const payload = {
       ...formData,
       id_deputado: selectedDeputado.id,
-      id_projeto: formData.id_projeto || null
+      id_projeto: formData.id_projeto || null,
+      uf: selectedDeputado.estado
     };
 
     if (isEditing) {
@@ -100,6 +101,16 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
               value={formData.descricao}
               onChange={e => setFormData({...formData, descricao: e.target.value})}
               placeholder="Ex: Emenda para reforma..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Unidade da Federação</label>
+            <input 
+              type="text" 
+              disabled
+              className="w-full bg-slate-100 border border-transparent rounded-lg px-4 py-3 text-sm outline-none text-slate-500 cursor-not-allowed"
+              value={selectedDeputado?.estado || 'Selecione um deputado'}
             />
           </div>
           

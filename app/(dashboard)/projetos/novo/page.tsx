@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
+import { useDeputado } from '@/context/DeputadoContext';
 
 export default function ProjetoForm({ params }: { params?: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = params ? use(params) : null;
   const isEditing = !!resolvedParams?.id;
+  const { selectedDeputado } = useDeputado();
   
   const [areas, setAreas] = useState<any[]>([]);
   const [municipios, setMunicipios] = useState<any[]>([]);
@@ -71,12 +73,14 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
     
     if (isEditing) {
       const { valor_projeto_formatted, ...payload } = formData;
-      const { error } = await supabase.from('projetos').update(payload).eq('id', resolvedParams.id);
+      const finalPayload = { ...payload, uf: selectedDeputado?.estado || '' };
+      const { error } = await supabase.from('projetos').update(finalPayload).eq('id', resolvedParams.id);
       if (!error) router.push('/projetos');
       else alert('Erro ao atualizar projeto');
     } else {
       const { valor_projeto_formatted, ...payload } = formData;
-      const { error } = await supabase.from('projetos').insert([payload]);
+      const finalPayload = { ...payload, uf: selectedDeputado?.estado || '' };
+      const { error } = await supabase.from('projetos').insert([finalPayload]);
       if (!error) router.push('/projetos');
       else alert('Erro ao salvar projeto');
     }
@@ -110,6 +114,16 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
               value={formData.descricao}
               onChange={e => setFormData({...formData, descricao: e.target.value})}
               placeholder="Ex: Reforma da Escola Municipal..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Unidade da Federação</label>
+            <input 
+              type="text" 
+              disabled
+              className="w-full bg-slate-100 border border-transparent rounded-lg px-4 py-3 text-sm outline-none text-slate-500 cursor-not-allowed"
+              value={selectedDeputado?.estado || 'Selecione um deputado'}
             />
           </div>
           
