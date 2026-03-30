@@ -38,7 +38,7 @@ CREATE TABLE projetos (
 -- 5. Tabela de Orçamentos
 CREATE TABLE orcamentos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  id_deputado UUID REFERENCES deputados(id),
+  id_deputado UUID REFERENCES deputado(id),
   data DATE NOT NULL,
   tipo VARCHAR(50) NOT NULL, -- DESPESA, RECEITA, EMPENHO, PAGAMENTO, ETC
   descricao TEXT,
