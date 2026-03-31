@@ -28,7 +28,7 @@ CREATE TABLE projetos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   descricao TEXT NOT NULL,
   municipio VARCHAR(100),
-  uf VARCHAR(2),
+  id_deputado UUID REFERENCES deputado(id),
   valor_projeto NUMERIC(15, 2) NOT NULL DEFAULT 0,
   total_empenhado NUMERIC(15, 2) NOT NULL DEFAULT 0,
   total_executado NUMERIC(15, 2) NOT NULL DEFAULT 0,
@@ -44,8 +44,7 @@ CREATE TABLE orcamentos (
   tipo VARCHAR(50) NOT NULL, -- DESPESA, RECEITA, EMPENHO, PAGAMENTO, ETC
   descricao TEXT,
   valor NUMERIC(15, 2) NOT NULL,
-  id_projeto UUID REFERENCES projetos(id),
-  uf VARCHAR(2)
+  id_projeto UUID REFERENCES projetos(id)
 );
 
 -- Inserir dados de exemplo (opcional)
@@ -57,10 +56,10 @@ VALUES ('Carlos Silva', (SELECT id FROM partidos WHERE sigla = 'PT' LIMIT 1), 'S
 
 INSERT INTO areas_tematicas (nome, cor) VALUES ('Saúde & Bem-estar', '#d80000'), ('Educação', '#ffcc00'), ('Infraestrutura', '#e2e2e2');
 
-INSERT INTO projetos (descricao, municipio, uf, valor_projeto, total_empenhado, total_executado, id_area_tematica, status)
+INSERT INTO projetos (descricao, municipio, id_deputado, valor_projeto, total_empenhado, total_executado, id_area_tematica, status)
 VALUES 
-('Complexo Hospitalar Sul', 'São Paulo - SP', 'SP', 1250000, 1250000, 937500, (SELECT id FROM areas_tematicas WHERE nome = 'Saúde & Bem-estar' LIMIT 1), 'Em Execução'),
-('Reforma de Escola Estadual Central', 'Campinas - SP', 'SP', 890000, 890000, 400500, (SELECT id FROM areas_tematicas WHERE nome = 'Educação' LIMIT 1), 'Em Execução');
+('Complexo Hospitalar Sul', 'São Paulo - SP', (SELECT id FROM deputado WHERE nome = 'Carlos Silva' LIMIT 1), 1250000, 1250000, 937500, (SELECT id FROM areas_tematicas WHERE nome = 'Saúde & Bem-estar' LIMIT 1), 'Em Execução'),
+('Reforma de Escola Estadual Central', 'Campinas - SP', (SELECT id FROM deputado WHERE nome = 'Carlos Silva' LIMIT 1), 890000, 890000, 400500, (SELECT id FROM areas_tematicas WHERE nome = 'Educação' LIMIT 1), 'Em Execução');
 -- 6. Tabela de Unidade de Federação
 CREATE TABLE unidade_federacao (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

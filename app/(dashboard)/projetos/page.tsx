@@ -12,23 +12,33 @@ export default function ProjetosPage() {
 
   useEffect(() => {
     async function fetchProjetos() {
+      if (!selectedDeputado) {
+        setProjetos([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('projetos')
-        .select('*, areas_tematicas(nome, cor)');
+        .select('*, areas_tematicas(nome, cor)')
+        .eq('id_deputado', selectedDeputado.id);
       
       if (data) setProjetos(data);
       setLoading(false);
     }
     fetchProjetos();
-  }, []);
+  }, [selectedDeputado]);
 
   async function handleDelete(id: string) {
     if (confirm('Tem certeza que deseja excluir este projeto?')) {
       await supabase.from('projetos').delete().eq('id', id);
-      const { data } = await supabase
-        .from('projetos')
-        .select('*, areas_tematicas(nome, cor)');
-      if (data) setProjetos(data);
+      if (selectedDeputado) {
+        const { data } = await supabase
+          .from('projetos')
+          .select('*, areas_tematicas(nome, cor)')
+          .eq('id_deputado', selectedDeputado.id);
+        if (data) setProjetos(data);
+      }
     }
   }
 
@@ -64,7 +74,6 @@ export default function ProjetosPage() {
               <tr className="bg-slate-50">
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Projeto / Iniciativa</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Município</th>
-                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">UF</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Orçamento</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Status</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider text-right">Ações</th>
@@ -72,9 +81,9 @@ export default function ProjetosPage() {
             </thead>
             <tbody className="divide-y divide-surface-container-low">
               {loading ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
               ) : projetos.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">Nenhum projeto encontrado.</td></tr>
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">Nenhum projeto encontrado.</td></tr>
               ) : (
                 projetos.map(projeto => (
                   <tr key={projeto.id} className="hover:bg-slate-50/50 transition-colors">
@@ -86,9 +95,6 @@ export default function ProjetosPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-on-surface">{projeto.municipio || '-'}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-on-surface font-bold">{selectedDeputado?.estado || '-'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-bold text-sm text-on-surface">

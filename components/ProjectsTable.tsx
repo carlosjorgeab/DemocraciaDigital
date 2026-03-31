@@ -23,7 +23,6 @@ export function ProjectsTable() {
             <tr className="bg-slate-50">
               <th className="px-8 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Projeto / Iniciativa</th>
               <th className="px-8 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Município Beneficiado</th>
-              <th className="px-8 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">UF</th>
               <th className="px-8 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Orçamento Empenhado</th>
               <th className="px-8 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Progresso da Obra</th>
               <th className="px-8 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider text-right">Status Atual</th>
@@ -40,9 +39,6 @@ export function ProjectsTable() {
               <td className="px-8 py-5">
                 <p className="text-sm text-on-surface">São Paulo - SP</p>
                 <p className="text-[10px] text-on-surface-variant">Região Metropolitana</p>
-              </td>
-              <td className="px-8 py-5">
-                <p className="text-sm text-on-surface font-bold">{selectedDeputado?.estado || '-'}</p>
               </td>
               <td className="px-8 py-5">
                 <p className="font-bold text-sm text-on-surface">R$ 1.250.000</p>
@@ -75,9 +71,6 @@ export function ProjectsTable() {
                 <p className="text-[10px] text-on-surface-variant">Interior Paulista</p>
               </td>
               <td className="px-8 py-5">
-                <p className="text-sm text-on-surface font-bold">{selectedDeputado?.estado || '-'}</p>
-              </td>
-              <td className="px-8 py-5">
                 <p className="font-bold text-sm text-on-surface">R$ 890.000</p>
                 <p className="text-[10px] text-primary font-bold">Emenda Parlamentar</p>
               </td>
@@ -106,9 +99,6 @@ export function ProjectsTable() {
               <td className="px-8 py-5">
                 <p className="text-sm text-on-surface">Ribeirão Preto - SP</p>
                 <p className="text-[10px] text-on-surface-variant">Norte Paulista</p>
-              </td>
-              <td className="px-8 py-5">
-                <p className="text-sm text-on-surface font-bold">{selectedDeputado?.estado || '-'}</p>
               </td>
               <td className="px-8 py-5">
                 <p className="font-bold text-sm text-on-surface">R$ 2.100.000</p>
