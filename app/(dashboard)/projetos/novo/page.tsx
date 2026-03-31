@@ -126,7 +126,9 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
               onChange={e => setFormData({...formData, municipio: e.target.value})}
             >
               <option value="" disabled>Selecione um município</option>
-              {municipios.map(mun => (
+              {municipios
+                .filter(mun => !selectedDeputado || mun.unidade_federacao?.sigla === selectedDeputado.estado)
+                .map(mun => (
                 <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
                   {mun.nome} - {mun.unidade_federacao?.sigla}
                 </option>

@@ -14,20 +14,46 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
   const { selectedDeputado } = useDeputado();
   
   const [projetos, setProjetos] = useState<any[]>([]);
+  const [municipios, setMunicipios] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
   const [formData, setFormData] = useState({
     data: new Date().toISOString().split('T')[0],
     tipo: 'DESPESA',
     descricao: '',
+    municipio: '',
     valor: 0,
+    valor_formatted: '',
     id_projeto: ''
   });
 
+  const formatCurrency = (value: string | number) => {
+    const stringValue = String(value).replace(/\D/g, '');
+    const amount = Number(stringValue) / 100;
+    return amount.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  };
+
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCurrency(e.target.value);
+    const numericValue = Number(e.target.value.replace(/\D/g, '')) / 100;
+    setFormData({ ...formData, valor_formatted: formatted, valor: numericValue });
+  };
+
   useEffect(() => {
     async function fetchData() {
-      const { data: projetosData } = await supabase.from('projetos').select('*');
+      if (!selectedDeputado) return;
+
+      const { data: projetosData } = await supabase
+        .from('projetos')
+        .select('*')
+        .eq('id_deputado', selectedDeputado.id);
       if (projetosData) setProjetos(projetosData);
+
+      const { data: municipiosData } = await supabase.from('municipio').select('*, unidade_federacao(sigla)');
+      if (municipiosData) setMunicipios(municipiosData);
 
       if (isEditing) {
         const { data: orcamentoData } = await supabase.from('orcamentos').select('*').eq('id', resolvedParams.id).single();
@@ -36,15 +62,19 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
             data: orcamentoData.data,
             tipo: orcamentoData.tipo,
             descricao: orcamentoData.descricao || '',
+            municipio: orcamentoData.municipio || '',
             valor: orcamentoData.valor,
+            valor_formatted: formatCurrency(orcamentoData.valor * 100),
             id_projeto: orcamentoData.id_projeto || ''
           });
         }
         setFetching(false);
+      } else {
+        setFetching(false);
       }
     }
     fetchData();
-  }, [isEditing, resolvedParams?.id]);
+  }, [isEditing, resolvedParams?.id, selectedDeputado]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,8 +85,9 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
 
     setLoading(true);
     
+    const { valor_formatted, ...restFormData } = formData;
     const payload = {
-      ...formData,
+      ...restFormData,
       id_deputado: selectedDeputado.id,
       id_projeto: formData.id_projeto || null
     };
@@ -102,6 +133,25 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
               placeholder="Ex: Emenda para reforma..."
             />
           </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Município</label>
+            <select 
+              required
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.municipio}
+              onChange={e => setFormData({...formData, municipio: e.target.value})}
+            >
+              <option value="" disabled>Selecione um município</option>
+              {municipios
+                .filter(mun => !selectedDeputado || mun.unidade_federacao?.sigla === selectedDeputado.estado)
+                .map(mun => (
+                <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
+                  {mun.nome} - {mun.unidade_federacao?.sigla}
+                </option>
+              ))}
+            </select>
+          </div>
           
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Data</label>
@@ -134,11 +184,11 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Valor (R$)</label>
             <input 
               required
-              type="number" 
-              step="0.01"
+              type="text" 
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
-              value={formData.valor}
-              onChange={e => setFormData({...formData, valor: parseFloat(e.target.value)})}
+              value={formData.valor_formatted}
+              onChange={handleCurrencyChange}
+              placeholder="R$ 0,00"
             />
           </div>
 

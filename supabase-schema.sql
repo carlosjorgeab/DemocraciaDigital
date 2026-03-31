@@ -44,7 +44,8 @@ CREATE TABLE orcamentos (
   tipo VARCHAR(50) NOT NULL, -- DESPESA, RECEITA, EMPENHO, PAGAMENTO, ETC
   descricao TEXT,
   valor NUMERIC(15, 2) NOT NULL,
-  id_projeto UUID REFERENCES projetos(id)
+  id_projeto UUID REFERENCES projetos(id),
+  municipio VARCHAR(100)
 );
 
 -- Inserir dados de exemplo (opcional)
