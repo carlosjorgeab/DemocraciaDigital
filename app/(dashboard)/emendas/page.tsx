@@ -90,6 +90,7 @@ export default function EmendasPage() {
               <tr className="bg-slate-50">
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Data</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Objeto</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Município</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Beneficiário</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Autor</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Tipo</th>
@@ -100,11 +101,11 @@ export default function EmendasPage() {
             </thead>
             <tbody className="divide-y divide-surface-container-low">
               {loading ? (
-                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
+                <tr><td colSpan={9} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
               ) : !selectedDeputado ? (
-                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Selecione um deputado para ver as emendas.</td></tr>
+                <tr><td colSpan={9} className="px-6 py-8 text-center text-slate-500">Selecione um deputado para ver as emendas.</td></tr>
               ) : orcamentos.length === 0 ? (
-                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Nenhuma emenda encontrada.</td></tr>
+                <tr><td colSpan={9} className="px-6 py-8 text-center text-slate-500">Nenhuma emenda encontrada.</td></tr>
               ) : (
                 orcamentos.map(orcamento => (
                   <tr key={orcamento.id} className="hover:bg-slate-50/50 transition-colors">
@@ -115,6 +116,9 @@ export default function EmendasPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-bold text-sm text-on-surface">{orcamento.objeto}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-on-surface">{orcamento.municipio || '-'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-on-surface">{orcamento.beneficiario || '-'}</p>

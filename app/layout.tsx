@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="pt-BR" className={`${workSans.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${workSans.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="font-body bg-background text-on-background bg-subtle-flag min-h-screen antialiased" suppressHydrationWarning>
         <DeputadoProvider>
           {children}

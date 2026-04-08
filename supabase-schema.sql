@@ -46,7 +46,8 @@ CREATE TABLE orcamentos (
   valor NUMERIC(15, 2) NOT NULL,
   id_projeto UUID REFERENCES projetos(id),
   beneficiario VARCHAR(100),
-  autor VARCHAR(255)
+  autor VARCHAR(255),
+  municipio VARCHAR(100)
 );
 
 -- 5.1 Tabela de Histórico das Emendas

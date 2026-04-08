@@ -22,6 +22,7 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
     tipo: 'Individuais (RP 6)',
     objeto: '',
     beneficiario: '',
+    municipio: '',
     autor: '',
     valor: 0,
     valor_formatted: '',
@@ -64,6 +65,7 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
             tipo: orcamentoData.tipo || 'Individuais (RP 6)',
             objeto: orcamentoData.objeto || '',
             beneficiario: orcamentoData.beneficiario || '',
+            municipio: orcamentoData.municipio || '',
             autor: orcamentoData.autor || '',
             valor: orcamentoData.valor,
             valor_formatted: formatCurrency(orcamentoData.valor * 100),
@@ -156,8 +158,27 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
               value={formData.beneficiario}
               onChange={e => setFormData({...formData, beneficiario: e.target.value})}
-              placeholder="Ex: Município X, Hospital Y..."
+              placeholder="Ex: Hospital Y..."
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Município da Emenda</label>
+            <select 
+              required
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.municipio}
+              onChange={e => setFormData({...formData, municipio: e.target.value})}
+            >
+              <option value="" disabled>Selecione um município</option>
+              {municipios
+                .filter(mun => !selectedDeputado || mun.unidade_federacao?.sigla === selectedDeputado.estado)
+                .map(mun => (
+                <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
+                  {mun.nome} - {mun.unidade_federacao?.sigla}
+                </option>
+              ))}
+            </select>
           </div>
           
           <div className="space-y-2">
