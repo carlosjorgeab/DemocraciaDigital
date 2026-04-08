@@ -19,9 +19,10 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
   const [fetching, setFetching] = useState(isEditing);
   const [formData, setFormData] = useState({
     data: new Date().toISOString().split('T')[0],
-    tipo: 'DESPESA',
-    descricao: '',
-    municipio: '',
+    tipo: 'Individuais (RP 6)',
+    objeto: '',
+    beneficiario: '',
+    autor: '',
     valor: 0,
     valor_formatted: '',
     id_projeto: ''
@@ -60,9 +61,10 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
         if (orcamentoData) {
           setFormData({
             data: orcamentoData.data,
-            tipo: orcamentoData.tipo,
-            descricao: orcamentoData.descricao || '',
-            municipio: orcamentoData.municipio || '',
+            tipo: orcamentoData.tipo || 'Individuais (RP 6)',
+            objeto: orcamentoData.objeto || '',
+            beneficiario: orcamentoData.beneficiario || '',
+            autor: orcamentoData.autor || '',
             valor: orcamentoData.valor,
             valor_formatted: formatCurrency(orcamentoData.valor * 100),
             id_projeto: orcamentoData.id_projeto || ''
@@ -123,34 +125,39 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="col-span-2 space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Descrição</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Objeto</label>
             <input 
               required
               type="text" 
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
-              value={formData.descricao}
-              onChange={e => setFormData({...formData, descricao: e.target.value})}
+              value={formData.objeto}
+              onChange={e => setFormData({...formData, objeto: e.target.value})}
               placeholder="Ex: Emenda para reforma..."
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Município</label>
-            <select 
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Autor da Emenda</label>
+            <input 
               required
-              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
-              value={formData.municipio}
-              onChange={e => setFormData({...formData, municipio: e.target.value})}
-            >
-              <option value="" disabled>Selecione um município</option>
-              {municipios
-                .filter(mun => !selectedDeputado || mun.unidade_federacao?.sigla === selectedDeputado.estado)
-                .map(mun => (
-                <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
-                  {mun.nome} - {mun.unidade_federacao?.sigla}
-                </option>
-              ))}
-            </select>
+              type="text" 
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+              value={formData.autor}
+              onChange={e => setFormData({...formData, autor: e.target.value})}
+              placeholder="Nome do autor"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Beneficiário</label>
+            <input 
+              required
+              type="text" 
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+              value={formData.beneficiario}
+              onChange={e => setFormData({...formData, beneficiario: e.target.value})}
+              placeholder="Ex: Município X, Hospital Y..."
+            />
           </div>
           
           <div className="space-y-2">
@@ -172,16 +179,15 @@ export default function EmendaForm({ params }: { params?: Promise<{ id: string }
               value={formData.tipo}
               onChange={e => setFormData({...formData, tipo: e.target.value})}
             >
-              <option value="DESPESA">Despesa</option>
-              <option value="RECEITA">Receita</option>
-              <option value="EMPENHO">Empenho</option>
-              <option value="PAGAMENTO">Pagamento</option>
-              <option value="OUTROS">Outros</option>
+              <option value="Individuais (RP 6)">Individuais (RP 6)</option>
+              <option value="De Bancada (RP 7)">De Bancada (RP 7)</option>
+              <option value="De Comissão (RP 8)">De Comissão (RP 8)</option>
+              <option value="De Relator (RP 9)">De Relator (RP 9)</option>
             </select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Valor (R$)</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Valor da Emenda (R$)</label>
             <input 
               required
               type="text" 

@@ -36,16 +36,26 @@ CREATE TABLE projetos (
   status VARCHAR(50) DEFAULT 'Em Execução'
 );
 
--- 5. Tabela de Orçamentos
+-- 5. Tabela de Orçamentos (Emendas)
 CREATE TABLE orcamentos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   id_deputado UUID REFERENCES deputado(id),
   data DATE NOT NULL,
-  tipo VARCHAR(50) NOT NULL, -- DESPESA, RECEITA, EMPENHO, PAGAMENTO, ETC
-  descricao TEXT,
+  tipo VARCHAR(50) NOT NULL, -- Individuais (RP 6), De Bancada (RP 7), etc.
+  objeto TEXT,
   valor NUMERIC(15, 2) NOT NULL,
   id_projeto UUID REFERENCES projetos(id),
-  municipio VARCHAR(100)
+  beneficiario VARCHAR(100),
+  autor VARCHAR(255)
+);
+
+-- 5.1 Tabela de Histórico das Emendas
+CREATE TABLE historico_emendas (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_emenda UUID REFERENCES orcamentos(id) ON DELETE CASCADE,
+  status VARCHAR(50) NOT NULL,
+  data DATE NOT NULL,
+  valor NUMERIC(15, 2) NOT NULL DEFAULT 0
 );
 
 -- Inserir dados de exemplo (opcional)

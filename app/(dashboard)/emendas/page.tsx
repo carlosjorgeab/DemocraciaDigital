@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, History } from 'lucide-react';
 import Link from 'next/link';
 import { useDeputado } from '@/context/DeputadoContext';
 
@@ -89,8 +89,9 @@ export default function EmendasPage() {
             <thead>
               <tr className="bg-slate-50">
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Data</th>
-                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Descrição</th>
-                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Município</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Objeto</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Beneficiário</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Autor</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Tipo</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Projeto Vinculado</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Valor</th>
@@ -99,11 +100,11 @@ export default function EmendasPage() {
             </thead>
             <tbody className="divide-y divide-surface-container-low">
               {loading ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
               ) : !selectedDeputado ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Selecione um deputado para ver as emendas.</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Selecione um deputado para ver as emendas.</td></tr>
               ) : orcamentos.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Nenhuma emenda encontrada.</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Nenhuma emenda encontrada.</td></tr>
               ) : (
                 orcamentos.map(orcamento => (
                   <tr key={orcamento.id} className="hover:bg-slate-50/50 transition-colors">
@@ -113,10 +114,13 @@ export default function EmendasPage() {
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-bold text-sm text-on-surface">{orcamento.descricao}</p>
+                      <p className="font-bold text-sm text-on-surface">{orcamento.objeto}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-on-surface">{orcamento.municipio || '-'}</p>
+                      <p className="text-sm text-on-surface">{orcamento.beneficiario || '-'}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-on-surface">{orcamento.autor || '-'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-slate-100 text-slate-600 font-bold text-[10px] rounded-full uppercase">
@@ -133,10 +137,13 @@ export default function EmendasPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/emendas/${orcamento.id}/editar`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-red-50">
+                        <Link href={`/emendas/${orcamento.id}/historico`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Histórico">
+                          <History size={16} />
+                        </Link>
+                        <Link href={`/emendas/${orcamento.id}/editar`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-red-50" title="Editar">
                           <Edit size={16} />
                         </Link>
-                        <button onClick={() => handleDelete(orcamento.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
+                        <button onClick={() => handleDelete(orcamento.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50" title="Excluir">
                           <Trash2 size={16} />
                         </button>
                       </div>
