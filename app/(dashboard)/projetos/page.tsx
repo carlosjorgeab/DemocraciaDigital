@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, History } from 'lucide-react';
 import Link from 'next/link';
 import { useDeputado } from '@/context/DeputadoContext';
 
@@ -73,6 +73,9 @@ export default function ProjetosPage() {
             <thead>
               <tr className="bg-slate-50">
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Projeto / Iniciativa</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Ementa</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Tipo</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Autor</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Município</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Orçamento</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Status</th>
@@ -81,9 +84,9 @@ export default function ProjetosPage() {
             </thead>
             <tbody className="divide-y divide-surface-container-low">
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Carregando...</td></tr>
               ) : projetos.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">Nenhum projeto encontrado.</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Nenhum projeto encontrado.</td></tr>
               ) : (
                 projetos.map(projeto => (
                   <tr key={projeto.id} className="hover:bg-slate-50/50 transition-colors">
@@ -92,6 +95,15 @@ export default function ProjetosPage() {
                         <p className="font-bold text-sm text-on-surface">{projeto.descricao}</p>
                         <p className="text-xs text-on-surface-variant font-medium">{projeto.areas_tematicas?.nome}</p>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-on-surface line-clamp-2" title={projeto.ementa}>{projeto.ementa || '-'}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-on-surface">{projeto.tipo || '-'}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-on-surface">{projeto.autor || '-'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-on-surface">{projeto.municipio || '-'}</p>
@@ -108,10 +120,13 @@ export default function ProjetosPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/projetos/${projeto.id}/editar`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-red-50">
+                        <Link href={`/projetos/${projeto.id}/historico`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Histórico">
+                          <History size={16} />
+                        </Link>
+                        <Link href={`/projetos/${projeto.id}/editar`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-red-50" title="Editar">
                           <Edit size={16} />
                         </Link>
-                        <button onClick={() => handleDelete(projeto.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
+                        <button onClick={() => handleDelete(projeto.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50" title="Excluir">
                           <Trash2 size={16} />
                         </button>
                       </div>

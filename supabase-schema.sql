@@ -33,7 +33,19 @@ CREATE TABLE projetos (
   total_empenhado NUMERIC(15, 2) NOT NULL DEFAULT 0,
   total_executado NUMERIC(15, 2) NOT NULL DEFAULT 0,
   id_area_tematica UUID REFERENCES areas_tematicas(id),
-  status VARCHAR(50) DEFAULT 'Em Execução'
+  status VARCHAR(50) DEFAULT 'Elaboração',
+  ementa TEXT,
+  tipo VARCHAR(100),
+  autor VARCHAR(255)
+);
+
+-- 4.1 Tabela de Histórico dos Projetos
+CREATE TABLE historico_projetos (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_projeto UUID REFERENCES projetos(id) ON DELETE CASCADE,
+  status VARCHAR(50) NOT NULL,
+  data DATE NOT NULL,
+  valor NUMERIC(15, 2) NOT NULL DEFAULT 0
 );
 
 -- 5. Tabela de Orçamentos (Emendas)

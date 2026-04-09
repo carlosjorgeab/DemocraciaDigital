@@ -19,11 +19,14 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
   const [fetching, setFetching] = useState(isEditing);
   const [formData, setFormData] = useState({
     descricao: '',
+    ementa: '',
+    tipo: 'Projeto de Lei Ordinária (PL)',
+    autor: '',
     municipio: '',
     valor_projeto: 0,
     valor_projeto_formatted: '',
     id_area_tematica: '',
-    status: 'Em Execução'
+    status: 'Elaboração'
   });
 
   const formatCurrency = (value: string | number) => {
@@ -54,11 +57,14 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
         if (projetoData) {
           setFormData({
             descricao: projetoData.descricao,
+            ementa: projetoData.ementa || '',
+            tipo: projetoData.tipo || 'Projeto de Lei Ordinária (PL)',
+            autor: projetoData.autor || '',
             municipio: projetoData.municipio || '',
             valor_projeto: projetoData.valor_projeto,
             valor_projeto_formatted: formatCurrency(projetoData.valor_projeto * 100),
             id_area_tematica: projetoData.id_area_tematica || '',
-            status: projetoData.status || 'Em Execução'
+            status: projetoData.status || 'Elaboração'
           });
         }
         setFetching(false);
@@ -116,6 +122,43 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
               placeholder="Ex: Reforma da Escola Municipal..."
             />
           </div>
+
+          <div className="col-span-2 space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Ementa</label>
+            <textarea 
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all min-h-[100px]"
+              value={formData.ementa}
+              onChange={e => setFormData({...formData, ementa: e.target.value})}
+              placeholder="Texto livre da ementa..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tipo do Projeto</label>
+            <select 
+              required
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.tipo}
+              onChange={e => setFormData({...formData, tipo: e.target.value})}
+            >
+              <option value="Proposta de Emenda à Constituição (PEC)">Proposta de Emenda à Constituição (PEC)</option>
+              <option value="Projeto de Lei Complementar (PLP)">Projeto de Lei Complementar (PLP)</option>
+              <option value="Projeto de Lei Ordinária (PL)">Projeto de Lei Ordinária (PL)</option>
+              <option value="Projeto de Decreto Legislativo (PDL)">Projeto de Decreto Legislativo (PDL)</option>
+              <option value="Resolução (PRC)">Resolução (PRC)</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Autor do Projeto</label>
+            <input 
+              type="text" 
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+              value={formData.autor}
+              onChange={e => setFormData({...formData, autor: e.target.value})}
+              placeholder="Nome do autor"
+            />
+          </div>
           
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Município</label>
@@ -170,10 +213,11 @@ export default function ProjetoForm({ params }: { params?: Promise<{ id: string 
               value={formData.status}
               onChange={e => setFormData({...formData, status: e.target.value})}
             >
-              <option value="Planejamento">Planejamento</option>
-              <option value="Em Licitação">Em Licitação</option>
-              <option value="Em Execução">Em Execução</option>
-              <option value="Concluído">Concluído</option>
+              <option value="Elaboração">Elaboração</option>
+              <option value="Análise na CMO">Análise na CMO</option>
+              <option value="Votação">Votação</option>
+              <option value="Sanção">Sanção</option>
+              <option value="Execução">Execução</option>
             </select>
           </div>
         </div>
