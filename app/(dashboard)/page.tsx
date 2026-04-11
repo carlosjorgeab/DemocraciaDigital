@@ -5,12 +5,13 @@ import { Charts } from '@/components/Charts';
 import { ProjectsTable } from '@/components/ProjectsTable';
 import { Share, Download } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
+import { FilterProvider } from '@/context/FilterContext';
 
 export default function Home() {
   const { selectedDeputado } = useDeputado();
 
   return (
-    <>
+    <FilterProvider>
       <div className="p-8 space-y-8">
         
         {/* Dashboard Header & Personal Info */}
@@ -49,6 +50,6 @@ export default function Home() {
         </div>
         <span className="text-xs font-bold text-on-surface tracking-tight">Sincronizado com o Tesouro Nacional</span>
       </div>
-    </>
+    </FilterProvider>
   );
 }
