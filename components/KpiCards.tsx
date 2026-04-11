@@ -27,6 +27,9 @@ export function KpiCards() {
       let projetosAtivos = 0;
       let emLicitacao = 0;
 
+      let projetoIds: string[] = [];
+      let emendaIds: string[] = [];
+
       if (filters.tipoVerba === 'Todas' || filters.tipoVerba === 'Projetos') {
         let query = supabase
           .from('projetos')
@@ -41,9 +44,9 @@ export function KpiCards() {
 
           filteredProjetos.forEach(p => {
             verbaDestinada += Number(p.valor_projeto) || 0;
-            totalExecutado += Number(p.total_executado) || 0;
             if (p.status !== 'Concluído') projetosAtivos++;
             if (p.status === 'Em Licitação') emLicitacao++;
+            projetoIds.push(p.id);
           });
         }
       }
@@ -56,16 +59,47 @@ export function KpiCards() {
         
         const { data: emendas } = await query;
         if (emendas) {
-          // Emendas don't have a direct category in the current schema, but let's assume they are included if category is 'Todas'
-          // If a specific category is selected, we might exclude emendas unless we add category to them.
-          // For now, if category is not 'Todas', we exclude emendas from totals to be consistent with the table.
           const filteredEmendas = filters.categoria !== 'Todas' ? [] : emendas;
           
           filteredEmendas.forEach(e => {
             verbaDestinada += Number(e.valor) || 0;
-            // Assuming emendas are fully executed for this simple KPI if they don't have total_executado
-            // Or maybe they just add to verba destinada. Let's just add to verba destinada.
+            emendaIds.push(e.id);
           });
+        }
+      }
+
+      if (projetoIds.length > 0) {
+        // Fetch history for projetos (status 'Paga')
+        // Chunking the IDs to avoid URL length limits if there are many projects
+        const chunkSize = 200;
+        for (let i = 0; i < projetoIds.length; i += chunkSize) {
+          const chunk = projetoIds.slice(i, i + chunkSize);
+          const { data: histProj } = await supabase
+            .from('historico_projetos')
+            .select('valor')
+            .in('id_projeto', chunk)
+            .eq('status', 'Paga');
+          
+          if (histProj) {
+            totalExecutado += histProj.reduce((acc, curr) => acc + Number(curr.valor), 0);
+          }
+        }
+      }
+
+      if (emendaIds.length > 0) {
+        // Fetch history for emendas (status 'Pagamento')
+        const chunkSize = 200;
+        for (let i = 0; i < emendaIds.length; i += chunkSize) {
+          const chunk = emendaIds.slice(i, i + chunkSize);
+          const { data: histEmendas } = await supabase
+            .from('historico_emendas')
+            .select('valor')
+            .in('id_emenda', chunk)
+            .eq('status', 'Pagamento');
+          
+          if (histEmendas) {
+            totalExecutado += histEmendas.reduce((acc, curr) => acc + Number(curr.valor), 0);
+          }
         }
       }
 
