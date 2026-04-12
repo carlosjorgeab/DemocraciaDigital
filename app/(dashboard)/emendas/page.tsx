@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Edit, Trash2, Search, History } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, History, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useDeputado } from '@/context/DeputadoContext';
 
@@ -141,6 +141,9 @@ export default function EmendasPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Link href={`/emendas/${orcamento.id}/formulario`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Formulário">
+                          <FileText size={16} />
+                        </Link>
                         <Link href={`/emendas/${orcamento.id}/historico`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Histórico">
                           <History size={16} />
                         </Link>
