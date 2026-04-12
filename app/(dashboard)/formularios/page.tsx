@@ -11,7 +11,6 @@ export default function FormularioEmenda() {
   const [fetching, setFetching] = useState(true);
   
   const initialFormState = {
-    id: '',
     id_emenda: '',
     nome_entidade: '',
     cnpj: '',
@@ -19,11 +18,11 @@ export default function FormularioEmenda() {
     resumo_projeto: '',
     descricao_projeto: '',
     orcamento_url: '',
-    curriculo_url: '',
-    edital_pdf_base64: ''
+    curriculo_url: ''
   };
   
   const [formData, setFormData] = useState(initialFormState);
+  const [editalBase64, setEditalBase64] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchEmendas() {
@@ -36,7 +35,7 @@ export default function FormularioEmenda() {
       setFetching(true);
       const { data } = await supabase
         .from('orcamentos')
-        .select('id, objeto, valor')
+        .select('id, objeto, valor, edital_pdf_base64')
         .eq('id_deputado', selectedDeputado.id);
       
       if (data) {
@@ -47,42 +46,20 @@ export default function FormularioEmenda() {
     fetchEmendas();
   }, [selectedDeputado]);
 
-  // Fetch existing form when emenda is selected
+  // Update Edital when emenda is selected
   useEffect(() => {
-    async function fetchExistingForm() {
-      if (!formData.id_emenda) return;
-      
-      const { data } = await supabase
-        .from('formularios_emenda')
-        .select('*')
-        .eq('id_emenda', formData.id_emenda)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (data) {
-        setFormData({
-          id: data.id,
-          id_emenda: data.id_emenda,
-          nome_entidade: data.nome_entidade || '',
-          cnpj: data.cnpj || '',
-          nome_projeto: data.nome_projeto || '',
-          resumo_projeto: data.resumo_projeto || '',
-          descricao_projeto: data.descricao_projeto || '',
-          orcamento_url: data.orcamento_url || '',
-          curriculo_url: data.curriculo_url || '',
-          edital_pdf_base64: data.edital_pdf_base64 || ''
-        });
-      } else {
-        // Reset form but keep the selected emenda
-        setFormData({
-          ...initialFormState,
-          id_emenda: formData.id_emenda
-        });
-      }
+    if (!formData.id_emenda) {
+      setEditalBase64(null);
+      return;
     }
-    fetchExistingForm();
-  }, [formData.id_emenda]);
+    
+    const selectedEmenda = emendas.find(e => e.id === formData.id_emenda);
+    if (selectedEmenda && selectedEmenda.edital_pdf_base64) {
+      setEditalBase64(selectedEmenda.edital_pdf_base64);
+    } else {
+      setEditalBase64(null);
+    }
+  }, [formData.id_emenda, emendas]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, field: 'orcamento_url' | 'curriculo_url') {
     const file = e.target.files?.[0];
@@ -93,10 +70,11 @@ export default function FormularioEmenda() {
   }
 
   const handleDownloadEdital = () => {
-    if (!formData.edital_pdf_base64) return;
+    if (!editalBase64) return;
     const a = document.createElement('a');
-    a.href = formData.edital_pdf_base64;
-    a.download = `Edital_${formData.nome_projeto || 'Emenda'}.pdf`;
+    a.href = editalBase64;
+    const selectedEmenda = emendas.find(e => e.id === formData.id_emenda);
+    a.download = `Edital_${selectedEmenda?.objeto || 'Emenda'}.pdf`;
     a.click();
   };
 
@@ -109,37 +87,22 @@ export default function FormularioEmenda() {
     
     setLoading(true);
     
-    // Remove id and edital_pdf_base64 from payload to not overwrite it accidentally if it's a new insert
-    const { id, edital_pdf_base64, ...payload } = formData;
+    const payload = {
+      ...formData
+    };
 
-    if (id) {
-      // Update existing
-      const { error } = await supabase
-        .from('formularios_emenda')
-        .update(payload)
-        .eq('id', id);
-      
-      if (!error) {
-        alert('Formulário atualizado com sucesso!');
-        setFormData(initialFormState);
-      } else {
-        alert('Erro ao atualizar formulário');
-        console.error(error);
-      }
+    const { error } = await supabase
+      .from('formularios_emenda')
+      .insert([payload]);
+    
+    if (!error) {
+      alert('Formulário salvo com sucesso!');
+      setFormData(initialFormState);
     } else {
-      // Insert new
-      const { error } = await supabase
-        .from('formularios_emenda')
-        .insert([payload]);
-      
-      if (!error) {
-        alert('Formulário salvo com sucesso!');
-        setFormData(initialFormState);
-      } else {
-        alert('Erro ao salvar formulário');
-        console.error(error);
-      }
+      alert('Erro ao salvar formulário');
+      console.error(error);
     }
+    
     setLoading(false);
   }
 
@@ -150,14 +113,14 @@ export default function FormularioEmenda() {
       <div className="flex justify-between items-end">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">
-            {formData.id ? 'Editar Formulário' : 'Novo Formulário'}
+            Novo Formulário
           </p>
           <h2 className="text-3xl font-black font-headline text-on-surface">
             Preenchimento de Emenda
           </h2>
         </div>
         
-        {formData.edital_pdf_base64 && (
+        {editalBase64 && (
           <button 
             onClick={handleDownloadEdital}
             className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm border border-slate-200"

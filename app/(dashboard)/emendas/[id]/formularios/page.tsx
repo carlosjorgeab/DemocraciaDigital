@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, FileText, Eye } from 'lucide-react';
+import { ArrowLeft, FileText, Eye, Upload, Download } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FormulariosEmendaList({ params }: { params: Promise<{ id: string }> }) {
@@ -11,6 +11,7 @@ export default function FormulariosEmendaList({ params }: { params: Promise<{ id
   const [emenda, setEmenda] = useState<any>(null);
   const [formularios, setFormularios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -41,6 +42,45 @@ export default function FormulariosEmendaList({ params }: { params: Promise<{ id
     fetchData();
   }, [id]);
 
+  const handleUploadEdital = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Por favor, selecione um arquivo PDF.');
+      return;
+    }
+
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      
+      const { error } = await supabase
+        .from('orcamentos')
+        .update({ edital_pdf_base64: base64 })
+        .eq('id', id);
+      
+      if (!error) {
+        setEmenda({ ...emenda, edital_pdf_base64: base64 });
+        alert('Edital enviado com sucesso!');
+      } else {
+        alert('Erro ao enviar o edital.');
+        console.error(error);
+      }
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDownloadEdital = () => {
+    if (!emenda?.edital_pdf_base64) return;
+    const a = document.createElement('a');
+    a.href = emenda.edital_pdf_base64;
+    a.download = `Edital_${emenda.objeto || 'Emenda'}.pdf`;
+    a.click();
+  };
+
   if (loading) return <div className="p-8">Carregando...</div>;
 
   return (
@@ -54,6 +94,39 @@ export default function FormulariosEmendaList({ params }: { params: Promise<{ id
           <h2 className="text-3xl font-black font-headline text-on-surface">
             {emenda ? emenda.objeto : 'Carregando...'}
           </h2>
+        </div>
+      </div>
+
+      {/* Edital Section */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+            <FileText className="text-primary" size={20} />
+            Edital da Emenda
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">Faça o upload do documento em PDF do Edital desta Emenda.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {emenda?.edital_pdf_base64 && (
+            <button 
+              onClick={handleDownloadEdital}
+              className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold"
+            >
+              <Download size={16} />
+              Baixar Edital
+            </button>
+          )}
+          <label className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-bold shadow-sm">
+            <Upload size={16} />
+            {uploading ? 'Enviando...' : (emenda?.edital_pdf_base64 ? 'Substituir PDF' : 'Upload PDF')}
+            <input 
+              type="file" 
+              accept=".pdf" 
+              className="hidden" 
+              onChange={handleUploadEdital}
+              disabled={uploading}
+            />
+          </label>
         </div>
       </div>
 
