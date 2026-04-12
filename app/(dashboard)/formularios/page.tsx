@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Save, Upload, FileText } from 'lucide-react';
+import { Save, Upload, FileText, Download } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 
 export default function FormularioEmenda() {
@@ -11,6 +11,7 @@ export default function FormularioEmenda() {
   const [fetching, setFetching] = useState(true);
   
   const initialFormState = {
+    id: '',
     id_emenda: '',
     nome_entidade: '',
     cnpj: '',
@@ -18,7 +19,8 @@ export default function FormularioEmenda() {
     resumo_projeto: '',
     descricao_projeto: '',
     orcamento_url: '',
-    curriculo_url: ''
+    curriculo_url: '',
+    edital_pdf_base64: ''
   };
   
   const [formData, setFormData] = useState(initialFormState);
@@ -45,6 +47,43 @@ export default function FormularioEmenda() {
     fetchEmendas();
   }, [selectedDeputado]);
 
+  // Fetch existing form when emenda is selected
+  useEffect(() => {
+    async function fetchExistingForm() {
+      if (!formData.id_emenda) return;
+      
+      const { data } = await supabase
+        .from('formularios_emenda')
+        .select('*')
+        .eq('id_emenda', formData.id_emenda)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data) {
+        setFormData({
+          id: data.id,
+          id_emenda: data.id_emenda,
+          nome_entidade: data.nome_entidade || '',
+          cnpj: data.cnpj || '',
+          nome_projeto: data.nome_projeto || '',
+          resumo_projeto: data.resumo_projeto || '',
+          descricao_projeto: data.descricao_projeto || '',
+          orcamento_url: data.orcamento_url || '',
+          curriculo_url: data.curriculo_url || '',
+          edital_pdf_base64: data.edital_pdf_base64 || ''
+        });
+      } else {
+        // Reset form but keep the selected emenda
+        setFormData({
+          ...initialFormState,
+          id_emenda: formData.id_emenda
+        });
+      }
+    }
+    fetchExistingForm();
+  }, [formData.id_emenda]);
+
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, field: 'orcamento_url' | 'curriculo_url') {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -52,6 +91,14 @@ export default function FormularioEmenda() {
     alert(`Simulando upload do arquivo: ${file.name}`);
     setFormData({ ...formData, [field]: file.name });
   }
+
+  const handleDownloadEdital = () => {
+    if (!formData.edital_pdf_base64) return;
+    const a = document.createElement('a');
+    a.href = formData.edital_pdf_base64;
+    a.download = `Edital_${formData.nome_projeto || 'Emenda'}.pdf`;
+    a.click();
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,20 +109,36 @@ export default function FormularioEmenda() {
     
     setLoading(true);
     
-    const payload = {
-      ...formData
-    };
+    // Remove id and edital_pdf_base64 from payload to not overwrite it accidentally if it's a new insert
+    const { id, edital_pdf_base64, ...payload } = formData;
 
-    const { error } = await supabase
-      .from('formularios_emenda')
-      .insert([payload]);
-    
-    if (!error) {
-      alert('Formulário salvo com sucesso!');
-      setFormData(initialFormState); // Clear form
+    if (id) {
+      // Update existing
+      const { error } = await supabase
+        .from('formularios_emenda')
+        .update(payload)
+        .eq('id', id);
+      
+      if (!error) {
+        alert('Formulário atualizado com sucesso!');
+        setFormData(initialFormState);
+      } else {
+        alert('Erro ao atualizar formulário');
+        console.error(error);
+      }
     } else {
-      alert('Erro ao salvar formulário');
-      console.error(error);
+      // Insert new
+      const { error } = await supabase
+        .from('formularios_emenda')
+        .insert([payload]);
+      
+      if (!error) {
+        alert('Formulário salvo com sucesso!');
+        setFormData(initialFormState);
+      } else {
+        alert('Erro ao salvar formulário');
+        console.error(error);
+      }
     }
     setLoading(false);
   }
@@ -84,11 +147,25 @@ export default function FormularioEmenda() {
 
   return (
     <div className="p-8 space-y-8 max-w-4xl mx-auto">
-      <div>
-        <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Novo Formulário</p>
-        <h2 className="text-3xl font-black font-headline text-on-surface">
-          Preenchimento de Emenda
-        </h2>
+      <div className="flex justify-between items-end">
+        <div>
+          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">
+            {formData.id ? 'Editar Formulário' : 'Novo Formulário'}
+          </p>
+          <h2 className="text-3xl font-black font-headline text-on-surface">
+            Preenchimento de Emenda
+          </h2>
+        </div>
+        
+        {formData.edital_pdf_base64 && (
+          <button 
+            onClick={handleDownloadEdital}
+            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm border border-slate-200"
+          >
+            <Download size={16} />
+            Baixar Edital (PDF)
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
