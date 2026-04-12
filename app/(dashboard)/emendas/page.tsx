@@ -59,14 +59,14 @@ export default function EmendasPage() {
   }
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex justify-between items-end">
+    <div className="p-4 md:p-8 space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Gestão Financeira</p>
-          <h2 className="text-3xl font-black font-headline text-on-surface">Minhas Emendas</h2>
+          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">Minhas Emendas</h2>
           <p className="text-on-surface-variant text-sm">Acompanhamento de emendas e orçamentos destinados</p>
         </div>
-        <Link href="/emendas/nova" className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md">
+        <Link href="/emendas/nova" className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md w-full md:w-auto">
           <Plus size={18} />
           Nova Emenda
         </Link>

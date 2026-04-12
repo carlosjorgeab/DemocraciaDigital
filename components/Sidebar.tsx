@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 
-export function Sidebar() {
+export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIsOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const { selectedDeputado } = useDeputado();
 
@@ -18,7 +18,7 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="h-screen w-64 fixed left-0 top-0 pt-16 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between py-6 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium">
+    <aside className={`h-screen w-64 fixed left-0 top-0 pt-16 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between py-6 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="px-4 space-y-2">
         <div className="mb-8 px-2 flex items-center gap-3">
           <div className="h-10 w-10 rounded-full overflow-hidden bg-surface-container border-2 border-primary/20 flex-shrink-0">
@@ -54,6 +54,7 @@ export function Sidebar() {
               <Link 
                 key={item.href}
                 href={item.href} 
+                onClick={() => setIsOpen && setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg font-semibold cursor-pointer transition-all ${
                   isActive 
                     ? 'bg-red-50 dark:bg-red-950/30 text-primary dark:text-red-400 active:scale-98' 

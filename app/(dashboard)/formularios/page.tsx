@@ -66,8 +66,18 @@ export default function FormularioEmenda() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    alert(`Simulando upload do arquivo: ${file.name}`);
-    setFormData({ ...formData, [field]: file.name });
+    if (file.type !== 'application/pdf') {
+      alert('Por favor, selecione um arquivo PDF.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setFormData({ ...formData, [field]: base64String });
+      alert(`Arquivo ${file.name} carregado com sucesso!`);
+    };
+    reader.readAsDataURL(file);
   }
 
   const handleDownloadEdital = () => {
@@ -111,12 +121,12 @@ export default function FormularioEmenda() {
 
   return (
     <div className="p-8 space-y-8 max-w-4xl mx-auto">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">
             Novo Formulário
           </p>
-          <h2 className="text-3xl font-black font-headline text-on-surface">
+          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">
             Preenchimento de Emenda
           </h2>
         </div>
@@ -124,7 +134,7 @@ export default function FormularioEmenda() {
         {editalBase64 && (
           <button 
             onClick={handleDownloadEdital}
-            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm border border-slate-200"
+            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm border border-slate-200 w-full md:w-auto justify-center"
           >
             <Download size={16} />
             Download Edital Emenda
@@ -132,7 +142,7 @@ export default function FormularioEmenda() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white p-4 md:p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
         <div className="grid grid-cols-1 gap-6">
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Selecione a Emenda</label>
@@ -223,7 +233,7 @@ export default function FormularioEmenda() {
               </label>
               {formData.orcamento_url && (
                 <span className="text-sm text-primary flex items-center gap-1">
-                  <FileText size={16} /> {formData.orcamento_url}
+                  <FileText size={16} /> Arquivo carregado
                 </span>
               )}
             </div>
@@ -245,7 +255,7 @@ export default function FormularioEmenda() {
               </label>
               {formData.curriculo_url && (
                 <span className="text-sm text-primary flex items-center gap-1">
-                  <FileText size={16} /> {formData.curriculo_url}
+                  <FileText size={16} /> Arquivo carregado
                 </span>
               )}
             </div>
