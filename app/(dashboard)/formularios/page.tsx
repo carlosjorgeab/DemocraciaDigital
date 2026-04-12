@@ -39,7 +39,8 @@ export default function FormularioEmenda() {
         .eq('id_deputado', selectedDeputado.id);
       
       if (data) {
-        setEmendas(data);
+        const emendasComEdital = data.filter(e => e.edital_pdf_base64 && e.edital_pdf_base64.trim() !== '');
+        setEmendas(emendasComEdital);
       }
       setFetching(false);
     }
@@ -99,8 +100,8 @@ export default function FormularioEmenda() {
       alert('Formulário salvo com sucesso!');
       setFormData(initialFormState);
     } else {
-      alert('Erro ao salvar formulário');
-      console.error(error);
+      alert(`Erro ao salvar formulário: ${error.message || error.details || 'Erro desconhecido'}`);
+      console.error('Supabase insert error:', error);
     }
     
     setLoading(false);
@@ -126,7 +127,7 @@ export default function FormularioEmenda() {
             className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm border border-slate-200"
           >
             <Download size={16} />
-            Baixar Edital (PDF)
+            Download Edital Emenda
           </button>
         )}
       </div>
