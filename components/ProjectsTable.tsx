@@ -78,6 +78,36 @@ export function ProjectsTable() {
     fetchData();
   }, [selectedDeputado, filters]);
 
+  const handleExport = () => {
+    if (data.length === 0) {
+      alert('Não há dados para exportar.');
+      return;
+    }
+
+    const headers = ['Projeto / Iniciativa', 'Categoria', 'Local Beneficiado', 'Orçamento', 'Tipo', 'Progresso (%)', 'Status Atual'];
+    const csvContent = [
+      headers.join(';'),
+      ...data.map(item => [
+        `"${item.titulo.replace(/"/g, '""')}"`,
+        `"${item.categoria}"`,
+        `"${item.local}"`,
+        item.valor,
+        `"${item.tipo}"`,
+        item.progresso,
+        `"${item.status}"`
+      ].join(';'))
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Relatorio_Iniciativas_${selectedDeputado?.nome || 'Deputado'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <section className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
       <div className="p-8 flex justify-between items-center border-b border-surface-container-low">
@@ -85,7 +115,10 @@ export function ProjectsTable() {
           <h4 className="text-xl font-headline font-bold text-on-surface">Minhas Iniciativas</h4>
           <p className="text-xs text-on-surface-variant font-medium mt-1">Acompanhamento das iniciativas do {selectedDeputado ? `Deputado ${selectedDeputado.nome}` : 'Deputado'}</p>
         </div>
-        <button className="text-primary font-bold text-sm flex items-center gap-2 hover:underline">
+        <button 
+          onClick={handleExport}
+          className="text-primary font-bold text-sm flex items-center gap-2 hover:underline"
+        >
           Exportar Relatório Detalhado <Download size={16} />
         </button>
       </div>

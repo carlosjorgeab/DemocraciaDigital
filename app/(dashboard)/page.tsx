@@ -10,25 +10,53 @@ import { FilterProvider } from '@/context/FilterContext';
 export default function Home() {
   const { selectedDeputado } = useDeputado();
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Painel do Deputado ${selectedDeputado?.nome || ''}`,
+          text: 'Confira as iniciativas e emendas no Democracia Digital.',
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copiado para a área de transferência!');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <FilterProvider>
       <div className="p-8 space-y-8">
         
         {/* Dashboard Header & Personal Info */}
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Visão Consolidada</p>
-            <h2 className="text-3xl font-black font-headline text-on-surface">
+            <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">
               {selectedDeputado ? `Dep. ${selectedDeputado.nome}` : 'Carregando...'}
             </h2>
             <p className="text-on-surface-variant text-sm">Gerenciamento de emendas e projetos parlamentares - 56ª Legislatura</p>
           </div>
-          <div className="flex gap-3">
-            <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
+          <div className="flex gap-3 w-full md:w-auto">
+            <button 
+              onClick={handleShare}
+              className="flex-1 md:flex-none flex justify-center items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
+            >
               <Share size={18} />
               Compartilhar
             </button>
-            <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md">
+            <button 
+              onClick={handlePrint}
+              className="flex-1 md:flex-none flex justify-center items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md"
+            >
               <Download size={18} />
               Gerar PDF
             </button>

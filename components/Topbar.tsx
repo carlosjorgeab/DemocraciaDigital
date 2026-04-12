@@ -1,9 +1,20 @@
 'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, Bell, UserCircle, ChevronDown } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 
 export function Topbar() {
   const { deputados, selectedDeputado, setSelectedDeputado } = useDeputado();
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/busca?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
     <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_12px_40px_rgba(216,0,0,0.05)]">
@@ -31,14 +42,16 @@ export function Topbar() {
           <ChevronDown size={14} className="absolute right-2 text-slate-400 pointer-events-none" />
         </div>
 
-        <div className="hidden lg:flex relative items-center bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-1.5 w-64 border border-slate-200 dark:border-slate-800">
+        <form onSubmit={handleSearch} className="hidden lg:flex relative items-center bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-1.5 w-64 border border-slate-200 dark:border-slate-800">
           <Search className="text-slate-400" size={16} />
           <input 
             className="bg-transparent border-none focus:ring-0 text-sm w-full font-body placeholder:text-slate-400 ml-2 outline-none" 
-            placeholder="Buscar emendas..." 
+            placeholder="Buscar emendas e projetos..." 
             type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
+        </form>
         <div className="flex gap-1">
           <button className="hidden md:block p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
             <Bell size={20} />
