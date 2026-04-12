@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 
 export function Sidebar() {
@@ -11,6 +11,7 @@ export function Sidebar() {
   const navItems = [
     { href: '/', icon: LayoutDashboard, label: 'Visão Geral' },
     { href: '/emendas', icon: Receipt, label: 'Minhas Emendas' },
+    { href: '/formularios', icon: ClipboardList, label: 'Formulários' },
     { href: '/projetos', icon: FileText, label: 'Meus Projetos' },
     { href: '/base-eleitoral', icon: MapPin, label: 'Base Eleitoral' },
     { href: '/relatorios', icon: BarChart3, label: 'Relatórios' },
@@ -46,7 +47,7 @@ export function Sidebar() {
         
         <nav className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             const Icon = item.icon;
             
             return (
