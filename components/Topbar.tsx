@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Bell, UserCircle, ChevronDown } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
+import { Logo } from '@/components/Logo';
 
 export function Topbar() {
   const { deputados, selectedDeputado, setSelectedDeputado } = useDeputado();
@@ -18,8 +19,9 @@ export function Topbar() {
 
   return (
     <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_12px_40px_rgba(216,0,0,0.05)]">
-      <div className="flex items-center gap-2 md:gap-4 ml-10 md:ml-64">
-        <h1 className="text-lg md:text-xl font-black tracking-tighter text-primary dark:text-red-600 uppercase font-headline truncate max-w-[150px] md:max-w-none">Democracia Digital</h1>
+      <div className="flex items-center gap-2 md:gap-3 ml-10 md:ml-64">
+        <Logo className="w-6 h-6 md:w-8 md:h-8 text-primary dark:text-red-600 shrink-0" />
+        <h1 className="text-base md:text-xl font-black tracking-tighter text-primary dark:text-red-600 uppercase font-headline truncate max-w-[120px] md:max-w-none">Democracia Digital</h1>
         <span className="hidden md:block h-4 w-[1px] bg-slate-200"></span>
         <span className="hidden md:block text-slate-500 font-medium text-sm">Painel do Parlamentar</span>
       </div>
