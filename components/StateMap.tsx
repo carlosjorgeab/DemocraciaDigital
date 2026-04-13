@@ -29,13 +29,13 @@ export function StateMap() {
         const estadoRaw = selectedDeputado?.estado || '';
         const uf = estadoRaw.length === 2 ? estadoRaw.toUpperCase() : (stateNameToUF[estadoRaw] || estadoRaw);
 
-        // 1. Fetch GeoJSON for the state municipalities
-        const geoResponse = await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf}?formato=application/vnd.geo+json&intrarregiao=municipio`);
+        // 1. Fetch GeoJSON for the state municipalities (with cache busting)
+        const geoResponse = await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf}?formato=application/vnd.geo+json&intrarregiao=municipio&_t=${Date.now()}`, { cache: 'no-store' });
         if (!geoResponse.ok) throw new Error('Failed to fetch map data');
         const geoData = await geoResponse.json();
 
-        // 2. Fetch Municipality names
-        const munResponse = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+        // 2. Fetch Municipality names (with cache busting)
+        const munResponse = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?_t=${Date.now()}`, { cache: 'no-store' });
         const munData = await munResponse.json();
         
         // 3. Fetch Emendas and Projetos for this deputy
