@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useFilters } from '@/context/FilterContext';
 import { supabase } from '@/lib/supabase';
+import { StateMap } from '@/components/StateMap';
 
 export function Charts() {
   const { selectedDeputado } = useDeputado();
   const { filters } = useFilters();
   const [categories, setCategories] = useState<{ name: string; value: number; color: string }[]>([]);
   const [total, setTotal] = useState(0);
+  const [activeTab, setActiveTab] = useState<'historico' | 'mapa'>('historico');
   
   const [monthlyData, setMonthlyData] = useState<{ month: string; empenhado: number; pago: number }[]>([
     { month: 'JAN', empenhado: 0, pago: 0 },
@@ -157,49 +159,72 @@ export function Charts() {
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-100">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h4 className="text-xl font-headline font-bold text-on-surface">Histórico de Execução</h4>
-            <p className="text-sm text-on-surface-variant">Execução mensal (Milhões R$)</p>
+      <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+        <div className="flex justify-between items-end mb-6 border-b border-slate-100 pb-4">
+          <div className="flex gap-6">
+            <button 
+              onClick={() => setActiveTab('historico')}
+              className={`text-xl font-headline font-bold transition-colors relative ${activeTab === 'historico' ? 'text-on-surface' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              Histórico de Execução
+              {activeTab === 'historico' && <div className="absolute -bottom-[17px] left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
+            </button>
+            <button 
+              onClick={() => setActiveTab('mapa')}
+              className={`text-xl font-headline font-bold transition-colors relative ${activeTab === 'mapa' ? 'text-on-surface' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              Mapas
+              {activeTab === 'mapa' && <div className="absolute -bottom-[17px] left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
+            </button>
           </div>
-          <div className="flex gap-4 text-xs font-bold">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-tertiary rounded-sm"></div>
-              <span>Empenhado</span>
+          
+          {activeTab === 'historico' && (
+            <div className="flex gap-4 text-xs font-bold">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-tertiary rounded-sm"></div>
+                <span>Empenhado</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-primary rounded-sm"></div>
+                <span>Pago</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-primary rounded-sm"></div>
-              <span>Pago</span>
-            </div>
-          </div>
+          )}
         </div>
         
-        <div className="h-64 flex items-end justify-between gap-4 px-2">
-          {monthlyData.map((data, index) => {
-            const empenhadoPercent = (data.empenhado / maxMonthlyValue) * 100;
-            const pagoPercent = (data.pago / maxMonthlyValue) * 100;
-            
-            return (
-              <div key={index} className="flex-1 flex flex-col justify-end gap-1 h-full">
-                <div className="w-full h-full flex items-end justify-center relative group">
-                  {/* Empenhado Bar */}
-                  <div 
-                    className="absolute bottom-0 w-full bg-tertiary/40 rounded-t-sm transition-all"
-                    style={{ height: `${Math.max(empenhadoPercent, 2)}%` }}
-                    title={`Empenhado: ${formatCurrency(data.empenhado)}`}
-                  ></div>
-                  {/* Pago Bar */}
-                  <div 
-                    className="absolute bottom-0 w-full bg-primary rounded-t-sm transition-all"
-                    style={{ height: `${Math.max(pagoPercent, 1)}%` }}
-                    title={`Pago: ${formatCurrency(data.pago)}`}
-                  ></div>
-                </div>
-                <span className="text-[10px] text-center font-bold text-on-surface-variant">{data.month}</span>
-              </div>
-            );
-          })}
+        <div className="flex-1 min-h-[300px]">
+          {activeTab === 'historico' ? (
+            <div className="h-full flex items-end justify-between gap-4 px-2 pt-4">
+              {monthlyData.map((data, index) => {
+                const empenhadoPercent = (data.empenhado / maxMonthlyValue) * 100;
+                const pagoPercent = (data.pago / maxMonthlyValue) * 100;
+                
+                return (
+                  <div key={index} className="flex-1 flex flex-col justify-end gap-1 h-full">
+                    <div className="w-full h-full flex items-end justify-center relative group">
+                      {/* Empenhado Bar */}
+                      <div 
+                        className="absolute bottom-0 w-full bg-tertiary/40 rounded-t-sm transition-all"
+                        style={{ height: `${Math.max(empenhadoPercent, 2)}%` }}
+                        title={`Empenhado: ${formatCurrency(data.empenhado)}`}
+                      ></div>
+                      {/* Pago Bar */}
+                      <div 
+                        className="absolute bottom-0 w-full bg-primary rounded-t-sm transition-all"
+                        style={{ height: `${Math.max(pagoPercent, 1)}%` }}
+                        title={`Pago: ${formatCurrency(data.pago)}`}
+                      ></div>
+                    </div>
+                    <span className="text-[10px] text-center font-bold text-on-surface-variant">{data.month}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-full w-full flex items-center justify-center">
+              <StateMap />
+            </div>
+          )}
         </div>
       </div>
       
