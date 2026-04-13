@@ -18,7 +18,7 @@ export function StateMap() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
-  const [tooltip, setTooltip] = useState<{ show: boolean, x: number, y: number, name: string, pop: string, value: string }>({ show: false, x: 0, y: 0, name: '', pop: '', value: '' });
+  const [tooltip, setTooltip] = useState<{ show: boolean, x: number, y: number, name: string, pop: string, value: string, lat?: number, lng?: number }>({ show: false, x: 0, y: 0, name: '', pop: '', value: '' });
 
   useEffect(() => {
     if (!selectedDeputado?.estado) return;
@@ -29,8 +29,8 @@ export function StateMap() {
         const estadoRaw = selectedDeputado?.estado || '';
         const uf = estadoRaw.length === 2 ? estadoRaw.toUpperCase() : (stateNameToUF[estadoRaw] || estadoRaw);
 
-        // 1. Fetch GeoJSON for the state
-        const geoResponse = await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf}?formato=application/vnd.geo+json&resolucao=5`);
+        // 1. Fetch GeoJSON for the state municipalities
+        const geoResponse = await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf}?formato=application/vnd.geo+json&intrarregiao=municipio`);
         if (!geoResponse.ok) throw new Error('Failed to fetch map data');
         const geoData = await geoResponse.json();
 
@@ -42,10 +42,23 @@ export function StateMap() {
         const { data: emendas } = await supabase.from('orcamentos').select('municipio, valor').eq('id_deputado', selectedDeputado?.id);
         const { data: projetos } = await supabase.from('projetos').select('municipio, valor_projeto').eq('id_deputado', selectedDeputado?.id);
 
-        const valuesByMun = new Map<string, number>();
-        
+        // 4. Fetch Municipality data from our database
+        const { data: dbMunicipios } = await supabase
+          .from('municipio')
+          .select('nome, populacao, latitude, longitude, unidade_federacao!inner(sigla)')
+          .eq('unidade_federacao.sigla', uf);
+
+        const dbMunMap = new Map<string, any>();
         const normalizeName = (name: string) => name ? name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() : '';
 
+        if (dbMunicipios) {
+          dbMunicipios.forEach(m => {
+            dbMunMap.set(normalizeName(m.nome), m);
+          });
+        }
+
+        const valuesByMun = new Map<string, number>();
+        
         if (emendas) {
           emendas.forEach(e => {
             if (e.municipio) {
@@ -72,10 +85,17 @@ export function StateMap() {
             f.properties.name = mun.nome;
             const norm = normalizeName(mun.nome);
             f.properties.value = valuesByMun.get(norm) || 0;
-            // Mock population based on ID for now (since IBGE population API requires specific query)
-            // We use a deterministic pseudo-random based on ID so it stays consistent
-            const pseudoPop = (parseInt(mun.id.toString().slice(-4)) * 123) % 500000 + 5000;
-            f.properties.pop = pseudoPop.toLocaleString('pt-BR');
+            
+            const dbMun = dbMunMap.get(norm);
+            if (dbMun) {
+              f.properties.pop = dbMun.populacao ? dbMun.populacao.toLocaleString('pt-BR') : 'N/A';
+              f.properties.lat = dbMun.latitude;
+              f.properties.lng = dbMun.longitude;
+            } else {
+              // Fallback
+              const pseudoPop = (parseInt(mun.id.toString().slice(-4)) * 123) % 500000 + 5000;
+              f.properties.pop = pseudoPop.toLocaleString('pt-BR');
+            }
           } else {
             f.properties.name = 'Desconhecido';
             f.properties.value = 0;
@@ -122,7 +142,9 @@ export function StateMap() {
               y: event.clientY,
               name: d.properties.name,
               pop: d.properties.pop,
-              value: formatCurrency(d.properties.value)
+              value: formatCurrency(d.properties.value),
+              lat: d.properties.lat,
+              lng: d.properties.lng
             });
           })
           .on('mousemove', function(event) {
@@ -170,6 +192,12 @@ export function StateMap() {
               <span>Verba Destinada:</span> 
               <span className="text-white font-medium">{tooltip.value}</span>
             </p>
+            {tooltip.lat !== undefined && tooltip.lng !== undefined && (
+              <p className="text-slate-400 flex justify-between text-[10px] mt-1 pt-1 border-t border-slate-700/50">
+                <span>Lat/Lng:</span> 
+                <span>{tooltip.lat.toFixed(4)}, {tooltip.lng.toFixed(4)}</span>
+              </p>
+            )}
           </div>
           {/* Tooltip Arrow */}
           <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900"></div>
