@@ -10,6 +10,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
 
   const navItems = [
     { href: '/', icon: LayoutDashboard, label: 'Visão Geral', disabled: false },
+    { href: '/mapa', icon: MapPin, label: 'Visão Mapa', disabled: false },
     { href: '/emendas', icon: Receipt, label: 'Minhas Emendas', disabled: false },
     { href: '/formularios', icon: ClipboardList, label: 'Formulários', disabled: false },
     { href: '/projetos', icon: FileText, label: 'Meus Projetos', disabled: false },

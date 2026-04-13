@@ -124,7 +124,7 @@ export function StateMap() {
         const maxVal = (d3.max(geoData.features, (d: any) => d.properties.value as number) || 1) as number;
         const colorScale = d3.scaleLinear<string>()
           .domain([0, maxVal])
-          .range(['#1e293b', '#60a5fa']); // Dark slate to light blue
+          .range(['#e2e8f0', '#1d4ed8']); // Light slate to dark blue
 
         // Draw municipalities
         svg.append('g')
@@ -133,14 +133,14 @@ export function StateMap() {
           .enter()
           .append('path')
           .attr('d', path as any)
-          .attr('fill', (d: any) => d.properties.value > 0 ? colorScale(d.properties.value) : '#0f172a') // Darker for 0
-          .attr('stroke', '#000000')
+          .attr('fill', (d: any) => d.properties.value > 0 ? colorScale(d.properties.value) : '#f8fafc') // Lighter for 0
+          .attr('stroke', '#cbd5e1')
           .attr('stroke-width', 0.5)
           .style('cursor', 'pointer')
           .style('transition', 'fill 0.2s, stroke-width 0.2s')
           .on('mouseover', function(event, d: any) {
             d3.select(this)
-              .attr('stroke', '#ffffff')
+              .attr('stroke', '#0f172a')
               .attr('stroke-width', 1.5)
               .raise(); // Bring to front
             
@@ -173,7 +173,7 @@ export function StateMap() {
           })
           .on('mouseout', function(event, d: any) {
             d3.select(this)
-              .attr('stroke', '#000000')
+              .attr('stroke', '#cbd5e1')
               .attr('stroke-width', 0.5);
             
             setTooltip(t => ({ ...t, show: false }));
@@ -205,14 +205,16 @@ export function StateMap() {
               .attr('y', -20)
               .attr('width', 80)
               .attr('height', 40)
-              .attr('fill', 'rgba(30, 41, 59, 0.8)')
-              .attr('rx', 4);
+              .attr('fill', 'rgba(255, 255, 255, 0.9)')
+              .attr('rx', 4)
+              .attr('stroke', '#e2e8f0')
+              .attr('stroke-width', 1);
 
             // City name
             g.append('text')
               .attr('text-anchor', 'middle')
               .attr('y', -6)
-              .attr('fill', '#ffffff')
+              .attr('fill', '#0f172a')
               .attr('font-size', '10px')
               .attr('font-weight', 'bold')
               .text(d.properties.name);
@@ -221,7 +223,7 @@ export function StateMap() {
             g.append('text')
               .attr('text-anchor', 'middle')
               .attr('y', 6)
-              .attr('fill', '#ffffff')
+              .attr('fill', '#1d4ed8')
               .attr('font-size', '10px')
               .attr('font-weight', 'bold')
               .text(formatCurrency(d.properties.value));
@@ -230,7 +232,7 @@ export function StateMap() {
             g.append('text')
               .attr('text-anchor', 'middle')
               .attr('y', 16)
-              .attr('fill', '#94a3b8')
+              .attr('fill', '#64748b')
               .attr('font-size', '8px')
               .text(`Percen: ${percentage}%`);
           }
@@ -247,40 +249,40 @@ export function StateMap() {
   }, [selectedDeputado]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center overflow-hidden">
-      {loading && <div className="absolute inset-0 flex items-center justify-center bg-[#0b1120]/80 z-10 text-sm text-slate-400 font-medium">Carregando mapa do estado...</div>}
+    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center bg-slate-50 overflow-hidden">
+      {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10 text-sm text-slate-500 font-medium">Carregando mapa do estado...</div>}
       <svg ref={svgRef} viewBox="0 0 800 600" className="w-full h-full" preserveAspectRatio="xMidYMid meet"></svg>
       
       {tooltip.show && (
         <div 
-          className="fixed z-[100] bg-[#1e293b] text-white text-xs p-3 rounded shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-15px] min-w-[200px] border border-slate-700"
+          className="fixed z-[100] bg-white text-slate-800 text-xs p-3 rounded shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-15px] min-w-[200px] border border-slate-200"
           style={{ left: tooltip.x, top: tooltip.y }}
         >
-          <p className="font-bold text-sm mb-2 pb-2 border-b border-slate-700">{tooltip.name}</p>
+          <p className="font-bold text-sm mb-2 pb-2 border-b border-slate-100">{tooltip.name}</p>
           <div className="space-y-1">
-            <p className="text-slate-300 flex justify-between">
+            <p className="text-slate-500 flex justify-between">
               <span>População:</span> 
-              <span className="text-white font-medium">{tooltip.pop}</span>
+              <span className="text-slate-800 font-medium">{tooltip.pop}</span>
             </p>
-            <p className="text-slate-300 flex justify-between">
+            <p className="text-slate-500 flex justify-between">
               <span>Verba Destinada:</span> 
-              <span className="text-white font-medium">{tooltip.value}</span>
+              <span className="text-slate-800 font-medium">{tooltip.value}</span>
             </p>
             {tooltip.percentage && (
-              <p className="text-slate-300 flex justify-between">
+              <p className="text-slate-500 flex justify-between">
                 <span>Porcentagem:</span> 
-                <span className="text-white font-medium">{tooltip.percentage}</span>
+                <span className="text-slate-800 font-medium">{tooltip.percentage}</span>
               </p>
             )}
             {tooltip.lat !== undefined && tooltip.lng !== undefined && (
-              <p className="text-slate-500 flex justify-between text-[10px] mt-1 pt-1 border-t border-slate-700/50">
+              <p className="text-slate-400 flex justify-between text-[10px] mt-1 pt-1 border-t border-slate-100">
                 <span>Lat/Lng:</span> 
                 <span>{tooltip.lat.toFixed(4)}, {tooltip.lng.toFixed(4)}</span>
               </p>
             )}
           </div>
           {/* Tooltip Arrow */}
-          <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#1e293b]"></div>
+          <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
         </div>
       )}
     </div>

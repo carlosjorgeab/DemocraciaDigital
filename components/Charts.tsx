@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useFilters } from '@/context/FilterContext';
 import { supabase } from '@/lib/supabase';
-import { StateMap } from '@/components/StateMap';
 
 export function Charts() {
   const { selectedDeputado } = useDeputado();
@@ -257,15 +256,6 @@ export function Charts() {
           </div>
         </div>
       </section>
-
-      <div className="bg-[#0b1120] p-8 rounded-xl shadow-sm border border-slate-800 flex flex-col min-h-[600px]">
-        <h3 className="text-xl font-headline font-bold text-white mb-6 uppercase tracking-wider">
-          Valores Destinados por Município ({selectedDeputado?.estado})
-        </h3>
-        <div className="flex-1 relative">
-          <StateMap />
-        </div>
-      </div>
     </>
   );
 }
