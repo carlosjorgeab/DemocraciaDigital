@@ -77,7 +77,8 @@ export function StateMap() {
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove();
 
-        const projection = d3.geoMercator().fitSize([width, height], geoData);
+        // Use fitExtent to add padding and ensure the state is fully visible and centered
+        const projection = d3.geoMercator().fitExtent([[20, 20], [width - 20, height - 20]], geoData);
         const path = d3.geoPath().projection(projection);
 
         // Get party color
@@ -89,16 +90,14 @@ export function StateMap() {
           .enter()
           .append('path')
           .attr('d', path as any)
-          .attr('fill', (d: any) => d.properties.value > 0 ? partyColor : '#e2e8f0')
+          .attr('fill', '#e2e8f0') // Neutral color for all municipalities by default
           .attr('stroke', '#ffffff')
           .attr('stroke-width', 0.5)
-          .style('opacity', (d: any) => d.properties.value > 0 ? 0.8 : 1)
           .style('cursor', 'pointer')
-          .style('transition', 'opacity 0.2s')
+          .style('transition', 'fill 0.2s, stroke-width 0.2s')
           .on('mouseover', function(event, d: any) {
             d3.select(this)
               .attr('fill', partyColor)
-              .style('opacity', 1)
               .attr('stroke-width', 1.5);
             
             const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -122,8 +121,7 @@ export function StateMap() {
           })
           .on('mouseout', function(event, d: any) {
             d3.select(this)
-              .attr('fill', d.properties.value > 0 ? partyColor : '#e2e8f0')
-              .style('opacity', d.properties.value > 0 ? 0.8 : 1)
+              .attr('fill', '#e2e8f0')
               .attr('stroke-width', 0.5);
             
             setTooltip(t => ({ ...t, show: false }));
