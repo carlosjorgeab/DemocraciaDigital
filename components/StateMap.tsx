@@ -4,6 +4,15 @@ import * as d3 from 'd3';
 import { useDeputado } from '@/context/DeputadoContext';
 import { supabase } from '@/lib/supabase';
 
+const stateNameToUF: Record<string, string> = {
+  'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 'Ceará': 'CE',
+  'Distrito Federal': 'DF', 'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA', 'Mato Grosso': 'MT',
+  'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG', 'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR',
+  'Pernambuco': 'PE', 'Piauí': 'PI', 'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN',
+  'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR', 'Santa Catarina': 'SC',
+  'São Paulo': 'SP', 'Sergipe': 'SE', 'Tocantins': 'TO'
+};
+
 export function StateMap() {
   const { selectedDeputado } = useDeputado();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -17,12 +26,16 @@ export function StateMap() {
     async function drawMap() {
       setLoading(true);
       try {
+        const estadoRaw = selectedDeputado?.estado || '';
+        const uf = estadoRaw.length === 2 ? estadoRaw.toUpperCase() : (stateNameToUF[estadoRaw] || estadoRaw);
+
         // 1. Fetch GeoJSON for the state
-        const geoResponse = await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${selectedDeputado?.estado}?formato=application/vnd.geo+json&resolucao=5`);
+        const geoResponse = await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf}?formato=application/vnd.geo+json&resolucao=5`);
+        if (!geoResponse.ok) throw new Error('Failed to fetch map data');
         const geoData = await geoResponse.json();
 
         // 2. Fetch Municipality names
-        const munResponse = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedDeputado?.estado}/municipios`);
+        const munResponse = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
         const munData = await munResponse.json();
         
         // 3. Fetch Emendas and Projetos for this deputy
