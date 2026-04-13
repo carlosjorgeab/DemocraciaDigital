@@ -22,8 +22,7 @@ export default function FormularioEmenda() {
   };
   
   const [formData, setFormData] = useState(initialFormState);
-  const [editalBase64, setEditalBase64] = useState<string | null>(null);
-
+  
   useEffect(() => {
     async function fetchEmendas() {
       if (!selectedDeputado) {
@@ -47,20 +46,10 @@ export default function FormularioEmenda() {
     fetchEmendas();
   }, [selectedDeputado]);
 
-  // Update Edital when emenda is selected
-  useEffect(() => {
-    if (!formData.id_emenda) {
-      setEditalBase64(null);
-      return;
-    }
-    
-    const selectedEmenda = emendas.find(e => e.id === formData.id_emenda);
-    if (selectedEmenda && selectedEmenda.edital_pdf_base64) {
-      setEditalBase64(selectedEmenda.edital_pdf_base64);
-    } else {
-      setEditalBase64(null);
-    }
-  }, [formData.id_emenda, emendas]);
+  // Calculate Edital based on selected emenda
+  const selectedEmendaId = formData.id_emenda;
+  const selectedEmenda = emendas.find(e => e.id === selectedEmendaId);
+  const editalBase64 = selectedEmenda?.edital_pdf_base64 || null;
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, field: 'orcamento_url' | 'curriculo_url') {
     const file = e.target.files?.[0];

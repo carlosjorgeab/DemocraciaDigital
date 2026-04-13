@@ -56,7 +56,7 @@ function BuscaContent() {
         <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Resultados da Busca</p>
         <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface flex items-center gap-2">
           <Search size={28} />
-          "{q}"
+          &quot;{q}&quot;
         </h2>
       </div>
 

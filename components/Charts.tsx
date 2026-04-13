@@ -236,9 +236,14 @@ export function Charts() {
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             {categories.map((cat, i) => {
               const percentage = total > 0 ? cat.value / total : 0;
+              
+              // Calculate offset based on previous categories
+              const previousPercentage = categories
+                .slice(0, i)
+                .reduce((sum, c) => sum + (total > 0 ? c.value / total : 0), 0);
+                
               const strokeDasharray = `${percentage * circumference} ${circumference}`;
-              const strokeDashoffset = -currentOffset;
-              currentOffset += percentage * circumference;
+              const strokeDashoffset = -(previousPercentage * circumference);
               
               return (
                 <circle 
