@@ -26,8 +26,8 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   return (
     <aside className={`h-screen w-64 fixed left-0 top-0 pt-16 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between py-6 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="px-4 space-y-2">
-        <div className="mb-8 px-2 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full overflow-hidden bg-surface-container border-2 border-primary/20 flex-shrink-0">
+        <div className="mb-8 px-2 flex flex-col items-center gap-3 text-center">
+          <div className="h-20 w-20 rounded-full overflow-hidden bg-surface-container border-2 border-primary/20 flex-shrink-0 shadow-md">
             {selectedDeputado?.foto_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img 
@@ -37,15 +37,15 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
               />
             ) : (
               <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">
-                <UserCircle size={24} />
+                <UserCircle size={40} />
               </div>
             )}
           </div>
-          <div className="overflow-hidden">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">
+          <div className="overflow-hidden w-full">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
               {selectedDeputado ? selectedDeputado.nome : 'Gabinete Digital'}
             </h2>
-            <p className="text-[10px] text-primary dark:text-red-500 font-semibold uppercase tracking-wider truncate">
+            <p className="text-xs text-primary dark:text-red-500 font-bold uppercase tracking-wider truncate mt-1">
               {selectedDeputado ? `${selectedDeputado.partidos?.sigla} - ${selectedDeputado.estado}` : 'Liderança'}
             </p>
           </div>

@@ -8,6 +8,7 @@ type Deputado = {
   id_partido: string;
   estado: string;
   foto_url: string;
+  is_default?: boolean;
   partidos?: {
     sigla: string;
     nome: string;
@@ -40,7 +41,9 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
       if (!error && data) {
         setDeputados(data);
         if (data.length > 0) {
-          setSelectedDeputado(data[0]);
+          // Find the default deputy, or fallback to the first one
+          const defaultDeputado = data.find(d => d.is_default) || data[0];
+          setSelectedDeputado(defaultDeputado);
         }
       }
       setLoading(false);

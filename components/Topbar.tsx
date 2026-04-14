@@ -26,23 +26,27 @@ export function Topbar() {
         <span className="hidden md:block text-slate-500 font-medium text-sm">Painel do Parlamentar</span>
       </div>
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Deputado Selector */}
-        <div className="relative flex items-center bg-white rounded-lg px-2 md:px-3 py-1.5 border border-slate-200 shadow-sm max-w-[120px] md:max-w-none">
-          <select 
-            className="bg-transparent border-none focus:ring-0 text-xs md:text-sm font-bold text-on-surface outline-none cursor-pointer appearance-none pr-6 w-full truncate"
-            value={selectedDeputado?.id || ''}
-            onChange={(e) => {
-              const dep = deputados.find(d => d.id === e.target.value);
-              setSelectedDeputado(dep || null);
-            }}
-          >
-            <option value="" disabled>Selecione um Deputado</option>
-            {deputados.map(dep => (
-              <option key={dep.id} value={dep.id}>{dep.nome} ({dep.partidos?.sigla}-{dep.estado})</option>
-            ))}
-          </select>
-          <ChevronDown size={14} className="absolute right-2 text-slate-400 pointer-events-none" />
-        </div>
+        {/* Deputado Selector - Only show if there are multiple deputies */}
+        {deputados.length > 1 && (
+          <div className="relative flex items-center bg-white rounded-lg px-2 md:px-3 py-1.5 border border-slate-200 shadow-sm max-w-[120px] md:max-w-none">
+            <select 
+              className="bg-transparent border-none focus:ring-0 text-xs md:text-sm font-bold text-on-surface outline-none cursor-pointer appearance-none pr-6 w-full truncate"
+              value={selectedDeputado?.id || ''}
+              onChange={(e) => {
+                const dep = deputados.find(d => d.id === e.target.value);
+                setSelectedDeputado(dep || null);
+              }}
+            >
+              <option value="" disabled>Selecione um Deputado</option>
+              {deputados.map(dep => (
+                <option key={dep.id} value={dep.id}>
+                  {dep.nome} {dep.is_default ? '(Padrão)' : ''} ({dep.partidos?.sigla}-{dep.estado})
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-2 text-slate-400 pointer-events-none" />
+          </div>
+        )}
 
         <form onSubmit={handleSearch} className="hidden lg:flex relative items-center bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-1.5 w-64 border border-slate-200 dark:border-slate-800">
           <Search className="text-slate-400" size={16} />
