@@ -154,7 +154,7 @@ export default function UsuariosPage() {
                 type="text" 
                 value={currentUser.email} 
                 onChange={(e) => setCurrentUser({...currentUser, email: e.target.value})}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
                 placeholder="usuario ou usuario@email.com"
               />
             </div>
@@ -167,7 +167,7 @@ export default function UsuariosPage() {
                 type="password" 
                 value={currentUser.senha || ''} 
                 onChange={(e) => setCurrentUser({...currentUser, senha: e.target.value})}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
                 placeholder="••••••••"
               />
             </div>
@@ -192,7 +192,7 @@ export default function UsuariosPage() {
                   <select 
                     value={currentUser.id_perfil || ''} 
                     onChange={(e) => setCurrentUser({...currentUser, id_perfil: e.target.value})}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
                   >
                     <option value="" disabled>Selecione um perfil</option>
                     {perfis.map(p => (
@@ -206,7 +206,7 @@ export default function UsuariosPage() {
                   <select 
                     value={currentUser.id_deputado || ''} 
                     onChange={(e) => setCurrentUser({...currentUser, id_deputado: e.target.value})}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
                   >
                     <option value="" disabled>Selecione um deputado</option>
                     {deputados.map(d => (

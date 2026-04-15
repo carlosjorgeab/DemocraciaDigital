@@ -31,7 +31,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   };
 
   return (
-    <aside className={`h-screen w-64 fixed left-0 top-0 pt-16 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between py-6 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+    <aside className={`h-screen w-64 fixed left-0 top-0 pt-16 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between py-6 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium transition-transform duration-300 overflow-y-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="px-4 space-y-2">
         <div className="mb-8 px-2 flex flex-col items-center gap-3 text-center">
           <div className="h-20 w-20 rounded-full overflow-hidden bg-surface-container border-2 border-primary/20 flex-shrink-0 shadow-md">
@@ -95,20 +95,26 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
         </nav>
         
         <div className="mt-4 space-y-2">
-          <Link href="/emendas/nova" className="w-full py-3 bg-primary text-on-primary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
-            Nova Emenda
-          </Link>
-          <Link href="/projetos/novo" className="w-full py-3 bg-secondary text-on-secondary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
-            Novo Projeto
-          </Link>
+          {hasPermission('/emendas') && (
+            <Link href="/emendas/nova" className="w-full py-3 bg-primary text-on-primary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
+              Nova Emenda
+            </Link>
+          )}
+          {hasPermission('/projetos') && (
+            <Link href="/projetos/novo" className="w-full py-3 bg-secondary text-on-secondary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
+              Novo Projeto
+            </Link>
+          )}
         </div>
       </div>
       
-      <div className="px-4 space-y-1">
-        <Link href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
-          <Settings size={20} />
-          <span>Configurações</span>
-        </Link>
+      <div className="px-4 space-y-1 mt-6">
+        {(user?.is_admin || hasPermission('/configuracoes')) && (
+          <Link href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
+            <Settings size={20} />
+            <span>Configurações</span>
+          </Link>
+        )}
         <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
           <LogOut size={20} />
           <span>Sair</span>

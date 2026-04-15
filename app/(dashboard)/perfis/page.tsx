@@ -18,6 +18,7 @@ const MENU_OPTIONS = [
   { id: '/relatorios', label: 'Relatórios' },
   { id: '/perfis', label: 'Cadastro de Perfis' },
   { id: '/usuarios', label: 'Cadastro de Usuários' },
+  { id: '/configuracoes', label: 'Configurações' },
 ];
 
 export default function PerfisPage() {
@@ -125,7 +126,7 @@ export default function PerfisPage() {
                 type="text" 
                 value={currentPerfil.nome} 
                 onChange={(e) => setCurrentPerfil({...currentPerfil, nome: e.target.value})}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
                 placeholder="Ex: Assessor"
               />
             </div>
