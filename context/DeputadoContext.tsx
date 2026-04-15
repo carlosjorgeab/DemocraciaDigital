@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 type Deputado = {
   id: string;
@@ -31,12 +32,26 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
   const [deputados, setDeputados] = useState<Deputado[]>([]);
   const [selectedDeputado, setSelectedDeputado] = useState<Deputado | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchDeputados() {
-      const { data, error } = await supabase
+      if (!user) {
+        setDeputados([]);
+        setSelectedDeputado(null);
+        setLoading(false);
+        return;
+      }
+
+      let query = supabase
         .from('deputado')
         .select('*, partidos(sigla, nome, cor_primaria, cor_secundaria, cor_terciaria)');
+      
+      if (!user.is_admin && user.id_deputado) {
+        query = query.eq('id', user.id_deputado);
+      }
+
+      const { data, error } = await query;
       
       if (!error && data) {
         setDeputados(data);
@@ -49,7 +64,7 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
     fetchDeputados();
-  }, []);
+  }, [user]);
 
   // Apply theme colors when selectedDeputado changes
   useEffect(() => {

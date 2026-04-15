@@ -1,12 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList, Shield, Users } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
+import { useAuth } from '@/context/AuthContext';
 
 export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIsOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const { selectedDeputado } = useDeputado();
+  const { logout, hasPermission, user } = useAuth();
 
   const navItems = [
     { href: '/', icon: LayoutDashboard, label: 'Visão Geral', disabled: false },
@@ -15,12 +17,17 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: '/formularios', icon: ClipboardList, label: 'Formulários', disabled: false },
     { href: '/projetos', icon: FileText, label: 'Meus Projetos', disabled: false },
     { href: '/relatorios', icon: BarChart3, label: 'Relatórios', disabled: true },
-  ];
+  ].filter(item => hasPermission(item.href));
+
+  if (user?.is_admin || hasPermission('/perfis')) {
+    navItems.push({ href: '/perfis', icon: Shield, label: 'Perfis', disabled: false });
+  }
+  if (user?.is_admin || hasPermission('/usuarios')) {
+    navItems.push({ href: '/usuarios', icon: Users, label: 'Usuários', disabled: false });
+  }
 
   const handleLogout = async () => {
-    // Implement logout logic here if using auth
-    // For now, redirect to login or clear state
-    window.location.href = '/'; // Or wherever the login page is
+    logout();
   };
 
   return (
