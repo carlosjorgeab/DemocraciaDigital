@@ -42,7 +42,7 @@ export default function VisualizarFormulario({ params }: { params: Promise<{ id:
   }, [id, formId]);
 
   if (loading) return <div className="p-8">Carregando...</div>;
-  if (!formData) return <div className="p-8">Formulário não encontrado.</div>;
+  if (!formData) return <div className="p-8">Adesão Edital não encontrada.</div>;
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-4xl mx-auto">
@@ -51,7 +51,7 @@ export default function VisualizarFormulario({ params }: { params: Promise<{ id:
           <ArrowLeft size={20} className="text-slate-600" />
         </Link>
         <div>
-          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Visualizar Formulário</p>
+          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Visualizar Adesão Edital</p>
           <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">
             {emenda ? emenda.objeto : 'Carregando...'}
           </h2>

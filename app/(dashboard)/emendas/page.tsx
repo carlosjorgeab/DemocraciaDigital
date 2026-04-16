@@ -141,7 +141,7 @@ export default function EmendasPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/emendas/${orcamento.id}/formularios`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Formulários">
+                        <Link href={`/emendas/${orcamento.id}/formularios`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Adesão Edital">
                           <FileText size={16} />
                         </Link>
                         <Link href={`/emendas/${orcamento.id}/historico`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Histórico">

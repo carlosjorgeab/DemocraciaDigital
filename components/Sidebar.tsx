@@ -18,7 +18,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: basePath || '/', icon: LayoutDashboard, label: 'Visão Geral', disabled: false, id: '/' },
     { href: `${basePath}/mapa`, icon: MapPin, label: 'Visão Mapa', disabled: false, id: '/mapa' },
     { href: `${basePath}/emendas`, icon: Receipt, label: 'Minhas Emendas', disabled: false, id: '/emendas' },
-    { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Formulários', disabled: false, id: '/formularios' },
+    { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Adesão Edital', disabled: false, id: '/formularios' },
     { href: `${basePath}/projetos`, icon: FileText, label: 'Meus Projetos', disabled: false, id: '/projetos' },
     { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: true, id: '/relatorios' },
   ].filter(item => hasPermission(item.id));

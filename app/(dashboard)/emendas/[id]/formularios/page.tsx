@@ -90,7 +90,7 @@ export default function FormulariosEmendaList({ params }: { params: Promise<{ id
           <ArrowLeft size={20} className="text-slate-600" />
         </Link>
         <div>
-          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Formulários da Emenda</p>
+          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Adesões ao Edital da Emenda</p>
           <h2 className="text-3xl font-black font-headline text-on-surface">
             {emenda ? emenda.objeto : 'Carregando...'}
           </h2>
@@ -144,7 +144,7 @@ export default function FormulariosEmendaList({ params }: { params: Promise<{ id
             </thead>
             <tbody className="divide-y divide-surface-container-low">
               {formularios.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">Nenhum formulário encontrado para esta emenda.</td></tr>
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">Nenhuma adesão ao edital encontrada para esta emenda.</td></tr>
               ) : (
                 formularios.map(form => (
                   <tr key={form.id} className="hover:bg-slate-50/50 transition-colors">

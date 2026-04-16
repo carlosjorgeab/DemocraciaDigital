@@ -96,10 +96,10 @@ export default function FormularioEmenda() {
       .insert([payload]);
     
     if (!error) {
-      alert('Formulário salvo com sucesso!');
+      alert('Adesão Edital salva com sucesso!');
       setFormData(initialFormState);
     } else {
-      alert(`Erro ao salvar formulário: ${error.message || error.details || 'Erro desconhecido'}`);
+      alert(`Erro ao salvar adesão edital: ${error.message || error.details || 'Erro desconhecido'}`);
       console.error('Supabase insert error:', error);
     }
     
@@ -113,7 +113,7 @@ export default function FormularioEmenda() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">
-            Novo Formulário
+            Nova Adesão Edital
           </p>
           <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">
             Preenchimento de Emenda
@@ -267,7 +267,7 @@ export default function FormularioEmenda() {
             className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-8 py-3 rounded-full text-sm font-bold hover:opacity-90 transition-all shadow-md disabled:opacity-50"
           >
             <Save size={18} />
-            {loading ? 'Salvando...' : 'Salvar Formulário'}
+            {loading ? 'Salvando...' : 'Salvar Adesão Edital'}
           </button>
         </div>
       </form>

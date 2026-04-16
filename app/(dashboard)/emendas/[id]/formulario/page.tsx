@@ -94,10 +94,10 @@ export default function FormularioEmenda({ params }: { params: Promise<{ id: str
         .eq('id_emenda', id);
       
       if (!error) {
-        alert('Formulário atualizado com sucesso!');
+        alert('Adesão Edital atualizada com sucesso!');
         router.push('/emendas');
       } else {
-        alert('Erro ao atualizar formulário');
+        alert('Erro ao atualizar adesão edital');
       }
     } else {
       const { error } = await supabase
@@ -105,10 +105,10 @@ export default function FormularioEmenda({ params }: { params: Promise<{ id: str
         .insert([payload]);
       
       if (!error) {
-        alert('Formulário salvo com sucesso!');
+        alert('Adesão Edital salva com sucesso!');
         router.push('/emendas');
       } else {
-        alert('Erro ao salvar formulário');
+        alert('Erro ao salvar adesão edital');
       }
     }
     setLoading(false);
@@ -123,7 +123,7 @@ export default function FormularioEmenda({ params }: { params: Promise<{ id: str
           <ArrowLeft size={20} className="text-slate-600" />
         </Link>
         <div>
-          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Formulário da Emenda</p>
+          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Adesão Edital da Emenda</p>
           <h2 className="text-3xl font-black font-headline text-on-surface">
             {emenda ? emenda.objeto : 'Carregando...'}
           </h2>
@@ -249,7 +249,7 @@ export default function FormularioEmenda({ params }: { params: Promise<{ id: str
             className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-8 py-3 rounded-full text-sm font-bold hover:opacity-90 transition-all shadow-md disabled:opacity-50"
           >
             <Save size={18} />
-            {loading ? 'Salvando...' : 'Salvar Formulário'}
+            {loading ? 'Salvando...' : 'Salvar Adesão Edital'}
           </button>
         </div>
       </form>
