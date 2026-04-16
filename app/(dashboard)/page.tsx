@@ -11,20 +11,21 @@ export default function Home() {
   const { selectedDeputado } = useDeputado();
 
   const handleShare = async () => {
+    const publicUrl = `${window.location.origin}/p/${selectedDeputado?.id}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `Painel do Deputado ${selectedDeputado?.nome || ''}`,
           text: 'Confira as iniciativas e emendas no Democracia Digital.',
-          url: window.location.href,
+          url: publicUrl,
         });
       } catch (error) {
         console.error('Error sharing:', error);
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado para a área de transferência!');
+      navigator.clipboard.writeText(publicUrl);
+      alert('Link público copiado para a área de transferência!');
     }
   };
 

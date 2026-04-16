@@ -42,7 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading) {
-      if (!user && pathname !== '/login') {
+      const isPublicRoute = pathname?.startsWith('/p/');
+      if (!user && pathname !== '/login' && !isPublicRoute) {
         router.push('/login');
       } else if (user && pathname === '/login') {
         router.push('/');
@@ -92,6 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const hasPermission = (menu: string) => {
+    const isPublicRoute = pathname?.startsWith('/p/');
+    if (isPublicRoute) {
+      return menu === '/' || menu === '/mapa' || menu === '/formularios';
+    }
     if (!user) return false;
     if (user.is_admin) return true;
     if (menu === '/' || menu === '/formularios') return true; // Always allowed

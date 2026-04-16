@@ -10,20 +10,24 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   const { selectedDeputado } = useDeputado();
   const { logout, hasPermission, user } = useAuth();
 
-  const navItems = [
-    { href: '/', icon: LayoutDashboard, label: 'Visão Geral', disabled: false },
-    { href: '/mapa', icon: MapPin, label: 'Visão Mapa', disabled: false },
-    { href: '/emendas', icon: Receipt, label: 'Minhas Emendas', disabled: false },
-    { href: '/formularios', icon: ClipboardList, label: 'Formulários', disabled: false },
-    { href: '/projetos', icon: FileText, label: 'Meus Projetos', disabled: false },
-    { href: '/relatorios', icon: BarChart3, label: 'Relatórios', disabled: true },
-  ].filter(item => hasPermission(item.href));
+  const isPublicRoute = pathname?.startsWith('/p/');
+  const publicId = isPublicRoute ? pathname.split('/')[2] : '';
+  const basePath = isPublicRoute ? `/p/${publicId}` : '';
 
-  if (user?.is_admin || hasPermission('/perfis')) {
-    navItems.push({ href: '/perfis', icon: Shield, label: 'Perfis', disabled: false });
+  const navItems = [
+    { href: basePath || '/', icon: LayoutDashboard, label: 'Visão Geral', disabled: false, id: '/' },
+    { href: `${basePath}/mapa`, icon: MapPin, label: 'Visão Mapa', disabled: false, id: '/mapa' },
+    { href: `${basePath}/emendas`, icon: Receipt, label: 'Minhas Emendas', disabled: false, id: '/emendas' },
+    { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Formulários', disabled: false, id: '/formularios' },
+    { href: `${basePath}/projetos`, icon: FileText, label: 'Meus Projetos', disabled: false, id: '/projetos' },
+    { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: true, id: '/relatorios' },
+  ].filter(item => hasPermission(item.id));
+
+  if (!isPublicRoute && (user?.is_admin || hasPermission('/perfis'))) {
+    navItems.push({ href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' });
   }
-  if (user?.is_admin || hasPermission('/usuarios')) {
-    navItems.push({ href: '/usuarios', icon: Users, label: 'Usuários', disabled: false });
+  if (!isPublicRoute && (user?.is_admin || hasPermission('/usuarios'))) {
+    navItems.push({ href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' });
   }
 
   const handleLogout = async () => {
@@ -60,7 +64,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
         
         <nav className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const isActive = pathname === item.href || (item.href !== '/' && item.href !== basePath && pathname.startsWith(item.href + '/'));
             const Icon = item.icon;
             
             if (item.disabled) {
@@ -95,12 +99,12 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
         </nav>
         
         <div className="mt-4 space-y-2">
-          {hasPermission('/emendas') && (
+          {!isPublicRoute && hasPermission('/emendas') && (
             <Link href="/emendas/nova" className="w-full py-3 bg-primary text-on-primary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
               Nova Emenda
             </Link>
           )}
-          {hasPermission('/projetos') && (
+          {!isPublicRoute && hasPermission('/projetos') && (
             <Link href="/projetos/novo" className="w-full py-3 bg-secondary text-on-secondary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
               Novo Projeto
             </Link>
@@ -108,18 +112,20 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
         </div>
       </div>
       
-      <div className="px-4 space-y-1 mt-6">
-        {(user?.is_admin || hasPermission('/configuracoes')) && (
-          <Link href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
-            <Settings size={20} />
-            <span>Configurações</span>
-          </Link>
-        )}
-        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
-          <LogOut size={20} />
-          <span>Sair</span>
-        </button>
-      </div>
+      {!isPublicRoute && (
+        <div className="px-4 space-y-1 mt-6">
+          {(user?.is_admin || hasPermission('/configuracoes')) && (
+            <Link href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
+              <Settings size={20} />
+              <span>Configurações</span>
+            </Link>
+          )}
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
+            <LogOut size={20} />
+            <span>Sair</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

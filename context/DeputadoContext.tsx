@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { usePathname } from 'next/navigation';
 
 type Deputado = {
   id: string;
@@ -33,10 +34,22 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
   const [selectedDeputado, setSelectedDeputado] = useState<Deputado | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
     async function fetchDeputados() {
-      if (!user) {
+      // Check if it's a public route: /p/[id]
+      const isPublicRoute = pathname?.startsWith('/p/');
+      let publicId = null;
+      
+      if (isPublicRoute) {
+        const parts = pathname.split('/');
+        if (parts.length >= 3) {
+          publicId = parts[2]; // /p/[id]/...
+        }
+      }
+
+      if (!isPublicRoute && !user) {
         setDeputados([]);
         setSelectedDeputado(null);
         setLoading(false);
@@ -47,7 +60,9 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
         .from('deputado')
         .select('*, partidos(sigla, nome, cor_primaria, cor_secundaria, cor_terciaria)');
       
-      if (!user.is_admin && user.id_deputado) {
+      if (isPublicRoute && publicId) {
+        query = query.eq('id', publicId);
+      } else if (!user?.is_admin && user?.id_deputado) {
         query = query.eq('id', user.id_deputado);
       }
 
@@ -59,12 +74,14 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
           // Find the default deputy, or fallback to the first one
           const defaultDeputado = data.find(d => d.is_default) || data[0];
           setSelectedDeputado(defaultDeputado);
+        } else if (isPublicRoute) {
+          setSelectedDeputado(null);
         }
       }
       setLoading(false);
     }
     fetchDeputados();
-  }, [user]);
+  }, [user, pathname]);
 
   // Apply theme colors when selectedDeputado changes
   useEffect(() => {

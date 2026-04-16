@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Search, Bell, UserCircle, ChevronDown } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { Logo } from '@/components/Logo';
@@ -9,6 +9,8 @@ export function Topbar() {
   const { deputados, selectedDeputado, setSelectedDeputado } = useDeputado();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const pathname = usePathname();
+  const isPublicRoute = pathname?.startsWith('/p/');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +28,8 @@ export function Topbar() {
         <span className="hidden md:block text-slate-500 font-medium text-sm">Painel do Parlamentar</span>
       </div>
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Deputado Selector - Only show if there are multiple deputies */}
-        {deputados.length > 1 && (
+        {/* Deputado Selector - Only show if there are multiple deputies and not public route */}
+        {!isPublicRoute && deputados.length > 1 && (
           <div className="relative flex items-center bg-white rounded-lg px-2 md:px-3 py-1.5 border border-slate-200 shadow-sm max-w-[120px] md:max-w-none">
             <select 
               className="bg-transparent border-none focus:ring-0 text-xs md:text-sm font-bold text-on-surface outline-none cursor-pointer appearance-none pr-6 w-full truncate"
@@ -48,24 +50,28 @@ export function Topbar() {
           </div>
         )}
 
-        <form onSubmit={handleSearch} className="hidden lg:flex relative items-center bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-1.5 w-64 border border-slate-200 dark:border-slate-800">
-          <Search className="text-slate-400" size={16} />
-          <input 
-            className="bg-transparent border-none focus:ring-0 text-sm w-full font-body placeholder:text-slate-400 ml-2 outline-none" 
-            placeholder="Buscar emendas e projetos..." 
-            type="text" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
-        <div className="flex gap-1">
-          <button className="hidden md:block p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
-            <Bell size={20} />
-          </button>
-          <button className="p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
-            <UserCircle size={20} />
-          </button>
-        </div>
+        {!isPublicRoute && (
+          <>
+            <form onSubmit={handleSearch} className="hidden lg:flex relative items-center bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-1.5 w-64 border border-slate-200 dark:border-slate-800">
+              <Search className="text-slate-400" size={16} />
+              <input 
+                className="bg-transparent border-none focus:ring-0 text-sm w-full font-body placeholder:text-slate-400 ml-2 outline-none" 
+                placeholder="Buscar emendas e projetos..." 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
+            <div className="flex gap-1">
+              <button className="hidden md:block p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
+                <Bell size={20} />
+              </button>
+              <button className="p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
+                <UserCircle size={20} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </header>
   );
