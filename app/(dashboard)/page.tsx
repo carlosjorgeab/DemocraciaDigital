@@ -11,7 +11,8 @@ export default function Home() {
   const { selectedDeputado } = useDeputado();
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/p/${selectedDeputado?.id}`;
+    const publicIdentifier = selectedDeputado?.slug || selectedDeputado?.id;
+    const publicUrl = `${window.location.origin}/p/${publicIdentifier}`;
     if (navigator.share) {
       try {
         await navigator.share({

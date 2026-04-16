@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 type Deputado = {
   id: string;
   nome: string;
+  slug?: string;
   id_partido: string;
   estado: string;
   foto_url: string;
@@ -61,7 +62,13 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
         .select('*, partidos(sigla, nome, cor_primaria, cor_secundaria, cor_terciaria)');
       
       if (isPublicRoute && publicId) {
-        query = query.eq('id', publicId);
+        // Try to match by slug first, or fallback to id if it's a valid UUID
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(publicId);
+        if (isUuid) {
+          query = query.eq('id', publicId);
+        } else {
+          query = query.eq('slug', publicId);
+        }
       } else if (!user?.is_admin && user?.id_deputado) {
         query = query.eq('id', user.id_deputado);
       }
