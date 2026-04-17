@@ -116,24 +116,36 @@ export function StateMap() {
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove();
 
+        const g = svg.append('g');
+
+        // Zoom behavior
+        const zoom = d3.zoom<SVGSVGElement, unknown>()
+          .scaleExtent([1, 8])
+          .on('zoom', (event) => {
+            g.attr('transform', event.transform);
+          });
+        
+        (svg as any).call(zoom);
+
         // Use fitExtent to add padding and ensure the state is fully visible and centered
-        const projection = d3.geoMercator().fitExtent([[40, 40], [width - 40, height - 40]], geoData);
+        const projection = d3.geoMercator().fitExtent([[40, 40], [width - 40, height - 80]], geoData);
         const path = d3.geoPath().projection(projection);
 
-        // Color scale for choropleth
+        // Color scale for choropleth (Portal da Transparência style: LightBlue to DarkBlue)
         const maxVal = (d3.max(geoData.features, (d: any) => d.properties.value as number) || 1) as number;
-        const colorScale = d3.scaleLinear<string>()
-          .domain([0, maxVal])
-          .range(['#e2e8f0', '#1d4ed8']); // Light slate to dark blue
+        
+        // Define a nice sequential colormap
+        const colorScale = d3.scaleThreshold<number, string>()
+          .domain([1, maxVal * 0.1, maxVal * 0.3, maxVal * 0.6, maxVal])
+          .range(['#f8fafc', '#dbeafe', '#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a8a']);
 
         // Draw municipalities
-        svg.append('g')
-          .selectAll('path')
+        g.selectAll('path')
           .data(geoData.features)
           .enter()
           .append('path')
           .attr('d', path as any)
-          .attr('fill', (d: any) => d.properties.value > 0 ? colorScale(d.properties.value) : '#f8fafc') // Lighter for 0
+          .attr('fill', (d: any) => d.properties.value > 0 ? colorScale(d.properties.value) : '#f8fafc')
           .attr('stroke', '#cbd5e1')
           .attr('stroke-width', 0.5)
           .style('cursor', 'pointer')
@@ -145,8 +157,6 @@ export function StateMap() {
               .raise(); // Bring to front
             
             const formatCurrency = (val: number) => {
-              if (val >= 1000000) return `R$ ${(val / 1000000).toFixed(1)}M`;
-              if (val >= 1000) return `R$ ${(val / 1000).toFixed(1)}K`;
               return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
             };
             
@@ -185,7 +195,7 @@ export function StateMap() {
           .sort((a: any, b: any) => b.properties.value - a.properties.value)
           .slice(0, 5); // Top 5
 
-        const labels = svg.append('g').attr('class', 'labels');
+        const labels = g.append('g').attr('class', 'labels');
         
         topMunicipalities.forEach((d: any) => {
           const centroid = path.centroid(d);
@@ -196,22 +206,24 @@ export function StateMap() {
             };
             const percentage = totalStateValue > 0 ? Math.round((d.properties.value / totalStateValue) * 100) : 0;
 
-            const g = labels.append('g')
-              .attr('transform', `translate(${centroid[0]},${centroid[1]})`);
+            const labelGroup = labels.append('g')
+              .attr('transform', `translate(${centroid[0]},${centroid[1]})`)
+              .style('pointer-events', 'none'); // Prevent blocking tooltips
 
             // Label background
-            g.append('rect')
+            labelGroup.append('rect')
               .attr('x', -40)
               .attr('y', -20)
               .attr('width', 80)
               .attr('height', 40)
-              .attr('fill', 'rgba(255, 255, 255, 0.9)')
+              .attr('fill', 'rgba(255, 255, 255, 0.95)')
               .attr('rx', 4)
-              .attr('stroke', '#e2e8f0')
-              .attr('stroke-width', 1);
+              .attr('stroke', '#cbd5e1')
+              .attr('stroke-width', 1)
+              .style('box-shadow', '0 1px 2px rgba(0,0,0,0.1)');
 
             // City name
-            g.append('text')
+            labelGroup.append('text')
               .attr('text-anchor', 'middle')
               .attr('y', -6)
               .attr('fill', '#0f172a')
@@ -220,7 +232,7 @@ export function StateMap() {
               .text(d.properties.name);
 
             // Value
-            g.append('text')
+            labelGroup.append('text')
               .attr('text-anchor', 'middle')
               .attr('y', 6)
               .attr('fill', '#1d4ed8')
@@ -229,14 +241,80 @@ export function StateMap() {
               .text(formatCurrency(d.properties.value));
 
             // Percentage
-            g.append('text')
+            labelGroup.append('text')
               .attr('text-anchor', 'middle')
               .attr('y', 16)
               .attr('fill', '#64748b')
               .attr('font-size', '8px')
-              .text(`Percen: ${percentage}%`);
+              .text(`Participação: ${percentage}%`);
           }
         });
+
+        // Add Legend
+        const legendWidth = 200;
+        const legendHeight = 10;
+        
+        const legend = svg.append('g')
+          .attr('class', 'legend')
+          .attr('transform', `translate(20, ${height - 40})`);
+          
+        const legendScale = d3.scaleLinear()
+          .domain([0, maxVal])
+          .range([0, legendWidth]);
+          
+        const defs = svg.append("defs");
+        const linearGradient = defs.append("linearGradient")
+            .attr("id", "linear-gradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "0%");
+
+        linearGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "#f8fafc");
+            
+        linearGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#1e3a8a");
+
+        legend.append("rect")
+            .attr("width", legendWidth)
+            .attr("height", legendHeight)
+            .style("fill", "url(#linear-gradient)")
+            .attr("stroke", "#cbd5e1")
+            .attr("stroke-width", 0.5)
+            .attr("rx", 2);
+
+        const formatLegendValues = (val: number) => {
+            if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
+            if (val >= 1000) return `${(val / 1000).toFixed(1)}K`;
+            return val.toString();
+        };
+
+        const legendAxis = d3.axisBottom(legendScale)
+          .ticks(5)
+          .tickFormat(d => formatLegendValues(d as number));
+          
+        legend.append("g")
+          .attr("transform", `translate(0, ${legendHeight})`)
+          .call(legendAxis)
+          .select(".domain").remove();
+          
+        legend.append("text")
+          .attr("y", -6)
+          .attr("font-size", "12px")
+          .attr("font-weight", "bold")
+          .attr("fill", "#475569")
+          .text("Volume de Recursos (R$)");
+
+        // Set up zoom controls state (not react state, just D3 methods)
+        (window as any).__zoomMap = (factor: number) => {
+          (svg as any).transition().duration(300).call(zoom.scaleBy, factor);
+        };
+        (window as any).__resetZoom = () => {
+          (svg as any).transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+        };
 
       } catch (err) {
         console.error("Error drawing map:", err);
@@ -251,7 +329,32 @@ export function StateMap() {
   return (
     <div ref={containerRef} className="relative w-full h-full flex items-center justify-center bg-slate-50 overflow-hidden">
       {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10 text-sm text-slate-500 font-medium">Carregando mapa do estado...</div>}
-      <svg ref={svgRef} viewBox="0 0 800 600" className="w-full h-full" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg ref={svgRef} viewBox="0 0 800 600" className="w-full h-full cursor-grab active:cursor-grabbing" preserveAspectRatio="xMidYMid meet"></svg>
+
+      {/* Zoom Controls */}
+      <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden z-20">
+        <button 
+          onClick={() => (window as any).__zoomMap && (window as any).__zoomMap(1.5)}
+          className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 border-b border-slate-200 font-bold"
+          title="Zoom In"
+        >
+          +
+        </button>
+        <button 
+          onClick={() => (window as any).__zoomMap && (window as any).__zoomMap(0.667)}
+          className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 border-b border-slate-200 font-bold"
+          title="Zoom Out"
+        >
+          -
+        </button>
+        <button 
+          onClick={() => (window as any).__resetZoom && (window as any).__resetZoom()}
+          className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 text-xs font-bold"
+          title="Reset Zoom"
+        >
+          R
+        </button>
+      </div>
       
       {tooltip.show && (
         <div 
