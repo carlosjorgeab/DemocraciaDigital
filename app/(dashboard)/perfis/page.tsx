@@ -29,18 +29,19 @@ export default function PerfisPage() {
   const [currentPerfil, setCurrentPerfil] = useState<Partial<Perfil>>({ nome: '', permissoes: [] });
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchPerfis();
-  }, []);
-
-  const fetchPerfis = async () => {
+  async function fetchPerfis() {
     setLoading(true);
     const { data, error } = await supabase.from('perfis').select('*').order('created_at', { ascending: false });
     if (!error && data) {
       setPerfis(data);
     }
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    fetchPerfis();
+  }, []);
 
   const handleSave = async () => {
     if (!currentPerfil.nome) {

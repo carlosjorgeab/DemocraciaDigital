@@ -32,11 +32,7 @@ export default function UsuariosPage() {
   });
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     
     // Fetch users
@@ -56,7 +52,12 @@ export default function UsuariosPage() {
     }
 
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    fetchData();
+  }, []);
 
   const handleSave = async () => {
     if (!currentUser.email) {

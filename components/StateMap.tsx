@@ -20,6 +20,9 @@ export function StateMap() {
   const [loading, setLoading] = useState(true);
   const [tooltip, setTooltip] = useState<{ show: boolean, x: number, y: number, name: string, pop: string, value: string, percentage?: string, lat?: number, lng?: number }>({ show: false, x: 0, y: 0, name: '', pop: '', value: '' });
 
+  const zoomBehaviorRef = useRef<any>(null);
+  const svgSelectionRef = useRef<any>(null);
+
   useEffect(() => {
     if (!selectedDeputado?.estado) return;
 
@@ -125,6 +128,9 @@ export function StateMap() {
             g.attr('transform', event.transform);
           });
         
+        zoomBehaviorRef.current = zoom;
+        svgSelectionRef.current = svg;
+
         (svg as any).call(zoom);
 
         // Use fitExtent to add padding and ensure the state is fully visible and centered
@@ -308,13 +314,8 @@ export function StateMap() {
           .attr("fill", "#475569")
           .text("Volume de Recursos (R$)");
 
-        // Set up zoom controls state (not react state, just D3 methods)
-        (window as any).__zoomMap = (factor: number) => {
-          (svg as any).transition().duration(300).call(zoom.scaleBy, factor);
-        };
-        (window as any).__resetZoom = () => {
-          (svg as any).transition().duration(300).call(zoom.transform, d3.zoomIdentity);
-        };
+        // Set up zoom controls state using refs
+        // Clean up previous refs on unmount if necessary, but here we just overwrite them.
 
       } catch (err) {
         console.error("Error drawing map:", err);
@@ -334,21 +335,33 @@ export function StateMap() {
       {/* Zoom Controls */}
       <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden z-20">
         <button 
-          onClick={() => (window as any).__zoomMap && (window as any).__zoomMap(1.5)}
+          onClick={() => {
+            if (svgSelectionRef.current && zoomBehaviorRef.current) {
+              svgSelectionRef.current.transition().duration(300).call(zoomBehaviorRef.current.scaleBy, 1.5);
+            }
+          }}
           className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 border-b border-slate-200 font-bold"
           title="Zoom In"
         >
           +
         </button>
         <button 
-          onClick={() => (window as any).__zoomMap && (window as any).__zoomMap(0.667)}
+          onClick={() => {
+            if (svgSelectionRef.current && zoomBehaviorRef.current) {
+              svgSelectionRef.current.transition().duration(300).call(zoomBehaviorRef.current.scaleBy, 0.667);
+            }
+          }}
           className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 border-b border-slate-200 font-bold"
           title="Zoom Out"
         >
           -
         </button>
         <button 
-          onClick={() => (window as any).__resetZoom && (window as any).__resetZoom()}
+          onClick={() => {
+            if (svgSelectionRef.current && zoomBehaviorRef.current) {
+              svgSelectionRef.current.transition().duration(300).call(zoomBehaviorRef.current.transform, d3.zoomIdentity);
+            }
+          }}
           className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 text-xs font-bold"
           title="Reset Zoom"
         >

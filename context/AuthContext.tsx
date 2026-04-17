@@ -35,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check local storage for session
     const storedUser = localStorage.getItem('democracia_user');
     if (storedUser) {
+      // eslint-disable-next-line
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
