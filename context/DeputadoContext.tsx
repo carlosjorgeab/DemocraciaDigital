@@ -44,8 +44,8 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
       let publicId = null;
       
       if (isPublicRoute) {
-        const parts = pathname.split('/');
-        if (parts.length >= 3) {
+        const parts = pathname?.split('/');
+        if (parts && parts.length >= 3) {
           publicId = parts[2]; // /p/[id]/...
         }
       }

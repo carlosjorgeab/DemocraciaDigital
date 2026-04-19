@@ -1,5 +1,6 @@
-import EmendaForm from '../../nova/page';
+import EmendaForm from '@/components/forms/EmendaForm';
 
-export default function EditarEmenda({ params }: { params: Promise<{ id: string }> }) {
-  return <EmendaForm params={params} />;
+export default async function EditarEmenda({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <EmendaForm id={id} />;
 }

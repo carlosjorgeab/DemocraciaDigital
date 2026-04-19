@@ -8,7 +8,7 @@ import { FileText, Receipt, Search } from 'lucide-react';
 
 function BuscaContent() {
   const searchParams = useSearchParams();
-  const q = searchParams.get('q') || '';
+  const q = searchParams?.get('q') || '';
   const { selectedDeputado } = useDeputado();
   
   const [emendas, setEmendas] = useState<any[]>([]);

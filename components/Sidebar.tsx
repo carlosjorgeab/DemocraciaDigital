@@ -11,7 +11,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   const { logout, hasPermission, user } = useAuth();
 
   const isPublicRoute = pathname?.startsWith('/p/');
-  const publicId = isPublicRoute ? pathname.split('/')[2] : '';
+  const publicId = isPublicRoute ? pathname?.split('/')[2] : '';
   const basePath = isPublicRoute ? `/p/${publicId}` : '';
 
   const navItems = [
@@ -64,7 +64,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
         
         <nav className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/' && item.href !== basePath && pathname.startsWith(item.href + '/'));
+            const isActive = pathname === item.href || (item.href !== '/' && item.href !== basePath && pathname?.startsWith(item.href + '/'));
             const Icon = item.icon;
             
             if (item.disabled) {

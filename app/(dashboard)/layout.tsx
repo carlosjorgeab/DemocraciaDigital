@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   // Check if user has permission for the current route
-  const baseRoute = '/' + pathname.split('/')[1];
+  const baseRoute = '/' + pathname?.split('/')[1];
   if (baseRoute !== '/' && !hasPermission(baseRoute)) {
     return (
       <>
