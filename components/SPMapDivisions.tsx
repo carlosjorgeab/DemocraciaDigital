@@ -27,7 +27,7 @@ interface CityStats {
   projetos: number;
 }
 
-export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | null) => void; onBack: () => void }) {
+export function SPMapDivisions({ onHover, onBack, selectedYears = [] }: { onHover?: (name: string | null) => void; onBack: () => void; selectedYears?: number[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { selectedDeputado } = useDeputado();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor').like('municipio', '%- SP');
+        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').like('municipio', '%- SP');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -65,6 +65,9 @@ export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
         const { data: emendasData } = await orcQuery;
         if (emendasData) {
           emendasData.forEach(item => {
+            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
+            if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
+
             if (item.municipio) {
                const cityName = item.municipio.split(' - ')[0].trim();
                if (!stats[cityName]) stats[cityName] = { populacao: 0, emendas: 0, projetos: 0 };
@@ -74,7 +77,7 @@ export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
         }
         
         // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto').like('municipio', '%- SP');
+        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').like('municipio', '%- SP');
         if (selectedDeputado?.id) {
           projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -82,6 +85,9 @@ export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
         const { data: projetosData } = await projQuery;
         if (projetosData) {
            projetosData.forEach(item => {
+            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
+            if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
+
             if (item.municipio) {
                const cityName = item.municipio.split(' - ')[0].trim();
                if (!stats[cityName]) stats[cityName] = { populacao: 0, emendas: 0, projetos: 0 };
@@ -99,7 +105,7 @@ export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
     }
     
     loadStats();
-  }, [selectedDeputado?.id]);
+  }, [selectedDeputado?.id, selectedYears]);
 
   // Handle dynamic range calculation for heat map
   const nonZeroTotals = Object.values(mapStats)
@@ -128,17 +134,20 @@ export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
     const total = (mapStats[cityName].emendas || 0) + (mapStats[cityName].projetos || 0);
     if (total <= 0) return null;
     if (thresholds.length === 0) return null;
-    if (thresholds.length === 1) return 1.0; // Everyone is equal
     
-    if (total <= thresholds[0]) return 0.25;
-    if (total <= thresholds[1]) return 0.50;
-    if (total <= thresholds[2]) return 0.75;
+    // Exact match for thresholds if only one
+    if (thresholds.length === 1) return 1.0;
+    
+    // Find the range
+    if (total <= thresholds[0]) return 0.3;
+    if (total <= thresholds[1]) return 0.55;
+    if (total <= thresholds[2]) return 0.8;
     return 1.0;
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-2 duration-500">
-      <div className="w-full flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
+    <div className="w-full flex md:p-6 flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="w-full flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6 px-4">
         <button 
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
@@ -232,53 +241,61 @@ export function SPMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
         </div>
         
         {/* Info Legend */}
-        <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-sm pl-4 pr-6 py-4 rounded-xl shadow-lg border border-slate-200 z-10 scale-90 sm:scale-100 origin-bottom-right">
-            <h4 className="font-bold text-slate-700 mb-3 uppercase tracking-widest text-[10px]">São Paulo</h4>
+        <div className="absolute bottom-4 right-4 bg-white/60 hover:bg-white/95 transition-all backdrop-blur-xl pl-3 pr-4 py-3 rounded-2xl shadow-xl border border-slate-200/40 z-20 scale-75 sm:scale-90 origin-bottom-right pointer-events-auto group">
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-200/30">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <h4 className="font-black text-slate-800 uppercase tracking-[0.2em] text-[9px]">Classificação de Recursos</h4>
+            </div>
             
             {loadingStats ? (
-                <div className="flex items-center gap-2 text-xs text-slate-500 my-2">
+                <div className="flex items-center gap-2 text-[10px] text-slate-500 my-2 font-bold italic">
                     <Loader2 className="w-3 h-3 animate-spin text-primary" />
-                    Carregando dados dos municípios...
+                    Sincronizando...
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800 bg-slate-200"></div>
-                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Sem Recursos</span>
+                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-400 bg-slate-200"></div>
+                    <span className="text-slate-500 text-[10px] font-bold">Sem Destinação</span>
                   </div>
                   
                   {thresholds.length === 4 && (
                     <>
                       <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.25 }}></div>
-                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[0])}</span>
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-700 bg-primary opacity-30"></div>
+                        <span className="text-slate-700 text-[10px] font-bold">Até {formatCompact(thresholds[0])}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.50 }}></div>
-                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[1])}</span>
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-700 bg-primary opacity-55"></div>
+                        <span className="text-slate-700 text-[10px] font-bold">Até {formatCompact(thresholds[1])}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.75 }}></div>
-                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[2])}</span>
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-700 bg-primary opacity-80"></div>
+                        <span className="text-slate-700 text-[10px] font-bold">Até {formatCompact(thresholds[2])}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 1.0 }}></div>
-                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[3])}</span>
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-700 bg-primary"></div>
+                        <span className="text-slate-700 text-[10px] font-bold">Acima de {formatCompact(thresholds[2])}</span>
                       </div>
                     </>
                   )}
                   {thresholds.length === 1 && (
                       <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)' }}></div>
-                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">{formatCompact(thresholds[0])}</span>
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-700 bg-primary"></div>
+                        <span className="text-slate-700 text-[10px] font-bold">{formatCompact(thresholds[0])}</span>
                       </div>
+                  )}
+                  {thresholds.length === 0 && !loadingStats && (
+                    <div className="text-[10px] text-slate-400 font-medium">Nenhum recurso no período</div>
                   )}
                 </div>
             )}
             
-            <p className="text-[10px] text-slate-400 mt-4 max-w-[180px] leading-tight">
-              Os dados geográficos oficiais do IBGE para o RS foram compilados diretamente no app.
-            </p>
+            <div className="mt-4 pt-2 border-t border-slate-200/30">
+               <p className="text-[8px] text-slate-400 uppercase tracking-tighter leading-tight font-bold">
+                 Base: Municípios {activeUF.toUpperCase()} • IBGE 2024
+               </p>
+            </div>
         </div>
       </div>
     </div>

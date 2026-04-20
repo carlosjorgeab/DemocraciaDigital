@@ -18,6 +18,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
   const [formData, setFormData] = useState({
+    data: new Date().toISOString().split('T')[0],
     descricao: '',
     ementa: '',
     tipo: 'Projeto de Lei Ordinária (PL)',
@@ -62,6 +63,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
         const { data: projetoData } = await supabase.from('projetos').select('*').eq('id', resolvedParams.id).single();
         if (projetoData) {
           setFormData({
+            data: projetoData.data || new Date().toISOString().split('T')[0],
             descricao: projetoData.descricao,
             ementa: projetoData.ementa || '',
             tipo: projetoData.tipo || 'Projeto de Lei Ordinária (PL)',
@@ -223,6 +225,17 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
               <option value="Sanção">Sanção</option>
               <option value="Execução">Execução</option>
             </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Data do Projeto</label>
+            <input 
+              required
+              type="date" 
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+              value={formData.data}
+              onChange={e => setFormData({...formData, data: e.target.value})}
+            />
           </div>
         </div>
 

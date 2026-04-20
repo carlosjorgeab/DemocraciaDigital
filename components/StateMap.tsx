@@ -186,7 +186,7 @@ function StateDetailMap({ uf, onBack }: { uf: string; onBack: () => void }) {
   );
 }
 
-export function StateMap() {
+export function StateMap({ selectedYears = [] }: { selectedYears?: number[] }) {
   const { selectedDeputado } = useDeputado();
   const [activeUF, setActiveUF] = useState('');
   const [viewMode, setViewMode] = useState<'brasil' | 'estado'>('brasil');
@@ -223,10 +223,10 @@ export function StateMap() {
 
   if (viewMode === 'estado' && activeUF) {
     if (activeUF === 'rs') {
-      return <RSMapDivisions onBack={() => setViewMode('brasil')} />;
+      return <RSMapDivisions onBack={() => setViewMode('brasil')} selectedYears={selectedYears} />;
     }
     if (activeUF === 'sp') {
-      return <SPMapDivisions onBack={() => setViewMode('brasil')} />;
+      return <SPMapDivisions onBack={() => setViewMode('brasil')} selectedYears={selectedYears} />;
     }
     return <StateDetailMap uf={activeUF} onBack={() => setViewMode('brasil')} />;
   }
