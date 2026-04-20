@@ -124,9 +124,9 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
                           key={path.id}
                           id={path.id}
                           d={path.d}
-                          fill="var(--color-primary, #d80000)"
-                          fillOpacity={hoveredId === path.id ? 1 : 0.8}
-                          stroke="#ffffff"
+                          fill={hoveredId === path.id ? "var(--color-primary, #d80000)" : "#e2e8f0"} // slate-200
+                          fillOpacity={1}
+                          stroke="#1e293b" // slate-800 for dark gray/black borders
                           strokeWidth={hoveredId === path.id ? "1.5" : "0.5"}
                           className="transition-all duration-200 cursor-pointer"
                           onMouseEnter={() => {
@@ -197,8 +197,12 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
             ) : (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-md shadow-sm border border-black/5" style={{ backgroundColor: 'var(--color-primary, #d80000)' }}></div>
+                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800 bg-slate-200"></div>
                     <span className="text-slate-600 text-xs font-semibold">{rsPaths.length} Municípios</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)' }}></div>
+                    <span className="text-slate-600 text-xs font-semibold">Município selecionado</span>
                   </div>
                 </div>
             )}
