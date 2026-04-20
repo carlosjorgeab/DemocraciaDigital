@@ -54,7 +54,11 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
         .eq('id_deputado', selectedDeputado.id);
       if (projetosData) setProjetos(projetosData);
 
-      const { data: municipiosData } = await supabase.from('municipio').select('*, unidade_federacao(sigla)');
+      const { data: municipiosData } = await supabase
+        .from('municipio')
+        .select('*, unidade_federacao!inner(sigla)')
+        .eq('unidade_federacao.sigla', selectedDeputado.estado)
+        .order('nome');
       if (municipiosData) setMunicipios(municipiosData);
 
       if (isEditing) {
@@ -171,9 +175,7 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
               onChange={e => setFormData({...formData, municipio: e.target.value})}
             >
               <option value="" disabled>Selecione um município</option>
-              {municipios
-                .filter(mun => !selectedDeputado || mun.unidade_federacao?.sigla === selectedDeputado.estado)
-                .map(mun => (
+              {municipios.map(mun => (
                 <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
                   {mun.nome} - {mun.unidade_federacao?.sigla}
                 </option>

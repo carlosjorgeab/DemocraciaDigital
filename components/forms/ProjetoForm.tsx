@@ -46,10 +46,16 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
 
   useEffect(() => {
     async function fetchData() {
+      if (!selectedDeputado) return;
+      
       const { data: areasData } = await supabase.from('areas_tematicas').select('*');
       if (areasData) setAreas(areasData);
 
-      const { data: municipiosData } = await supabase.from('municipio').select('*, unidade_federacao(sigla)');
+      const { data: municipiosData } = await supabase
+        .from('municipio')
+        .select('*, unidade_federacao!inner(sigla)')
+        .eq('unidade_federacao.sigla', selectedDeputado.estado)
+        .order('nome');
       if (municipiosData) setMunicipios(municipiosData);
 
       if (isEditing) {
@@ -71,7 +77,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
       }
     }
     fetchData();
-  }, [isEditing, resolvedParams?.id]);
+  }, [isEditing, resolvedParams?.id, selectedDeputado]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -169,9 +175,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
               onChange={e => setFormData({...formData, municipio: e.target.value})}
             >
               <option value="" disabled>Selecione um município</option>
-              {municipios
-                .filter(mun => !selectedDeputado || mun.unidade_federacao?.sigla === selectedDeputado.estado)
-                .map(mun => (
+              {municipios.map(mun => (
                 <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
                   {mun.nome} - {mun.unidade_federacao?.sigla}
                 </option>
