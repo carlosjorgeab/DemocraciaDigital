@@ -78,7 +78,12 @@ export default function MapaPage() {
             pList = [];
           }
 
-          const uniqueMun = new Set([...eList.map(e => e.municipio), ...pList.map(p => p.municipio)].filter(Boolean));
+          const normalizeMun = (m: string) => m ? m.split('-')[0].trim().toLowerCase() : '';
+          const uniqueMun = new Set([
+            ...eList.map(e => normalizeMun(e.municipio)), 
+            ...pList.map(p => normalizeMun(p.municipio))
+          ].filter(m => m !== ''));
+          
           const totalE = eList.reduce((acc, curr) => acc + (Number(curr.valor) || 0), 0);
           const totalP = pList.reduce((acc, curr) => acc + (Number(curr.valor_projeto) || 0), 0);
           

@@ -57,41 +57,55 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').like('municipio', '%- RS');
+        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').or(`municipio.like.%- RS,municipio.like.%-RS`);
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
         
-        const { data: emendasData } = await orcQuery;
+        const { data: emendasData, error: eErr } = await orcQuery;
+        if (eErr) console.error("Error fetching emendas map data:", eErr);
+        
         if (emendasData) {
           emendasData.forEach(item => {
             const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {
-               const cityName = item.municipio.split(' - ')[0].trim();
-               if (!stats[cityName]) stats[cityName] = { populacao: 0, emendas: 0, projetos: 0 };
-               stats[cityName].emendas += Number(item.valor || 0);
+               // Normalize city name: split by '-' and trim
+               const cityName = item.municipio.split('-')[0].trim();
+               if (stats[cityName]) {
+                  stats[cityName].emendas += Number(item.valor || 0);
+               } else {
+                  // Try case-insensitive fallback if exact match fails
+                  const cityKey = Object.keys(stats).find(k => k.toLowerCase() === cityName.toLowerCase());
+                  if (cityKey) stats[cityKey].emendas += Number(item.valor || 0);
+               }
             }
           });
         }
         
         // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').like('municipio', '%- RS');
+        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').or(`municipio.like.%- RS,municipio.like.%-RS`);
         if (selectedDeputado?.id) {
           projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
         }
         
-        const { data: projetosData } = await projQuery;
+        const { data: projetosData, error: pErr } = await projQuery;
+        if (pErr) console.error("Error fetching projetos map data:", pErr);
+        
         if (projetosData) {
            projetosData.forEach(item => {
             const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {
-               const cityName = item.municipio.split(' - ')[0].trim();
-               if (!stats[cityName]) stats[cityName] = { populacao: 0, emendas: 0, projetos: 0 };
-               stats[cityName].projetos += Number(item.valor_projeto || 0);
+               const cityName = item.municipio.split('-')[0].trim();
+               if (stats[cityName]) {
+                  stats[cityName].projetos += Number(item.valor_projeto || 0);
+               } else {
+                  const cityKey = Object.keys(stats).find(k => k.toLowerCase() === cityName.toLowerCase());
+                  if (cityKey) stats[cityKey].projetos += Number(item.valor_projeto || 0);
+               }
             }
           });
         }
