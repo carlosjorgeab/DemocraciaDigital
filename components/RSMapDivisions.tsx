@@ -293,7 +293,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
             
             <div className="mt-4 pt-2 border-t border-slate-200/30">
                <p className="text-[8px] text-slate-400 uppercase tracking-tighter leading-tight font-bold">
-                 Base: Municípios {activeUF.toUpperCase()} • IBGE 2024
+                 Base: Municípios RS • IBGE 2024
                </p>
             </div>
         </div>
