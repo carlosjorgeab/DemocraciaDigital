@@ -78,9 +78,14 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
       if (!error && data) {
         setDeputados(data);
         if (data.length > 0) {
-          // Find the default deputy, or fallback to the first one
-          const defaultDeputado = data.find(d => d.is_default) || data[0];
-          setSelectedDeputado(defaultDeputado);
+          setSelectedDeputado((prev) => {
+             // If we already have a selected deputado and it exists in the fetched data, keep it!
+             if (prev && data.some(d => d.id === prev.id)) {
+               return prev;
+             }
+             // Otherwise, fallback to the default or the first one
+             return data.find(d => d.is_default) || data[0];
+          });
         } else if (isPublicRoute) {
           setSelectedDeputado(null);
         }
