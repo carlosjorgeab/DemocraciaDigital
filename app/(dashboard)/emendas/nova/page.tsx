@@ -1,7 +1,6 @@
 'use client';
-
-export const dynamic = 'force-dynamic';
+import EmendaForm from '@/components/forms/EmendaForm';
 
 export default function NovaEmendaPage() {
-  return <div>Nova emenda</div>;
+  return <EmendaForm />;
 }
