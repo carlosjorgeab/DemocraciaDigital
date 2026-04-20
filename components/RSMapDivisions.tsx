@@ -20,6 +20,16 @@ interface CityStats {
   projetos: number;
 }
 
+const getOpacidadeRecursos = (mapStats: Record<string, CityStats>, cityName: string): number | null => {
+  if (!mapStats[cityName]) return null;
+  const total = (mapStats[cityName].emendas || 0) + (mapStats[cityName].projetos || 0);
+  if (total <= 0) return null;
+  if (total <= 500000) return 0.25;
+  if (total <= 750000) return 0.50;
+  if (total <= 1000000) return 0.75;
+  return 1.0;
+};
+
 export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | null) => void; onBack: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { selectedDeputado } = useDeputado();
@@ -119,15 +129,19 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
               >
-                  {rsPaths.map((path) => (
+                  {rsPaths.map((path) => {
+                      const opacidade = getOpacidadeRecursos(mapStats, path.name);
+                      const hasRecursos = opacidade !== null;
+                      
+                      return (
                       <path
                           key={path.id}
                           id={path.id}
                           d={path.d}
-                          fill={hoveredId === path.id ? "var(--color-primary, #d80000)" : "#e2e8f0"} // slate-200
-                          fillOpacity={1}
+                          fill={hoveredId === path.id ? "var(--color-primary, #d80000)" : (hasRecursos ? "var(--color-primary, #d80000)" : "#e2e8f0")}
+                          fillOpacity={hoveredId === path.id ? 1 : (hasRecursos ? opacidade : 1)}
                           stroke="#1e293b" // slate-800 for dark gray/black borders
-                          strokeWidth={hoveredId === path.id ? "1.5" : "0.5"}
+                          strokeWidth={hoveredId === path.id ? "1.5" : (hasRecursos ? "0.8" : "0.5")}
                           className="transition-all duration-200 cursor-pointer"
                           onMouseEnter={() => {
                               setHoveredId(path.id);
@@ -142,7 +156,7 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
                       >
                           <title>{path.name}</title>
                       </path>
-                  ))}
+                  )})}
             </svg>
 
             {/* Tooltip implementation */}
@@ -198,11 +212,27 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800 bg-slate-200"></div>
-                    <span className="text-slate-600 text-xs font-semibold">{rsPaths.length} Municípios</span>
+                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Sem Recursos</span>
                   </div>
+                  
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)' }}></div>
-                    <span className="text-slate-600 text-xs font-semibold">Município selecionado</span>
+                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.25 }}></div>
+                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até R$ 500 Mil</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.50 }}></div>
+                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até R$ 750 Mil</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.75 }}></div>
+                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até R$ 1 Milhão</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 1.0 }}></div>
+                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Acima de R$ 1 Milhão</span>
                   </div>
                 </div>
             )}
