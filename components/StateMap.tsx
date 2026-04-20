@@ -17,56 +17,102 @@ const stateNameToUF: Record<string, string> = {
 function StateDetailMap({ uf, onBack }: { uf: string; onBack: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     const fetchAndRender = async () => {
       if (!uf || !containerRef.current) return;
       setLoading(true);
+      setError(null);
 
       try {
-        const [geoData, namesData] = await Promise.all([
-          fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf.toUpperCase()}?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio`).then(res => res.json()),
-          fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf.toUpperCase()}/municipios`).then(res => res.json())
+        console.log(`Fetching topology for ${uf.toUpperCase()}...`);
+        const [geoUrl, namesUrl] = [
+          `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf.toUpperCase()}?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio`,
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf.toUpperCase()}/municipios`
+        ];
+
+        const [geoRes, namesRes] = await Promise.all([
+          fetch(geoUrl),
+          fetch(namesUrl)
         ]);
 
+        if (!geoRes.ok || !namesRes.ok) {
+          throw new Error(`Failed to fetch mapping data: ${geoRes.status} / ${namesRes.status}`);
+        }
+
+        const geoData = await geoRes.json();
+        const namesData = await namesRes.json();
+
         if (!active || !containerRef.current) return;
+        if (!geoData || !geoData.features) {
+          throw new Error("Invalid GeoJSON data received from IBGE");
+        }
 
         const namesMap = new Map();
         namesData.forEach((m: any) => namesMap.set(m.id.toString(), m.nome));
 
-        const width = 800;
+        const container = containerRef.current;
+        const width = container.clientWidth || 800;
         const height = 500;
 
-        d3.select(containerRef.current).select('svg').remove();
+        d3.select(container).selectAll('*').remove();
 
-        const svg = d3.select(containerRef.current)
+        const svg = d3.select(container)
           .append('svg')
           .attr('viewBox', `0 0 ${width} ${height}`)
-          .attr('class', 'max-w-3xl w-full h-[500px] mx-auto drop-shadow-md');
+          .attr('preserveAspectRatio', 'xMidYMid meet')
+          .attr('class', 'w-full h-full drop-shadow-lg transition-opacity duration-500 opacity-100');
 
         const margin = 20;
-        const fitProjection = d3.geoMercator().fitExtent([[margin, margin], [width - margin, height - margin]], geoData);
-        const pathGenerator = d3.geoPath().projection(fitProjection);
+        const projection = d3.geoMercator().fitExtent([[margin, margin], [width - margin, height - margin]], geoData);
+        const pathGenerator = d3.geoPath().projection(projection);
 
-        svg.append('g')
-          .selectAll('path')
+        // Tooltip div
+        d3.select(container).select('.map-tooltip').remove();
+        const tooltip = d3.select(container)
+          .append('div')
+          .attr('class', 'map-tooltip absolute hidden bg-slate-900 text-white text-xs px-2 py-1 rounded pointer-events-none z-50 shadow-lg border border-white/20');
+
+        const g = svg.append('g');
+
+        g.selectAll('path')
           .data(geoData.features)
           .join('path')
           .attr('d', pathGenerator as any)
-          .attr('fill', 'var(--color-primary)')
-          .attr('stroke', 'var(--color-background)')
+          .attr('fill', '#d80000') // Fallback color
+          .attr('fill', 'var(--color-primary, #d80000)')
+          .attr('stroke', '#ffffff')
           .attr('stroke-width', 0.5)
           .attr('stroke-linejoin', 'round')
           .attr('stroke-linecap', 'round')
-          .attr('class', 'transition-colors duration-200 hover:opacity-80 cursor-pointer')
-          .on('mouseover', function() { d3.select(this).attr('fill', '#0f3c7e') })
-          .on('mouseout', function() { d3.select(this).attr('fill', 'var(--color-primary)') })
-          .append('title')
-          .text((d: any) => namesMap.get(d.properties?.codarea) || "Município");
+          .attr('class', 'transition-all duration-200 hover:opacity-100 cursor-pointer opacity-90')
+          .on('mouseover', function(event, d: any) {
+            const name = namesMap.get(d.properties?.codarea) || "Município";
+            d3.select(this)
+              .attr('stroke-width', 1.5)
+              .attr('opacity', 1)
+              .raise();
+              
+            tooltip.style('display', 'block')
+              .html(name);
+          })
+          .on('mousemove', function(event) {
+            const [x, y] = d3.pointer(event, container);
+            tooltip.style('left', (x + 10) + 'px')
+              .style('top', (y - 25) + 'px');
+          })
+          .on('mouseout', function() {
+            d3.select(this)
+              .attr('stroke-width', 0.5)
+              .attr('opacity', 0.9);
+            tooltip.style('display', 'none');
+          });
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching state topology:', error);
+        if (active) setError(error.message || "Erro ao carregar o mapa. Verifique sua conexão.");
       } finally {
         if (active) setLoading(false);
       }
@@ -88,30 +134,48 @@ function StateDetailMap({ uf, onBack }: { uf: string; onBack: () => void }) {
         </button>
         <div className="flex items-center gap-2 text-sm font-bold text-primary bg-primary/10 px-4 py-2 rounded-lg border border-primary/20 uppercase tracking-widest">
           <MapIcon className="w-4 h-4" />
-          Mapa Expandido: {uf.toUpperCase()}
+          Estado: {uf.toUpperCase()}
         </div>
       </div>
       
-      <div className="relative w-full flex items-center justify-center min-h-[500px] bg-slate-50 rounded-xl border border-slate-200 shadow-inner p-4">
+      <div className="relative w-full flex items-center justify-center min-h-[500px] bg-slate-50 rounded-xl border border-slate-200 shadow-inner p-4 overflow-hidden">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10 rounded-xl">
-            <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-10 rounded-xl">
+            <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4"></div>
+            <p className="text-slate-500 text-sm font-medium animate-pulse">Carregando divisões municipais...</p>
           </div>
         )}
-        <div ref={containerRef} className="w-full relative z-0 flex justify-center"></div>
+
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10 rounded-xl p-8 text-center">
+            <div className="bg-red-50 text-red-500 p-4 rounded-full mb-4">
+              <MapIcon size={32} />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Ops! Ocorreu um erro</h3>
+            <p className="text-slate-500 text-sm max-w-xs mb-6">{error}</p>
+            <button 
+              onClick={() => { const currentUf = uf; onBack(); setTimeout(() => { uf = currentUf; }, 100); }} 
+              className="px-6 py-2 bg-primary text-white rounded-lg font-bold text-sm shadow-md hover:opacity-90 transition-all"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+        )}
+
+        <div ref={containerRef} className="w-full h-full relative z-0 flex justify-center"></div>
         
         {/* Info Legend */}
-        {!loading && (
-          <div className="absolute bottom-6 right-6 bg-white pl-4 pr-6 py-4 rounded-xl shadow-md border border-slate-200 z-10">
-            <h4 className="font-bold text-slate-700 mb-3 uppercase tracking-widest text-[10px]">Visualização do Estado</h4>
+        {!loading && !error && (
+          <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-sm pl-4 pr-6 py-4 rounded-xl shadow-lg border border-slate-200 z-10 scale-90 sm:scale-100 origin-bottom-right">
+            <h4 className="font-bold text-slate-700 mb-3 uppercase tracking-widest text-[10px]">Visualização</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-md shadow-sm border border-black/5" style={{ backgroundColor: 'var(--color-primary)' }}></div>
+                <div className="w-5 h-5 rounded-md shadow-sm border border-black/5" style={{ backgroundColor: 'var(--color-primary, #d80000)' }}></div>
                 <span className="text-slate-600 text-xs font-semibold">Municípios de {uf.toUpperCase()}</span>
               </div>
             </div>
-            <p className="text-[10px] text-slate-400 mt-4 max-w-[200px] leading-tight">
-              Passe o cursor sobre as divisões para identificar o nome dos municípios.
+            <p className="text-[10px] text-slate-400 mt-4 max-w-[180px] leading-tight">
+              Passe o cursor sobre os municípios para ver os nomes.
             </p>
           </div>
         )}
@@ -131,17 +195,23 @@ export function StateMap() {
       let uf = stateNameToUF[estado] || estado;
       
       if(uf && uf.length === 2) {
-         // eslint-disable-next-line
-         setActiveUF(uf.toLowerCase());
+         const lowerUF = uf.toLowerCase();
+         if (activeUF !== lowerUF) {
+           setTimeout(() => setActiveUF(lowerUF), 0);
+         }
+         // PROACTIVE: If we have an active UF, automatically go to state detail view
+         if (viewMode !== 'estado') {
+           setTimeout(() => setViewMode('estado'), 0);
+         }
+      } else {
+        if (activeUF !== '') setTimeout(() => setActiveUF(''), 0);
+        if (viewMode !== 'brasil') setTimeout(() => setViewMode('brasil'), 0);
       }
     } else {
-      // eslint-disable-next-line
-      setActiveUF('');
+      if (activeUF !== '') setTimeout(() => setActiveUF(''), 0);
+      if (viewMode !== 'brasil') setTimeout(() => setViewMode('brasil'), 0);
     }
-    // Always reset to 'brasil' view when deputy changes
-    // eslint-disable-next-line
-    setViewMode('brasil');
-  }, [selectedDeputado]);
+  }, [selectedDeputado, activeUF, viewMode]);
 
   const handleStateClick = (uf: string) => {
     if (activeUF === uf) {
