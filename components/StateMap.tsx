@@ -4,6 +4,7 @@ import { useDeputado } from '@/context/DeputadoContext';
 import { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import { ArrowLeft, Map as MapIcon } from 'lucide-react';
+import { RSMapDivisions } from './RSMapDivisions';
 
 const stateNameToUF: Record<string, string> = {
   'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 'Ceará': 'CE',
@@ -196,30 +197,33 @@ export function StateMap() {
       
       if(uf && uf.length === 2) {
          const lowerUF = uf.toLowerCase();
-         if (activeUF !== lowerUF) {
-           setTimeout(() => setActiveUF(lowerUF), 0);
-         }
-         // PROACTIVE: If we have an active UF, automatically go to state detail view
-         if (viewMode !== 'estado') {
-           setTimeout(() => setViewMode('estado'), 0);
-         }
+         setTimeout(() => {
+           setActiveUF(lowerUF);
+           setViewMode('estado');
+         }, 0);
       } else {
-        if (activeUF !== '') setTimeout(() => setActiveUF(''), 0);
-        if (viewMode !== 'brasil') setTimeout(() => setViewMode('brasil'), 0);
+        setTimeout(() => {
+          setActiveUF('');
+          setViewMode('brasil');
+        }, 0);
       }
     } else {
-      if (activeUF !== '') setTimeout(() => setActiveUF(''), 0);
-      if (viewMode !== 'brasil') setTimeout(() => setViewMode('brasil'), 0);
+      setTimeout(() => {
+        setActiveUF('');
+        setViewMode('brasil');
+      }, 0);
     }
-  }, [selectedDeputado, activeUF, viewMode]);
+  }, [selectedDeputado]);
 
   const handleStateClick = (uf: string) => {
-    if (activeUF === uf) {
-      setViewMode('estado');
-    }
+    setActiveUF(uf);
+    setViewMode('estado');
   };
 
   if (viewMode === 'estado' && activeUF) {
+    if (activeUF === 'rs') {
+      return <RSMapDivisions onBack={() => setViewMode('brasil')} />;
+    }
     return <StateDetailMap uf={activeUF} onBack={() => setViewMode('brasil')} />;
   }
 
