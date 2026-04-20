@@ -14,21 +14,18 @@ const formatNumber = (value: number) => {
   return new Intl.NumberFormat('pt-BR').format(value);
 };
 
+const formatCompact = (val: number) => {
+  if (val === 0) return 'R$ 0';
+  if (val >= 1000000) return `R$ ${(val / 1000000).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })} Mi`;
+  if (val >= 1000) return `R$ ${(val / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Mil`;
+  return `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+};
+
 interface CityStats {
   populacao: number;
   emendas: number;
   projetos: number;
 }
-
-const getOpacidadeRecursos = (mapStats: Record<string, CityStats>, cityName: string): number | null => {
-  if (!mapStats[cityName]) return null;
-  const total = (mapStats[cityName].emendas || 0) + (mapStats[cityName].projetos || 0);
-  if (total <= 0) return null;
-  if (total <= 500000) return 0.25;
-  if (total <= 750000) return 0.50;
-  if (total <= 1000000) return 0.75;
-  return 1.0;
-};
 
 export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | null) => void; onBack: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -104,6 +101,41 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
     loadStats();
   }, [selectedDeputado?.id]);
 
+  // Handle dynamic range calculation for heat map
+  const nonZeroTotals = Object.values(mapStats)
+    .map(stat => (stat.emendas || 0) + (stat.projetos || 0))
+    .filter(val => val > 0);
+    
+  let thresholds: number[] = [];
+  if (nonZeroTotals.length > 0) {
+    const minVal = Math.min(...nonZeroTotals);
+    const maxVal = Math.max(...nonZeroTotals);
+    if (minVal === maxVal) {
+      thresholds = [maxVal];
+    } else {
+      const step = (maxVal - minVal) / 4;
+      thresholds = [
+        minVal + step,
+        minVal + step * 2,
+        minVal + step * 3,
+        maxVal
+      ];
+    }
+  }
+
+  const getDynamicOpacity = (cityName: string): number | null => {
+    if (!mapStats[cityName]) return null;
+    const total = (mapStats[cityName].emendas || 0) + (mapStats[cityName].projetos || 0);
+    if (total <= 0) return null;
+    if (thresholds.length === 0) return null;
+    if (thresholds.length === 1) return 1.0; // Everyone is equal
+    
+    if (total <= thresholds[0]) return 0.25;
+    if (total <= thresholds[1]) return 0.50;
+    if (total <= thresholds[2]) return 0.75;
+    return 1.0;
+  };
+
   return (
     <div className="w-full flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="w-full flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
@@ -130,7 +162,7 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
                 strokeLinejoin="round" 
               >
                   {rsPaths.map((path) => {
-                      const opacidade = getOpacidadeRecursos(mapStats, path.name);
+                      const opacidade = getDynamicOpacity(path.name);
                       const hasRecursos = opacidade !== null;
                       
                       return (
@@ -215,25 +247,32 @@ export function RSMapDivisions({ onHover, onBack }: { onHover?: (name: string | 
                     <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Sem Recursos</span>
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.25 }}></div>
-                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até R$ 500 Mil</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.50 }}></div>
-                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até R$ 750 Mil</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.75 }}></div>
-                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até R$ 1 Milhão</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 1.0 }}></div>
-                    <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Acima de R$ 1 Milhão</span>
-                  </div>
+                  {thresholds.length === 4 && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.25 }}></div>
+                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[0])}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.50 }}></div>
+                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[1])}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 0.75 }}></div>
+                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[2])}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)', opacity: 1.0 }}></div>
+                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">Até {formatCompact(thresholds[3])}</span>
+                      </div>
+                    </>
+                  )}
+                  {thresholds.length === 1 && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md shadow-sm border border-slate-800" style={{ backgroundColor: 'var(--color-primary, #d80000)' }}></div>
+                        <span className="text-slate-600 text-[10px] sm:text-xs font-medium">{formatCompact(thresholds[0])}</span>
+                      </div>
+                  )}
                 </div>
             )}
             
