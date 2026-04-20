@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import { ArrowLeft, Map as MapIcon } from 'lucide-react';
 import { RSMapDivisions } from './RSMapDivisions';
+import { SPMapDivisions } from './SPMapDivisions';
 
 const stateNameToUF: Record<string, string> = {
   'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 'Ceará': 'CE',
@@ -223,6 +224,9 @@ export function StateMap() {
   if (viewMode === 'estado' && activeUF) {
     if (activeUF === 'rs') {
       return <RSMapDivisions onBack={() => setViewMode('brasil')} />;
+    }
+    if (activeUF === 'sp') {
+      return <SPMapDivisions onBack={() => setViewMode('brasil')} />;
     }
     return <StateDetailMap uf={activeUF} onBack={() => setViewMode('brasil')} />;
   }
