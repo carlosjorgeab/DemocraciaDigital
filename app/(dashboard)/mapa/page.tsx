@@ -22,19 +22,36 @@ export default function MapaPage() {
       if (!selectedDeputado?.id) return;
       
       try {
-        const { data: emendasData } = await supabase.from('orcamentos').select('data').eq('id_deputado', selectedDeputado.id);
-        const { data: projetosData } = await supabase.from('projetos').select('data').eq('id_deputado', selectedDeputado.id);
-        
         const years = new Set<number>();
-        emendasData?.forEach(e => { if (e.data) years.add(new Date(e.data).getFullYear()); });
-        projetosData?.forEach(p => { if (p.data) years.add(new Date(p.data).getFullYear()); });
+        
+        const { data: emendasData, error: eErr } = await supabase
+          .from('orcamentos')
+          .select('data, created_at')
+          .eq('id_deputado', selectedDeputado.id);
+        
+        if (eErr) console.error("Error fetching emendas years:", eErr);
+        emendasData?.forEach(e => { 
+          const dateStr = e.data || e.created_at;
+          if (dateStr) years.add(new Date(dateStr).getFullYear()); 
+        });
+
+        const { data: projetosData, error: pErr } = await supabase
+          .from('projetos')
+          .select('data, created_at')
+          .eq('id_deputado', selectedDeputado.id);
+        
+        if (pErr) console.error("Error fetching projetos years:", pErr);
+        projetosData?.forEach(p => { 
+          const dateStr = p.data || p.created_at;
+          if (dateStr) years.add(new Date(dateStr).getFullYear()); 
+        });
         
         // Ensure current year is at least an option if no data
         if (years.size === 0) years.add(new Date().getFullYear());
         
         const yearsArray = Array.from(years).sort((a, b) => b - a);
         setAvailableYears(yearsArray);
-        setSelectedYears(yearsArray); // All selected by default
+        setSelectedYears(prev => prev.length === 0 ? yearsArray : prev); // Only initialize if nothing was selected
       } catch (err) {
         console.error("Error fetching years:", err);
       }
@@ -48,15 +65,19 @@ export default function MapaPage() {
       setStatsLoading(true);
       
       try {
-        const { data: emendas } = await supabase
+        const { data: emendas, error: eErr } = await supabase
           .from('orcamentos')
-          .select('municipio, valor, data')
+          .select('municipio, valor, data, created_at')
           .eq('id_deputado', selectedDeputado.id);
           
-        const { data: projetos } = await supabase
+        if (eErr) console.error("Error fetching emendas stats:", eErr);
+          
+        const { data: projetos, error: pErr } = await supabase
           .from('projetos')
-          .select('municipio, valor_projeto, data')
+          .select('municipio, valor_projeto, data, created_at')
           .eq('id_deputado', selectedDeputado.id);
+          
+        if (pErr) console.error("Error fetching projetos stats:", pErr);
           
         if (emendas || projetos) {
           let eList = emendas || [];
@@ -65,11 +86,13 @@ export default function MapaPage() {
           // Apply year filter
           if (selectedYears.length > 0) {
              eList = eList.filter(e => {
-               const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
+               const dateStr = e.data || e.created_at;
+               const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
                return selectedYears.includes(y);
              });
              pList = pList.filter(p => {
-               const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
+               const dateStr = p.data || p.created_at;
+               const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
                return selectedYears.includes(y);
              });
           } else {
@@ -79,10 +102,16 @@ export default function MapaPage() {
           }
 
           const normalizeMun = (m: string) => m ? m.split('-')[0].trim().toLowerCase() : '';
-          const uniqueMun = new Set([
-            ...eList.map(e => normalizeMun(e.municipio)), 
-            ...pList.map(p => normalizeMun(p.municipio))
-          ].filter(m => m !== ''));
+          const uniqueMunSet = new Set<string>();
+          
+          eList.forEach(e => {
+            const m = normalizeMun(e.municipio);
+            if (m) uniqueMunSet.add(m);
+          });
+          pList.forEach(p => {
+            const m = normalizeMun(p.municipio);
+            if (m) uniqueMunSet.add(m);
+          });
           
           const totalE = eList.reduce((acc, curr) => acc + (Number(curr.valor) || 0), 0);
           const totalP = pList.reduce((acc, curr) => acc + (Number(curr.valor_projeto) || 0), 0);
@@ -90,7 +119,7 @@ export default function MapaPage() {
           setStats({
             totalCount: eList.length + pList.length,
             totalValor: totalE + totalP,
-            totalMunicipios: uniqueMun.size
+            totalMunicipios: uniqueMunSet.size
           });
         }
       } catch (err) {

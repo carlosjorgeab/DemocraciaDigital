@@ -57,7 +57,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').or(`municipio.like.%- RS,municipio.like.%-RS`);
+        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data, created_at');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -67,11 +67,14 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         
         if (emendasData) {
           emendasData.forEach(item => {
-            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
+            // Only process items for this state
+            if (item.municipio && !item.municipio.toUpperCase().includes('- RS')) return;
+
+            const dateStr = item.data || item.created_at;
+            const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {
-               // Normalize city name: split by '-' and trim
                const cityName = item.municipio.split('-')[0].trim();
                if (stats[cityName]) {
                   stats[cityName].emendas += Number(item.valor || 0);
@@ -85,7 +88,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
         
         // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').or(`municipio.like.%- RS,municipio.like.%-RS`);
+        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data, created_at');
         if (selectedDeputado?.id) {
           projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -95,7 +98,11 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         
         if (projetosData) {
            projetosData.forEach(item => {
-            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
+            // Only process items for this state
+            if (item.municipio && !item.municipio.toUpperCase().includes('- RS')) return;
+
+            const dateStr = item.data || item.created_at;
+            const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {

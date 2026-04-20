@@ -57,7 +57,7 @@ export function SPMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').or(`municipio.like.%- SP,municipio.like.%-SP`);
+        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data, created_at');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -67,7 +67,11 @@ export function SPMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         
         if (emendasData) {
           emendasData.forEach(item => {
-            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
+            // Only process items for this state
+            if (item.municipio && !item.municipio.toUpperCase().includes('- SP')) return;
+
+            const dateStr = item.data || item.created_at;
+            const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {
@@ -85,7 +89,7 @@ export function SPMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
         
         // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').or(`municipio.like.%- SP,municipio.like.%-SP`);
+        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data, created_at');
         if (selectedDeputado?.id) {
           projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -95,7 +99,11 @@ export function SPMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         
         if (projetosData) {
            projetosData.forEach(item => {
-            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
+            // Only process items for this state
+            if (item.municipio && !item.municipio.toUpperCase().includes('- SP')) return;
+
+            const dateStr = item.data || item.created_at;
+            const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {
