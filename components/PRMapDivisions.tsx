@@ -176,7 +176,7 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
         <div ref={containerRef} className="w-full h-full max-w-[800px] relative z-0 flex justify-center">
               <svg 
                 id="pr-municipal-map"
-                viewBox="0 0 1000 800" 
+                viewBox="0 0 800 600" 
                 className="w-full h-full drop-shadow-2xl transition-all duration-500"
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
