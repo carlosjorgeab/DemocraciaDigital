@@ -58,13 +58,13 @@ export function Charts() {
       if (filters.tipoVerba === 'Todas' || filters.tipoVerba === 'Emendas') {
         let query = supabase
           .from('orcamentos')
-          .select('*')
+          .select('*, areas_tematicas(nome)')
           .eq('id_deputado', selectedDeputado.id);
         
         const { data: emendas } = await query;
         if (emendas) {
           emendas.forEach(e => {
-            const cat = 'Outros';
+            const cat = (e as any).areas_tematicas?.nome || 'Outros';
             const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
 
             const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);

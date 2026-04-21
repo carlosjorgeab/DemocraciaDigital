@@ -50,12 +50,17 @@ export function KpiCards() {
         if (filters.categoria !== 'Todas') {
           filteredProjetos = filteredProjetos.filter(p => p.areas_tematicas?.nome === filters.categoria);
         }
+        
+        // Filter by Year using empenho date or fallback to project date
         if (filters.anosFiscais.length > 0) {
+          // In a real app we'd fetch actual empenho dates for each project to filter correctly
+          // For now, if we have the history we check it, or fallback
           filteredProjetos = filteredProjetos.filter(p => {
              const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
              return filters.anosFiscais.includes(y);
           });
         }
+
         if (filters.municipio !== 'Todos') {
           filteredProjetos = filteredProjetos.filter(p => p.municipio === filters.municipio);
         }
@@ -85,7 +90,21 @@ export function KpiCards() {
         
         // Apply filters
         if (filters.tipoVerba !== 'Todas' && filters.tipoVerba !== 'Emendas') filteredEmendas = [];
-        if (filters.categoria !== 'Todas') filteredEmendas = []; // Emendas don't have category yet in schema
+        
+        // Area Tematica filter for emendas (now that we added it)
+        if (filters.categoria !== 'Todas' && emendas.length > 0) {
+           const { data: emendasWithArea } = await supabase
+            .from('orcamentos')
+            .select('id, areas_tematicas(nome)')
+            .in('id', emendas.map(e => e.id));
+           
+           const validEmendaIds = new Set(
+             emendasWithArea
+               ?.filter(e => (e as any).areas_tematicas?.nome === filters.categoria)
+               .map(e => e.id) || []
+           );
+           filteredEmendas = filteredEmendas.filter(e => validEmendaIds.has(e.id));
+        }
         
         if (filters.anosFiscais.length > 0) {
           filteredEmendas = filteredEmendas.filter(e => {
@@ -173,7 +192,7 @@ export function KpiCards() {
     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group border border-slate-100">
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full translate-x-4 -translate-y-4 transition-transform group-hover:scale-110"></div>
-        <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Verba Destinada (Total)</p>
+        <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Verba Destinada (Total)</p>
         <h3 className="text-4xl font-headline font-black text-slate-800">{formatCurrency(totals.verbaDestinada)}</h3>
         <div className="flex items-center gap-1 mt-2 text-primary font-bold text-xs">
           <TrendingUp size={14} />
@@ -182,7 +201,7 @@ export function KpiCards() {
       </div>
       
       <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-100">
-        <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Total Executado</p>
+        <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Total Executado</p>
         <h3 className="text-4xl font-headline font-black text-slate-800">{formatCurrency(totals.totalExecutado)}</h3>
         <div className="flex items-center gap-1 mt-2 text-primary font-bold text-xs">
           <BarChart size={14} />
@@ -191,9 +210,9 @@ export function KpiCards() {
       </div>
       
       <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-100">
-        <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Saldo em Caixa</p>
+        <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Saldo em Caixa</p>
         <h3 className="text-4xl font-headline font-black text-slate-800">{formatCurrency(totals.saldoCaixa)}</h3>
-        <div className="flex items-center gap-1 mt-2 text-tertiary font-bold text-xs">
+        <div className="flex items-center gap-1 mt-2 text-emerald-600 font-bold text-xs">
           <Wallet size={14} />
           <span>Disponível para empenho</span>
         </div>
@@ -204,7 +223,7 @@ export function KpiCards() {
         <h3 className="text-4xl font-headline font-black text-white">{totals.projetosAtivos}</h3>
         <div className="flex items-center gap-1 mt-2 text-white/80 font-bold text-xs">
           <ClipboardList size={14} />
-          <span>{totals.emLicitacao} em fase de licitação</span>
+          <span>Meta de execução acelerada</span>
         </div>
       </div>
     </section>

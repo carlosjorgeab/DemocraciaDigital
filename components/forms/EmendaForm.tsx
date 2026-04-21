@@ -15,6 +15,7 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
   
   const [projetos, setProjetos] = useState<any[]>([]);
   const [municipios, setMunicipios] = useState<any[]>([]);
+  const [areas, setAreas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
   const [formData, setFormData] = useState({
@@ -26,7 +27,8 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
     autor: '',
     valor: 0,
     valor_formatted: '',
-    id_projeto: ''
+    id_projeto: '',
+    id_area_tematica: ''
   });
 
   const formatCurrency = (value: string | number) => {
@@ -47,6 +49,9 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
   useEffect(() => {
     async function fetchData() {
       if (!selectedDeputado) return;
+
+      const { data: areasData } = await supabase.from('areas_tematicas').select('*');
+      if (areasData) setAreas(areasData);
 
       const { data: projetosData } = await supabase
         .from('projetos')
@@ -73,7 +78,8 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
             autor: orcamentoData.autor || '',
             valor: orcamentoData.valor,
             valor_formatted: formatCurrency(orcamentoData.valor * 100),
-            id_projeto: orcamentoData.id_projeto || ''
+            id_projeto: orcamentoData.id_projeto || '',
+            id_area_tematica: orcamentoData.id_area_tematica || ''
           });
         }
         setFetching(false);
@@ -97,7 +103,8 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
     const payload = {
       ...restFormData,
       id_deputado: selectedDeputado.id,
-      id_projeto: formData.id_projeto || null
+      id_projeto: formData.id_projeto || null,
+      id_area_tematica: formData.id_area_tematica || null
     };
 
     if (isEditing) {
@@ -179,6 +186,21 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
                 <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
                   {mun.nome} - {mun.unidade_federacao?.sigla}
                 </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Área Temática (Categoria)</label>
+            <select 
+              required
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.id_area_tematica}
+              onChange={e => setFormData({...formData, id_area_tematica: e.target.value})}
+            >
+              <option value="" disabled>Selecione uma área</option>
+              {areas.map(area => (
+                <option key={area.id} value={area.id}>{area.nome}</option>
               ))}
             </select>
           </div>

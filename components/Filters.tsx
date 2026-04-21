@@ -10,18 +10,28 @@ export function Filters() {
   const { selectedDeputado } = useDeputado();
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [municipios, setMunicipios] = useState<any[]>([]);
+  const [areas, setAreas] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchOptions() {
       if (!selectedDeputado?.id) return;
       
-      // Fetch Years
+      const { data: areasData } = await supabase.from('areas_tematicas').select('*').order('nome');
+      if (areasData) setAreas(areasData);
+
+      // Fetch Years based on empenho date for projects and data for emendas
       try {
         const years = new Set<number>();
+        // Emendas
         const { data: eData } = await supabase.from('orcamentos').select('data').eq('id_deputado', selectedDeputado.id);
         eData?.forEach(e => { if (e.data) years.add(new Date(e.data).getFullYear()); });
-        const { data: pData } = await supabase.from('projetos').select('data').eq('id_deputado', selectedDeputado.id);
+        
+        // Projetos - fetch from history where status is Empenhada
+        const { data: pData } = await supabase.from('historico_projetos').select('data')
+          .eq('status', 'Empenhada')
+          .in('id_projeto', (await supabase.from('projetos').select('id').eq('id_deputado', selectedDeputado.id)).data?.map(p => p.id) || []);
         pData?.forEach(p => { if (p.data) years.add(new Date(p.data).getFullYear()); });
+
         if (years.size === 0) years.add(new Date().getFullYear());
         setAvailableYears(Array.from(years).sort((a, b) => b - a));
       } catch (err) { console.error("Error years:", err); }
@@ -55,33 +65,20 @@ export function Filters() {
   };
 
   return (
-    <section className="glass-panel p-6 rounded-xl space-y-6 shadow-sm border border-white/50">
-      <div className="flex items-center gap-2 mb-2">
-        <Filter size={18} className="text-primary" />
-        <h3 className="text-sm font-black uppercase tracking-widest text-slate-700">Filtros Inteligentes</h3>
-      </div>
-
-      <div className="flex flex-wrap items-end gap-6 md:gap-10">
+    <section className="glass-panel p-4 rounded-xl shadow-sm border border-white/50">
+      <div className="flex flex-wrap items-center gap-4 lg:gap-8">
         {/* Dynamic Year Multi-select */}
-        <div className="flex flex-col gap-3 min-w-[200px]">
-          <div className="flex items-center justify-between">
-            <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold flex items-center gap-2">
-              <Calendar size={12} className="text-primary" />
-              Ano Fiscal
-            </label>
-            <button 
-              onClick={toggleAllYears}
-              className="text-[10px] font-black uppercase text-primary hover:underline"
-            >
-              {filters.anosFiscais.length === availableYears.length ? 'Limpar' : 'Todos'}
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {availableYears.map(year => (
+        <div className="flex items-center gap-3">
+          <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 whitespace-nowrap">
+            <Calendar size={12} className="text-primary" />
+            Ano
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {availableYears.slice(0, 4).map(year => (
               <button
                 key={year}
                 onClick={() => toggleYear(year)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
+                className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all border ${
                   filters.anosFiscais.includes(year)
                   ? 'bg-primary text-white border-primary shadow-sm'
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300 shadow-sm'
@@ -90,23 +87,26 @@ export function Filters() {
                 {year}
               </button>
             ))}
+            <button 
+              onClick={toggleAllYears}
+              className="text-[10px] font-black uppercase text-primary px-2 hover:bg-primary/5 rounded"
+            >
+              {filters.anosFiscais.length === availableYears.length ? 'Nenhum' : 'Todos'}
+            </button>
           </div>
         </div>
 
-        <div className="h-12 w-[1px] bg-slate-200 hidden md:block self-center"></div>
+        <div className="h-8 w-[1px] bg-slate-200 hidden lg:block"></div>
 
         {/* Municipality Filter */}
-        <div className="flex flex-col gap-2 min-w-[180px] flex-1">
-          <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold flex items-center gap-2">
-            <MapPin size={12} className="text-primary" />
-            Município
-          </label>
+        <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+          <MapPin size={12} className="text-primary shrink-0" />
           <select 
-            className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-on-surface focus:ring-1 focus:ring-primary outline-none shadow-sm"
+            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none w-full cursor-pointer"
             value={filters.municipio}
             onChange={(e) => setFilters({ ...filters, municipio: e.target.value })}
           >
-            <option value="Todos">Todos os Municípios</option>
+            <option value="Todos">Município: Todos</option>
             {municipios.map((mun, idx) => (
               <option key={idx} value={`${mun.nome} - ${mun.unidade_federacao.sigla}`}>
                 {mun.nome} - {mun.unidade_federacao.sigla}
@@ -115,45 +115,41 @@ export function Filters() {
           </select>
         </div>
 
-        {/* Other Filters Row */}
-        <div className="flex flex-wrap gap-6 flex-1">
-          <div className="flex flex-col gap-2 min-w-[140px]">
-            <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Tipo de Verba</label>
-            <select 
-              className="bg-transparent border-b border-slate-200 font-headline font-bold text-on-surface p-0 pb-1 focus:border-primary cursor-pointer outline-none transition-colors"
-              value={filters.tipoVerba}
-              onChange={(e) => setFilters({ ...filters, tipoVerba: e.target.value })}
-            >
-              <option value="Todas">Todas</option>
-              <option value="Emendas">Emendas</option>
-              <option value="Projetos">Projetos</option>
-            </select>
-          </div>
-          
-          <div className="flex flex-col gap-2 min-w-[160px]">
-            <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold flex items-center gap-2">
-              <Tag size={12} className="text-primary" />
-              Categoria
-            </label>
-            <select 
-              className="bg-transparent border-b border-slate-200 font-headline font-bold text-on-surface p-0 pb-1 focus:border-primary cursor-pointer outline-none transition-colors"
-              value={filters.categoria}
-              onChange={(e) => setFilters({ ...filters, categoria: e.target.value })}
-            >
-              <option value="Todas">Todas</option>
-              <option value="Saúde & Bem-estar">Saúde & Bem-estar</option>
-              <option value="Educação">Educação</option>
-              <option value="Infraestrutura">Infraestrutura</option>
-            </select>
-          </div>
+        {/* Tipo Verba */}
+        <div className="flex items-center gap-2 min-w-[120px]">
+          <Tag size={12} className="text-primary shrink-0" />
+          <select 
+            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none cursor-pointer"
+            value={filters.tipoVerba}
+            onChange={(e) => setFilters({ ...filters, tipoVerba: e.target.value })}
+          >
+            <option value="Todas">Verba: Todas</option>
+            <option value="Emendas">Emendas</option>
+            <option value="Projetos">Projetos</option>
+          </select>
+        </div>
+
+        {/* Dynamic Area Filter */}
+        <div className="flex items-center gap-2 min-w-[150px]">
+          <Filter size={12} className="text-primary shrink-0" />
+          <select 
+            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none cursor-pointer"
+            value={filters.categoria}
+            onChange={(e) => setFilters({ ...filters, categoria: e.target.value })}
+          >
+            <option value="Todas">Categoria: Todas</option>
+            {areas.map(area => (
+              <option key={area.id} value={area.nome}>{area.nome}</option>
+            ))}
+          </select>
         </div>
         
         <button 
           onClick={resetFilters}
-          className="flex items-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700 transition-all shadow-md ml-auto"
+          className="p-2 text-slate-400 hover:text-primary transition-colors ml-auto"
+          title="Resetar Filtros"
         >
           <RefreshCw size={16} />
-          <span>Resetar</span>
         </button>
       </div>
     </section>

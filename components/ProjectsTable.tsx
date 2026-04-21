@@ -55,7 +55,7 @@ export function ProjectsTable() {
       if (filters.tipoVerba === 'Todas' || filters.tipoVerba === 'Emendas') {
         let query = supabase
           .from('orcamentos')
-          .select('*')
+          .select('*, areas_tematicas(nome)')
           .eq('id_deputado', selectedDeputado.id);
         
         const { data: emendas } = await query;
@@ -63,14 +63,18 @@ export function ProjectsTable() {
           const formattedEmendas = emendas
             .filter(e => {
               const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
+              const cat = (e as any).areas_tematicas?.nome || 'Emenda';
+              
               const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);
               const matchMun = filters.municipio === 'Todos' || e.municipio === filters.municipio;
-              return matchYear && matchMun;
+              const matchCat = filters.categoria === 'Todas' || filters.categoria === cat;
+              
+              return matchYear && matchMun && matchCat;
             })
             .map(e => ({
               id: `emenda-${e.id}`,
               titulo: e.objeto,
-              categoria: 'Emenda',
+              categoria: (e as any).areas_tematicas?.nome || 'Emenda',
               local: e.municipio || e.beneficiario || '-',
               valor: e.valor,
               tipo: e.tipo,
