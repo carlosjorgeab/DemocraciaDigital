@@ -57,7 +57,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data, created_at');
+        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -70,8 +70,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
             // Only process items for this state
             if (item.municipio && !item.municipio.toUpperCase().includes('- RS')) return;
 
-            const dateStr = item.data || item.created_at;
-            const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
+            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {
@@ -88,7 +87,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
         
         // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data, created_at');
+        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data');
         if (selectedDeputado?.id) {
           projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -101,8 +100,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
             // Only process items for this state
             if (item.municipio && !item.municipio.toUpperCase().includes('- RS')) return;
 
-            const dateStr = item.data || item.created_at;
-            const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
+            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
             if (item.municipio) {

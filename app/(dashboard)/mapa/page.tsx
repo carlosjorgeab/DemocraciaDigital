@@ -26,24 +26,22 @@ export default function MapaPage() {
         
         const { data: emendasData, error: eErr } = await supabase
           .from('orcamentos')
-          .select('data, created_at')
+          .select('data')
           .eq('id_deputado', selectedDeputado.id);
         
         if (eErr) console.error("Error fetching emendas years:", eErr);
         emendasData?.forEach(e => { 
-          const dateStr = e.data || e.created_at;
-          if (dateStr) years.add(new Date(dateStr).getFullYear()); 
+          if (e.data) years.add(new Date(e.data).getFullYear()); 
         });
 
         const { data: projetosData, error: pErr } = await supabase
           .from('projetos')
-          .select('data, created_at')
+          .select('data')
           .eq('id_deputado', selectedDeputado.id);
         
         if (pErr) console.error("Error fetching projetos years:", pErr);
         projetosData?.forEach(p => { 
-          const dateStr = p.data || p.created_at;
-          if (dateStr) years.add(new Date(dateStr).getFullYear()); 
+          if (p.data) years.add(new Date(p.data).getFullYear()); 
         });
         
         // Ensure current year is at least an option if no data
@@ -67,14 +65,14 @@ export default function MapaPage() {
       try {
         const { data: emendas, error: eErr } = await supabase
           .from('orcamentos')
-          .select('municipio, valor, data, created_at')
+          .select('municipio, valor, data')
           .eq('id_deputado', selectedDeputado.id);
           
         if (eErr) console.error("Error fetching emendas stats:", eErr);
           
         const { data: projetos, error: pErr } = await supabase
           .from('projetos')
-          .select('municipio, valor_projeto, data, created_at')
+          .select('municipio, valor_projeto, data')
           .eq('id_deputado', selectedDeputado.id);
           
         if (pErr) console.error("Error fetching projetos stats:", pErr);
@@ -86,13 +84,11 @@ export default function MapaPage() {
           // Apply year filter
           if (selectedYears.length > 0) {
              eList = eList.filter(e => {
-               const dateStr = e.data || e.created_at;
-               const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
+               const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
                return selectedYears.includes(y);
              });
              pList = pList.filter(p => {
-               const dateStr = p.data || p.created_at;
-               const y = dateStr ? new Date(dateStr).getFullYear() : new Date().getFullYear();
+               const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
                return selectedYears.includes(y);
              });
           } else {
