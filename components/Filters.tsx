@@ -19,17 +19,15 @@ export function Filters() {
       const { data: areasData } = await supabase.from('areas_tematicas').select('*').order('nome');
       if (areasData) setAreas(areasData);
 
-      // Fetch Years based on empenho date for projects and data for emendas
+      // Fetch Years based on primary tables only as per user request
       try {
         const years = new Set<number>();
         // Emendas
         const { data: eData } = await supabase.from('orcamentos').select('data').eq('id_deputado', selectedDeputado.id);
         eData?.forEach(e => { if (e.data) years.add(new Date(e.data).getFullYear()); });
         
-        // Projetos - fetch from history where status is Empenhada
-        const { data: pData } = await supabase.from('historico_projetos').select('data')
-          .eq('status', 'Empenhada')
-          .in('id_projeto', (await supabase.from('projetos').select('id').eq('id_deputado', selectedDeputado.id)).data?.map(p => p.id) || []);
+        // Projetos
+        const { data: pData } = await supabase.from('projetos').select('data').eq('id_deputado', selectedDeputado.id);
         pData?.forEach(p => { if (p.data) years.add(new Date(p.data).getFullYear()); });
 
         if (years.size === 0) years.add(new Date().getFullYear());
@@ -66,19 +64,19 @@ export function Filters() {
 
   return (
     <section className="glass-panel p-4 rounded-xl shadow-sm border border-white/50">
-      <div className="flex flex-wrap items-center gap-4 lg:gap-8">
-        {/* Dynamic Year Multi-select */}
-        <div className="flex items-center gap-3">
-          <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 whitespace-nowrap">
+      <div className="flex flex-wrap items-center gap-4 lg:gap-6">
+        {/* Dynamic Year Multi-select - Increased space */}
+        <div className="flex items-center gap-2 flex-[2] min-w-[250px]">
+          <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 whitespace-nowrap shrink-0">
             <Calendar size={12} className="text-primary" />
             Ano
           </label>
-          <div className="flex flex-wrap gap-1.5">
-            {availableYears.slice(0, 4).map(year => (
+          <div className="flex flex-wrap gap-1.5 flex-1 overflow-x-auto no-scrollbar py-1">
+            {availableYears.map(year => (
               <button
                 key={year}
                 onClick={() => toggleYear(year)}
-                className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all border ${
+                className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all border whitespace-nowrap shrink-0 ${
                   filters.anosFiscais.includes(year)
                   ? 'bg-primary text-white border-primary shadow-sm'
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300 shadow-sm'
@@ -89,7 +87,7 @@ export function Filters() {
             ))}
             <button 
               onClick={toggleAllYears}
-              className="text-[10px] font-black uppercase text-primary px-2 hover:bg-primary/5 rounded"
+              className="text-[10px] font-black uppercase text-primary px-2 hover:bg-primary/5 rounded shrink-0"
             >
               {filters.anosFiscais.length === availableYears.length ? 'Nenhum' : 'Todos'}
             </button>
@@ -98,11 +96,11 @@ export function Filters() {
 
         <div className="h-8 w-[1px] bg-slate-200 hidden lg:block"></div>
 
-        {/* Municipality Filter */}
-        <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+        {/* Municipality Filter - Reduced space */}
+        <div className="flex items-center gap-2 flex-1 min-w-[120px] max-w-[180px]">
           <MapPin size={12} className="text-primary shrink-0" />
           <select 
-            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none w-full cursor-pointer"
+            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none w-full cursor-pointer truncate"
             value={filters.municipio}
             onChange={(e) => setFilters({ ...filters, municipio: e.target.value })}
           >
@@ -116,7 +114,7 @@ export function Filters() {
         </div>
 
         {/* Tipo Verba */}
-        <div className="flex items-center gap-2 min-w-[120px]">
+        <div className="flex items-center gap-2">
           <Tag size={12} className="text-primary shrink-0" />
           <select 
             className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none cursor-pointer"
@@ -130,10 +128,10 @@ export function Filters() {
         </div>
 
         {/* Dynamic Area Filter */}
-        <div className="flex items-center gap-2 min-w-[150px]">
+        <div className="flex items-center gap-2 flex-1 min-w-[150px]">
           <Filter size={12} className="text-primary shrink-0" />
           <select 
-            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none cursor-pointer"
+            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none cursor-pointer w-full"
             value={filters.categoria}
             onChange={(e) => setFilters({ ...filters, categoria: e.target.value })}
           >
@@ -146,7 +144,7 @@ export function Filters() {
         
         <button 
           onClick={resetFilters}
-          className="p-2 text-slate-400 hover:text-primary transition-colors ml-auto"
+          className="p-2 text-slate-400 hover:text-primary transition-colors ml-auto shrink-0"
           title="Resetar Filtros"
         >
           <RefreshCw size={16} />

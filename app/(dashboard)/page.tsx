@@ -71,15 +71,6 @@ export default function Home() {
         <ProjectsTable />
         
       </div>
-
-      {/* Contextual "Pulse" Indicator */}
-      <div className="fixed bottom-8 right-8 flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-2xl border border-primary/10 z-50">
-        <div className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-tertiary"></span>
-        </div>
-        <span className="text-xs font-bold text-on-surface tracking-tight">Sincronizado com o Tesouro Nacional</span>
-      </div>
     </FilterProvider>
   );
 }
