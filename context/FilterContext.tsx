@@ -2,9 +2,10 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 type FilterState = {
-  anoFiscal: string;
+  anosFiscais: number[];
   tipoVerba: string;
   categoria: string;
+  municipio: string;
 };
 
 type FilterContextType = {
@@ -14,9 +15,10 @@ type FilterContextType = {
 };
 
 const defaultFilters: FilterState = {
-  anoFiscal: 'Todos',
+  anosFiscais: [],
   tipoVerba: 'Todas',
   categoria: 'Todas',
+  municipio: 'Todos',
 };
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);

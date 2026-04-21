@@ -31,16 +31,23 @@ export function ProjectsTable() {
         
         const { data: projetos } = await query;
         if (projetos) {
-          const formattedProjetos = projetos.map(p => ({
-            id: `proj-${p.id}`,
-            titulo: p.descricao,
-            categoria: p.areas_tematicas?.nome || 'Sem Categoria',
-            local: p.municipio || '-',
-            valor: p.valor_projeto,
-            tipo: 'Projeto',
-            status: p.status,
-            progresso: p.total_empenhado > 0 ? Math.round((p.total_executado / p.total_empenhado) * 100) : 0
-          }));
+          const formattedProjetos = projetos
+            .filter(p => {
+              const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
+              const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);
+              const matchMun = filters.municipio === 'Todos' || p.municipio === filters.municipio;
+              return matchYear && matchMun;
+            })
+            .map(p => ({
+              id: `proj-${p.id}`,
+              titulo: p.descricao,
+              categoria: p.areas_tematicas?.nome || 'Sem Categoria',
+              local: p.municipio || '-',
+              valor: p.valor_projeto,
+              tipo: 'Projeto',
+              status: p.status,
+              progresso: p.total_empenhado > 0 ? Math.round((p.total_executado / p.total_empenhado) * 100) : 0
+            }));
           combinedData = [...combinedData, ...formattedProjetos];
         }
       }
@@ -53,16 +60,23 @@ export function ProjectsTable() {
         
         const { data: emendas } = await query;
         if (emendas) {
-          const formattedEmendas = emendas.map(e => ({
-            id: `emenda-${e.id}`,
-            titulo: e.objeto,
-            categoria: 'Emenda',
-            local: e.municipio || e.beneficiario || '-',
-            valor: e.valor,
-            tipo: e.tipo,
-            status: 'Emenda',
-            progresso: 100 // Emendas don't have progress in this schema, assume 100 or 0
-          }));
+          const formattedEmendas = emendas
+            .filter(e => {
+              const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
+              const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);
+              const matchMun = filters.municipio === 'Todos' || e.municipio === filters.municipio;
+              return matchYear && matchMun;
+            })
+            .map(e => ({
+              id: `emenda-${e.id}`,
+              titulo: e.objeto,
+              categoria: 'Emenda',
+              local: e.municipio || e.beneficiario || '-',
+              valor: e.valor,
+              tipo: e.tipo,
+              status: 'Emenda',
+              progresso: 100 
+            }));
           combinedData = [...combinedData, ...formattedEmendas];
         }
       }

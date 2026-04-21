@@ -40,7 +40,13 @@ export function Charts() {
         if (projetos) {
           projetos.forEach(p => {
             const cat = p.areas_tematicas?.nome || 'Outros';
-            if (filters.categoria === 'Todas' || filters.categoria === cat) {
+            const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
+            
+            const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);
+            const matchMun = filters.municipio === 'Todos' || p.municipio === filters.municipio;
+            const matchCat = filters.categoria === 'Todas' || filters.categoria === cat;
+
+            if (matchYear && matchMun && matchCat) {
               categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(p.valor_projeto);
               totalValue += Number(p.valor_projeto);
               projetoIds.push(p.id);
@@ -59,7 +65,13 @@ export function Charts() {
         if (emendas) {
           emendas.forEach(e => {
             const cat = 'Outros';
-            if (filters.categoria === 'Todas' || filters.categoria === cat) {
+            const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
+
+            const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);
+            const matchMun = filters.municipio === 'Todos' || e.municipio === filters.municipio;
+            const matchCat = filters.categoria === 'Todas' || filters.categoria === cat;
+
+            if (matchYear && matchMun && matchCat) {
               categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(e.valor);
               totalValue += Number(e.valor);
               emendaIds.push(e.id);
