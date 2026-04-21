@@ -6,6 +6,7 @@ import * as d3 from 'd3';
 import { ArrowLeft, Map as MapIcon } from 'lucide-react';
 import { RSMapDivisions } from './RSMapDivisions';
 import { SPMapDivisions } from './SPMapDivisions';
+import PRMapDivisions from './PRMapDivisions';
 
 const stateNameToUF: Record<string, string> = {
   'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 'Ceará': 'CE',
@@ -227,6 +228,9 @@ export function StateMap({ selectedYears = [] }: { selectedYears?: number[] }) {
     }
     if (activeUF === 'sp') {
       return <SPMapDivisions onBack={() => setViewMode('brasil')} selectedYears={selectedYears} />;
+    }
+    if (activeUF === 'pr') {
+      return <PRMapDivisions onBack={() => setViewMode('brasil')} selectedYears={selectedYears} />;
     }
     return <StateDetailMap uf={activeUF} onBack={() => setViewMode('brasil')} />;
   }
