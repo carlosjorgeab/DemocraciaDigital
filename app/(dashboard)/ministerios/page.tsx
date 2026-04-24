@@ -47,37 +47,71 @@ export default function MinisteriosPage() {
 
   async function fetchData() {
     setLoading(true);
-    const { data: minData } = await supabase.from('ministerios').select('*').order('nome');
-    if (minData) {
-      setMinisterios(minData);
-      
-      // Fetch actions for each ministry
-      const { data: acData } = await supabase.from('acoes').select('*');
-      if (acData) {
-        const grouped: Record<string, Acao[]> = {};
-        acData.forEach(ac => {
-          if (!grouped[ac.id_ministerio]) grouped[ac.id_ministerio] = [];
-          grouped[ac.id_ministerio].push(ac);
-        });
-        setAcoes(grouped);
+    try {
+      const { data: minData, error: minError } = await supabase.from('ministerios').select('*').order('nome');
+      if (minError) {
+        console.error('Error fetching ministerios:', minError);
+        // Do not alert on initial load if it's just empty, but alert if it's a real error
+        if (minError.code !== 'PGRST116') { // PGRST116 is often "not found" or similar in some contexts, but let's check for any error
+           // alert(`Erro ao carregar ministérios: ${minError.message}`);
+        }
       }
+      
+      if (minData) {
+        setMinisterios(minData);
+        
+        // Fetch actions for each ministry
+        const { data: acData, error: acError } = await supabase.from('acoes').select('*');
+        if (acError) console.error('Error fetching acoes:', acError);
+        
+        if (acData) {
+          const grouped: Record<string, Acao[]> = {};
+          acData.forEach(ac => {
+            if (!grouped[ac.id_ministerio]) grouped[ac.id_ministerio] = [];
+            grouped[ac.id_ministerio].push(ac);
+          });
+          setAcoes(grouped);
+        }
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingMinisterio) {
-      const { error } = await supabase.from('ministerios').update(formData).eq('id', editingMinisterio.id);
-      if (error) alert('Erro ao atualizar ministério');
-    } else {
-      const { error } = await supabase.from('ministerios').insert([formData]);
-      if (error) alert('Erro ao criar ministério');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Você precisa estar logado para realizar esta operação.');
+        return;
+      }
+
+      if (editingMinisterio) {
+        const { error } = await supabase.from('ministerios').update(formData).eq('id', editingMinisterio.id);
+        if (error) {
+          console.error('Update error:', error);
+          alert(`Erro ao atualizar ministério: ${error.message}`);
+          return;
+        }
+      } else {
+        const { error } = await supabase.from('ministerios').insert([formData]);
+        if (error) {
+          console.error('Insert error:', error);
+          alert(`Erro ao criar ministério: ${error.message}`);
+          return;
+        }
+      }
+      setShowModal(false);
+      setEditingMinisterio(null);
+      setFormData({ nome: '', endereco: '', nome_contato: '', telefone_contato: '' });
+      fetchData();
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert('Ocorreu um erro inesperado ao salvar.');
     }
-    setShowModal(false);
-    setEditingMinisterio(null);
-    setFormData({ nome: '', endereco: '', nome_contato: '', telefone_contato: '' });
-    fetchData();
   };
 
   const handleAcaoSubmit = async (e: React.FormEvent) => {
