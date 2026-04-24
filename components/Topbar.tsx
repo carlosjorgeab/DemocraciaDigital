@@ -1,12 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, Bell, UserCircle, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Bell, UserCircle, ChevronDown, Building2, Settings } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
+import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
 
 export function Topbar() {
   const { deputados, selectedDeputado, setSelectedDeputado } = useDeputado();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
@@ -62,13 +65,34 @@ export function Topbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </form>
-            <div className="flex gap-1">
-              <button className="hidden md:block p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
-                <Bell size={20} />
-              </button>
+            <div className="relative group">
               <button className="p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
                 <UserCircle size={20} />
               </button>
+              
+              {/* Profile Dropdown */}
+              {!isPublicRoute && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 mb-2">
+                    <p className="text-xs text-slate-400 uppercase font-black tracking-widest mb-1">Logado como</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.email || 'Parlamentar'}</p>
+                  </div>
+                  <Link 
+                    href="/ministerios" 
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                  >
+                    <Building2 size={16} />
+                    <span>Cadastro de Ministérios</span>
+                  </Link>
+                  <Link 
+                    href="/configuracoes" 
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                  >
+                    <Settings size={16} />
+                    <span>Configurações</span>
+                  </Link>
+                </div>
+              )}
             </div>
           </>
         )}

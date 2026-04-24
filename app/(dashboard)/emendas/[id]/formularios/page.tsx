@@ -98,35 +98,66 @@ export default function FormulariosEmendaList({ params }: { params: Promise<{ id
       </div>
 
       {/* Edital Section */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
-            <FileText className="text-primary" size={20} />
-            Edital da Emenda
-          </h3>
-          <p className="text-sm text-slate-500 mt-1">Faça o upload do documento em PDF do Edital desta Emenda.</p>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+              <FileText className="text-primary" size={20} />
+              Edital da Emenda
+            </h3>
+            <p className="text-sm text-slate-500 mt-1">Configure o período e o documento oficial do Edital.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {emenda?.edital_pdf_base64 && (
+              <button 
+                onClick={handleDownloadEdital}
+                className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold"
+              >
+                <Download size={16} />
+                Baixar Edital
+              </button>
+            )}
+            <label className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-bold shadow-sm">
+              <Upload size={16} />
+              {uploading ? 'Enviando...' : (emenda?.edital_pdf_base64 ? 'Substituir PDF' : 'Upload PDF')}
+              <input 
+                type="file" 
+                accept=".pdf" 
+                className="hidden" 
+                onChange={handleUploadEdital}
+                disabled={uploading}
+              />
+            </label>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          {emenda?.edital_pdf_base64 && (
-            <button 
-              onClick={handleDownloadEdital}
-              className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold"
-            >
-              <Download size={16} />
-              Baixar Edital
-            </button>
-          )}
-          <label className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-bold shadow-sm">
-            <Upload size={16} />
-            {uploading ? 'Enviando...' : (emenda?.edital_pdf_base64 ? 'Substituir PDF' : 'Upload PDF')}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-50">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data Inicial do Edital</label>
             <input 
-              type="file" 
-              accept=".pdf" 
-              className="hidden" 
-              onChange={handleUploadEdital}
-              disabled={uploading}
+              type="date"
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2 focus:border-primary transition-all outline-none text-sm"
+              value={emenda?.data_inicial_edital || ''}
+              onChange={async (e) => {
+                const newVal = e.target.value;
+                const { error } = await supabase.from('orcamentos').update({ data_inicial_edital: newVal }).eq('id', id);
+                if (!error) setEmenda({ ...emenda, data_inicial_edital: newVal });
+              }}
             />
-          </label>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data Final do Edital</label>
+            <input 
+              type="date"
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2 focus:border-primary transition-all outline-none text-sm"
+              value={emenda?.data_final_edital || ''}
+              onChange={async (e) => {
+                const newVal = e.target.value;
+                const { error } = await supabase.from('orcamentos').update({ data_final_edital: newVal }).eq('id', id);
+                if (!error) setEmenda({ ...emenda, data_final_edital: newVal });
+              }}
+            />
+          </div>
         </div>
       </div>
 
