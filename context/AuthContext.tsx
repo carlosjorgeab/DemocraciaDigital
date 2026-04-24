@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (!user) return false;
     if (user.is_admin) return true;
-    if (menu === '/' || menu === '/formularios') return true; // Always allowed
+    if (menu === '/' || menu === '/mapa' || menu === '/formularios') return true; // Always allowed
     if (!user.perfil) return false;
     return user.perfil.permissoes.includes(menu);
   };

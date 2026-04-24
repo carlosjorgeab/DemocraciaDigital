@@ -9,40 +9,31 @@ type Perfil = {
   id: string;
   nome: string;
   permissoes: string[];
-  id_ministerio: string | null;
-  ministerio?: { nome: string };
 };
 
 const MENU_OPTIONS = [
-  { id: '/mapa', label: 'Visão Mapa' },
+  { id: '/ministerios', label: 'Cadastro de Ministérios' },
   { id: '/emendas', label: 'Minhas Emendas' },
   { id: '/projetos', label: 'Meus Projetos' },
   { id: '/relatorios', label: 'Relatórios' },
   { id: '/perfis', label: 'Cadastro de Perfis' },
   { id: '/usuarios', label: 'Cadastro de Usuários' },
   { id: '/configuracoes', label: 'Configurações' },
-  { id: '/ministerios', label: 'Cadastro de Ministérios' },
 ];
 
 export default function PerfisPage() {
   const { user } = useAuth();
   const [perfis, setPerfis] = useState<Perfil[]>([]);
-  const [ministerios, setMinisterios] = useState<{id: string, nome: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentPerfil, setCurrentPerfil] = useState<Partial<Perfil>>({ nome: '', permissoes: [], id_ministerio: null });
+  const [currentPerfil, setCurrentPerfil] = useState<Partial<Perfil>>({ nome: '', permissoes: [] });
   const [error, setError] = useState('');
 
   async function fetchPerfis() {
     setLoading(true);
-    const { data, error } = await supabase.from('perfis').select('*, ministerio:ministerios(nome)').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('perfis').select('*').order('created_at', { ascending: false });
     if (!error && data) {
       setPerfis(data);
-    }
-    
-    const { data: minData } = await supabase.from('ministerios').select('id, nome').order('nome');
-    if (minData) {
-      setMinisterios(minData);
     }
     setLoading(false);
   }
@@ -61,8 +52,7 @@ export default function PerfisPage() {
     setError('');
     const perfilData = {
       nome: currentPerfil.nome,
-      permissoes: currentPerfil.permissoes || [],
-      id_ministerio: currentPerfil.id_ministerio || null
+      permissoes: currentPerfil.permissoes || []
     };
 
     if (currentPerfil.id) {
@@ -115,7 +105,7 @@ export default function PerfisPage() {
         </div>
         {!isEditing && (
           <button 
-            onClick={() => { setCurrentPerfil({ nome: '', permissoes: [], id_ministerio: null }); setIsEditing(true); }}
+            onClick={() => { setCurrentPerfil({ nome: '', permissoes: [] }); setIsEditing(true); }}
             className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-bold hover:bg-primary/90 transition-colors"
           >
             <Plus size={20} />
@@ -131,31 +121,15 @@ export default function PerfisPage() {
           {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nome do Perfil</label>
-                <input 
-                  type="text" 
-                  value={currentPerfil.nome} 
-                  onChange={(e) => setCurrentPerfil({...currentPerfil, nome: e.target.value})}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
-                  placeholder="Ex: Assessor"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Ministério Vinculado (Opcional)</label>
-                <select 
-                  value={currentPerfil.id_ministerio || ''} 
-                  onChange={(e) => setCurrentPerfil({...currentPerfil, id_ministerio: e.target.value || null})}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
-                >
-                  <option value="">Nenhum (Perfil Global)</option>
-                  {ministerios.map(m => (
-                    <option key={m.id} value={m.id}>{m.nome}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nome do Perfil</label>
+              <input 
+                type="text" 
+                value={currentPerfil.nome} 
+                onChange={(e) => setCurrentPerfil({...currentPerfil, nome: e.target.value})}
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
+                placeholder="Ex: Assessor"
+              />
             </div>
 
             <div>
@@ -164,6 +138,10 @@ export default function PerfisPage() {
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 opacity-70">
                   <input type="checkbox" checked disabled className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">Visão Geral (Sempre liberado)</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 opacity-70">
+                  <input type="checkbox" checked disabled className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Visão Mapa (Sempre liberado)</span>
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 opacity-70">
                   <input type="checkbox" checked disabled className="w-4 h-4 text-primary" />
@@ -211,7 +189,6 @@ export default function PerfisPage() {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
                   <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Nome do Perfil</th>
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Ministério</th>
                   <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Permissões</th>
                   <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm text-right">Ações</th>
                 </tr>
@@ -220,10 +197,10 @@ export default function PerfisPage() {
                 {perfis.map(perfil => (
                   <tr key={perfil.id} className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="p-4 font-bold text-slate-900 dark:text-white">{perfil.nome}</td>
-                    <td className="p-4 text-slate-600 dark:text-slate-400 text-sm">{perfil.ministerio?.nome || 'Global'}</td>
                     <td className="p-4">
                       <div className="flex flex-wrap gap-1">
                         <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Visão Geral</span>
+                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Visão Mapa</span>
                         <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Adesão Edital</span>
                         {perfil.permissoes.map(p => {
                           const menu = MENU_OPTIONS.find(m => m.id === p);

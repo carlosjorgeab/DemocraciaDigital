@@ -38,7 +38,7 @@ export default function UsuariosPage() {
     // Fetch users
     const { data: usersData, error: usersError } = await supabase
       .from('usuarios')
-      .select('*, perfil:perfis(nome, id_ministerio, ministerio:ministerios(nome)), deputado:deputado(nome)')
+      .select('*, perfil:perfis(nome), deputado:deputado(nome)')
       .order('created_at', { ascending: false });
       
     if (!usersError && usersData) {
@@ -46,9 +46,9 @@ export default function UsuariosPage() {
     }
 
     // Fetch profiles
-    const { data: perfisData } = await supabase.from('perfis').select('id, nome, ministerio:ministerios(nome)');
+    const { data: perfisData } = await supabase.from('perfis').select('id, nome');
     if (perfisData) {
-      setPerfis(perfisData as any);
+      setPerfis(perfisData);
     }
 
     setLoading(false);
@@ -197,9 +197,7 @@ export default function UsuariosPage() {
                   >
                     <option value="" disabled>Selecione um perfil</option>
                     {perfis.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.nome} {(p as any).ministerio?.nome ? `(${ (p as any).ministerio.nome })` : '(Global)'}
-                      </option>
+                      <option key={p.id} value={p.id}>{p.nome}</option>
                     ))}
                   </select>
                 </div>
@@ -249,7 +247,6 @@ export default function UsuariosPage() {
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
                     <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">E-mail / Usuário</th>
-                    <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Ministério</th>
                     <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Perfil</th>
                     <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Deputado</th>
                     <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm text-right">Ações</th>
@@ -261,9 +258,6 @@ export default function UsuariosPage() {
                       <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         {u.email}
                         {u.is_admin && <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] uppercase tracking-wider font-black rounded">Admin</span>}
-                      </td>
-                      <td className="p-4 text-slate-600 dark:text-slate-400 text-sm">
-                        {(u as any).perfil?.ministerio?.nome || '-'}
                       </td>
                       <td className="p-4 text-slate-600 dark:text-slate-400">
                         {u.is_admin ? 'Acesso Total' : (u.perfil?.nome || '-')}
