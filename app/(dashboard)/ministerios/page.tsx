@@ -83,12 +83,6 @@ export default function MinisteriosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Você precisa estar logado para realizar esta operação.');
-        return;
-      }
-
       if (editingMinisterio) {
         const { error } = await supabase.from('ministerios').update(formData).eq('id', editingMinisterio.id);
         if (error) {
