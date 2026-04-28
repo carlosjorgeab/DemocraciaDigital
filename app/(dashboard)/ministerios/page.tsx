@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Search, Building2, User, Phone, MapPin, Trash2, Edit2, ChevronRight, Activity } from 'lucide-react';
+import { Plus, Search, Building2, User, Phone, MapPin, Trash2, Edit2, ChevronRight, Activity, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useDeputado } from '@/context/DeputadoContext';
 
 interface Ministerio {
   id: string;
@@ -10,6 +11,7 @@ interface Ministerio {
   endereco: string;
   nome_contato: string;
   telefone_contato: string;
+  id_deputado: string;
 }
 
 interface Acao {
@@ -20,6 +22,7 @@ interface Acao {
 }
 
 export default function MinisteriosPage() {
+  const { selectedDeputado } = useDeputado();
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [acoes, setAcoes] = useState<Record<string, Acao[]>>({});
   const [loading, setLoading] = useState(true);
@@ -42,19 +45,23 @@ export default function MinisteriosPage() {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (selectedDeputado) {
+      fetchData();
+    }
+  }, [selectedDeputado]);
 
   async function fetchData() {
+    if (!selectedDeputado) return;
     setLoading(true);
     try {
-      const { data: minData, error: minError } = await supabase.from('ministerios').select('*').order('nome');
+      const { data: minData, error: minError } = await supabase
+        .from('ministerios')
+        .select('*')
+        .eq('id_deputado', selectedDeputado.id)
+        .order('nome');
+      
       if (minError) {
         console.error('Error fetching ministerios:', minError);
-        // Do not alert on initial load if it's just empty, but alert if it's a real error
-        if (minError.code !== 'PGRST116') { // PGRST116 is often "not found" or similar in some contexts, but let's check for any error
-           // alert(`Erro ao carregar ministérios: ${minError.message}`);
-        }
       }
       
       if (minData) {
@@ -91,7 +98,10 @@ export default function MinisteriosPage() {
           return;
         }
       } else {
-        const { error } = await supabase.from('ministerios').insert([formData]);
+        const { error } = await supabase.from('ministerios').insert([{
+          ...formData,
+          id_deputado: selectedDeputado?.id
+        }]);
         if (error) {
           console.error('Insert error:', error);
           alert(`Erro ao criar ministério: ${error.message}`);
@@ -147,7 +157,17 @@ export default function MinisteriosPage() {
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {!selectedDeputado && (
+        <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl flex items-center gap-4 text-amber-800">
+          <AlertCircle size={24} className="shrink-0" />
+          <div>
+            <p className="font-bold">Atenção</p>
+            <p className="text-sm">Selecione um deputado na barra superior para gerenciar os ministérios vinculados.</p>
+          </div>
+        </div>
+      )}
+
+      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 ${!selectedDeputado ? 'opacity-50 pointer-events-none' : ''}`}>
         <div>
           <h2 className="text-3xl font-black font-headline text-slate-900 dark:text-white uppercase tracking-tight">
             Ministérios e Ações
@@ -167,7 +187,7 @@ export default function MinisteriosPage() {
         </button>
       </div>
 
-      <div className="flex items-center bg-white dark:bg-slate-800 rounded-2xl px-4 py-3 shadow-sm border border-slate-200 dark:border-slate-700 max-w-md">
+      <div className={`flex items-center bg-white dark:bg-slate-800 rounded-2xl px-4 py-3 shadow-sm border border-slate-200 dark:border-slate-700 max-w-md ${!selectedDeputado ? 'opacity-50 pointer-events-none' : ''}`}>
         <Search className="text-slate-400" size={20} />
         <input 
           type="text" 
@@ -175,15 +195,20 @@ export default function MinisteriosPage() {
           className="bg-transparent border-none focus:ring-0 w-full ml-2 text-slate-700 dark:text-slate-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          disabled={!selectedDeputado}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {loading ? (
+      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${!selectedDeputado ? 'opacity-50 pointer-events-none' : ''}`}>
+        {loading && selectedDeputado ? (
           <div className="col-span-full py-20 text-center text-slate-500">Carregando ministérios...</div>
+        ) : !selectedDeputado ? (
+          <div className="col-span-full py-20 text-center text-slate-500 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+            Selecione um deputado para visualizar os ministérios.
+          </div>
         ) : filteredMinisterios.length === 0 ? (
           <div className="col-span-full py-20 text-center text-slate-500 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-            Nenhum ministério encontrado.
+            Nenhum ministério encontrado para este deputado.
           </div>
         ) : (
           filteredMinisterios.map(min => (
