@@ -27,7 +27,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     valor_projeto: 0,
     valor_projeto_formatted: '',
     id_area_tematica: '',
-    status: 'Elaboração'
+    etapa: 'Liberado'
   });
 
   const formatCurrency = (value: string | number) => {
@@ -72,7 +72,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
             valor_projeto: projetoData.valor_projeto,
             valor_projeto_formatted: formatCurrency(projetoData.valor_projeto * 100),
             id_area_tematica: projetoData.id_area_tematica || '',
-            status: projetoData.status || 'Elaboração'
+            etapa: projetoData.etapa || 'Liberado'
           });
         }
         setFetching(false);
@@ -213,17 +213,15 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Status</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Etapa</label>
             <select 
+              required
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
-              value={formData.status}
-              onChange={e => setFormData({...formData, status: e.target.value})}
+              value={formData.etapa}
+              onChange={e => setFormData({...formData, etapa: e.target.value})}
             >
-              <option value="Elaboração">Elaboração</option>
-              <option value="Análise na CMO">Análise na CMO</option>
-              <option value="Votação">Votação</option>
-              <option value="Sanção">Sanção</option>
-              <option value="Execução">Execução</option>
+              <option value="Rascunho">Rascunho</option>
+              <option value="Liberado">Liberado</option>
             </select>
           </div>
 

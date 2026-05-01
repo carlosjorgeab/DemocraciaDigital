@@ -28,7 +28,8 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
     valor: 0,
     valor_formatted: '',
     id_projeto: '',
-    id_area_tematica: ''
+    id_area_tematica: '',
+    etapa: 'Liberado'
   });
 
   const formatCurrency = (value: string | number) => {
@@ -79,7 +80,8 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
             valor: orcamentoData.valor,
             valor_formatted: formatCurrency(orcamentoData.valor * 100),
             id_projeto: orcamentoData.id_projeto || '',
-            id_area_tematica: orcamentoData.id_area_tematica || ''
+            id_area_tematica: orcamentoData.id_area_tematica || '',
+            etapa: orcamentoData.etapa || 'Liberado'
           });
         }
         setFetching(false);
@@ -254,6 +256,19 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
               {projetos.map(projeto => (
                 <option key={projeto.id} value={projeto.id}>{projeto.descricao}</option>
               ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Etapa</label>
+            <select 
+              required
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.etapa}
+              onChange={e => setFormData({...formData, etapa: e.target.value})}
+            >
+              <option value="Rascunho">Rascunho</option>
+              <option value="Liberado">Liberado</option>
             </select>
           </div>
         </div>

@@ -20,6 +20,9 @@ export default function EditaisPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingEdital, setEditingEdital] = useState<Edital | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedEdital, setExpandedEdital] = useState<string | null>(null);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   
   const [formData, setFormData] = useState({
     titulo: '',
@@ -74,6 +77,24 @@ export default function EditaisPage() {
     reader.readAsDataURL(file);
   };
 
+  const fetchSubmissions = async (editalId: string) => {
+    setLoadingSubmissions(true);
+    try {
+      const { data, error } = await supabase
+        .from('formularios_emenda')
+        .select('*')
+        .eq('id_edital', editalId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setSubmissions(data || []);
+    } catch (err) {
+      console.error('Error fetching submissions:', err);
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
+
   const handleDownload = (base64: string, titulo: string) => {
     const a = document.createElement('a');
     a.href = base64;
@@ -84,6 +105,11 @@ export default function EditaisPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDeputado) return;
+
+    if (new Date(formData.data_inicio) >= new Date(formData.data_fim)) {
+      alert('A Data de Início deve ser menor que a Data Final.');
+      return;
+    }
 
     try {
       if (editingEdital) {
@@ -248,6 +274,41 @@ export default function EditaisPage() {
                     <Download size={14} />
                     Download
                   </button>
+                )}
+              </div>
+
+              <div className="pt-4 mt-2 border-t border-slate-50 dark:border-slate-800">
+                <button 
+                  onClick={() => {
+                    if (expandedEdital === edital.id) {
+                      setExpandedEdital(null);
+                    } else {
+                      setExpandedEdital(edital.id);
+                      fetchSubmissions(edital.id);
+                    }
+                  }}
+                  className="w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-primary transition-colors"
+                >
+                  Ver Adesões
+                  <Plus size={14} className={`transform transition-transform ${expandedEdital === edital.id ? 'rotate-45' : ''}`} />
+                </button>
+
+                {expandedEdital === edital.id && (
+                  <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    {loadingSubmissions ? (
+                      <p className="text-[10px] text-slate-400 text-center py-2">Carregando adesões...</p>
+                    ) : submissions.length === 0 ? (
+                      <p className="text-[10px] text-slate-400 text-center py-2">Nenhuma adesão encontrada.</p>
+                    ) : (
+                      submissions.map(sub => (
+                        <div key={sub.id} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                          <p className="text-[10px] font-black text-primary uppercase tracking-widest">{sub.cnpj}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200 line-clamp-1">{sub.nome_entidade}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">Projeto: {sub.nome_projeto}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 )}
               </div>
             </div>
