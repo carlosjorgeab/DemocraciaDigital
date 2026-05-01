@@ -1,5 +1,92 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Home from '@/app/(dashboard)/page';
+import MapaPage from '@/app/(dashboard)/mapa/page';
+import { LayoutDashboard, MapPin } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export default function PublicHome() {
-  return <Home />;
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = searchParams?.get('tab');
+  const [activeTab, setActiveTab] = useState<'geral' | 'mapa'>(tabParam === 'mapa' ? 'mapa' : 'geral');
+
+  useEffect(() => {
+    if (tabParam === 'mapa') setActiveTab('mapa');
+    else setActiveTab('geral');
+  }, [tabParam]);
+
+  const handleTabChange = (tab: 'geral' | 'mapa') => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams?.toString());
+    params.set('tab', tab);
+    router.replace(`?${params.toString()}`);
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Custom Header for Public View */}
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+             <Logo className="w-8 h-8 text-primary" />
+             <div className="flex flex-col">
+                <h1 className="text-sm font-black uppercase tracking-tighter text-primary leading-none">Democracia Digital</h1>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Chamada Pública</span>
+             </div>
+          </div>
+
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <button 
+              onClick={() => handleTabChange('geral')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === 'geral' 
+                ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <LayoutDashboard size={16} />
+              Geral
+            </button>
+            <button 
+              onClick={() => handleTabChange('mapa')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === 'mapa' 
+                ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <MapPin size={16} />
+              Mapa
+            </button>
+          </div>
+
+          <div className="hidden md:block">
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
+              Transparência Parlamentar
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 bg-slate-50 dark:bg-slate-950">
+        {activeTab === 'geral' ? (
+          <div className="animate-in fade-in duration-500">
+            <Home />
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-500">
+            <MapaPage />
+          </div>
+        )}
+      </main>
+      
+      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 text-center">
+         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Democracia Digital &copy; {new Date().getFullYear()} - Todos os direitos reservados
+         </p>
+      </footer>
+    </div>
+  );
 }
