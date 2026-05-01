@@ -37,28 +37,28 @@ export default function PublicHome() {
              </div>
           </div>
 
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl shadow-inner">
             <button 
               onClick={() => handleTabChange('geral')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${
                 activeTab === 'geral' 
-                ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-primary/10 scale-105' 
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'
               }`}
             >
-              <LayoutDashboard size={16} />
-              Geral
+              <LayoutDashboard size={18} className={activeTab === 'geral' ? 'text-primary' : 'text-slate-400'} />
+              <span>Visão Geral</span>
             </button>
             <button 
               onClick={() => handleTabChange('mapa')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${
                 activeTab === 'mapa' 
-                ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-primary/10 scale-105' 
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'
               }`}
             >
-              <MapPin size={16} />
-              Mapa
+              <MapPin size={18} className={activeTab === 'mapa' ? 'text-primary' : 'text-slate-400'} />
+              <span>Mapa</span>
             </button>
           </div>
 

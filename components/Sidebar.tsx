@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList, Shield, Users, Building2, FileSignature, Plus } from 'lucide-react';
+import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList, Shield, Users, Building2, FileSignature, Plus, Flag, IdCard } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -22,6 +22,8 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: `${basePath}/projetos`, icon: FileText, label: 'Projetos', disabled: false, id: '/projetos' },
     { href: `${basePath}/editais`, icon: FileSignature, label: 'Editais', disabled: false, id: '/editais' },
     { href: `${basePath}/ministerios`, icon: Building2, label: 'Ministérios', disabled: false, id: '/ministerios' },
+    { href: '/partidos', icon: Flag, label: 'Partidos', disabled: false, id: '/partidos' },
+    { href: '/deputados', icon: IdCard, label: 'Deputados', disabled: false, id: '/deputados' },
     { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: true, id: '/relatorios' },
     { href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' },
     { href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' },

@@ -13,6 +13,8 @@ type Perfil = {
 
 const MENU_OPTIONS = [
   { id: '/ministerios', label: 'Cadastro de Ministérios' },
+  { id: '/partidos', label: 'Cadastro de Partidos' },
+  { id: '/deputados', label: 'Cadastro de Deputados' },
   { id: '/emendas', label: 'Emendas' },
   { id: '/editais', label: 'Cadastro de Editais' },
   { id: '/projetos', label: 'Projetos' },
