@@ -210,7 +210,7 @@ export default function PartidosPage() {
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Sigla</label>
                         <input 
                             type="text" required
-                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold uppercase"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold uppercase text-slate-900 dark:text-white"
                             placeholder="Ex: PT"
                             value={formData.sigla}
                             onChange={e => setFormData({ ...formData, sigla: e.target.value.toUpperCase() })}
@@ -242,10 +242,11 @@ export default function PartidosPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
+                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nome Completo (Mínimo 20 caracteres sugeridos)</label>
                     <input 
                         type="text" required
-                        className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium"
+                        maxLength={100}
+                        className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium text-slate-900 dark:text-white"
                         placeholder="Partido dos Trabalhadores"
                         value={formData.nome}
                         onChange={e => setFormData({ ...formData, nome: e.target.value })}

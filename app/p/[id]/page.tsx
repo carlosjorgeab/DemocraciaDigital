@@ -6,11 +6,15 @@ import MapaPage from '@/app/(dashboard)/mapa/page';
 import { LayoutDashboard, MapPin } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
+import { useDeputado } from '@/context/DeputadoContext';
+import { AlertTriangle } from 'lucide-react';
+
 export default function PublicHome() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = searchParams?.get('tab');
   const [activeTab, setActiveTab] = useState<'geral' | 'mapa'>(tabParam === 'mapa' ? 'mapa' : 'geral');
+  const { selectedDeputado, loading: depLoading } = useDeputado();
 
   useEffect(() => {
     if (tabParam === 'mapa') setActiveTab('mapa');
@@ -23,6 +27,28 @@ export default function PublicHome() {
     params.set('tab', tab);
     router.replace(`?${params.toString()}`);
   };
+
+  if (!depLoading && !selectedDeputado) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl text-center space-y-6">
+          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+            <AlertTriangle size={40} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900 leading-tight">Página Indisponível</h1>
+            <p className="text-slate-500 mt-2 font-medium">Este perfil parlamentar não está ativo ou não foi encontrado em nossa base de dados.</p>
+          </div>
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-all uppercase text-xs tracking-widest"
+          >
+            Voltar ao Início
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

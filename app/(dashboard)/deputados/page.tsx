@@ -16,7 +16,7 @@ interface Deputado {
   id_partido: string;
   estado: string;
   foto_url: string;
-  is_default: boolean;
+  ativo: boolean;
   partidos?: Partido;
 }
 
@@ -35,7 +35,7 @@ export default function DeputadosPage() {
     id_partido: '',
     estado: 'PR',
     foto_url: '',
-    is_default: false
+    ativo: true
   });
 
   useEffect(() => {
@@ -87,11 +87,6 @@ export default function DeputadosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // If is_default is true, uncheck others first (simplified, real DB should handle this with trigger or transaction)
-      if (formData.is_default) {
-        await supabase.from('deputado').update({ is_default: false }).neq('id', '00000000-0000-0000-0000-000000000000');
-      }
-
       if (editingDeputado) {
         const { error } = await supabase.from('deputado').update(formData).eq('id', editingDeputado.id);
         if (error) throw error;
@@ -101,7 +96,7 @@ export default function DeputadosPage() {
       }
       setShowModal(false);
       setEditingDeputado(null);
-      setFormData({ nome: '', slug: '', id_partido: '', estado: 'PR', foto_url: '', is_default: false });
+      setFormData({ nome: '', slug: '', id_partido: '', estado: 'PR', foto_url: '', ativo: true });
       fetchData();
     } catch (err: any) {
       alert(`Erro: ${err.message}`);
@@ -142,7 +137,7 @@ export default function DeputadosPage() {
         <button 
           onClick={() => {
             setEditingDeputado(null);
-            setFormData({ nome: '', slug: '', id_partido: '', estado: 'PR', foto_url: '', is_default: false });
+            setFormData({ nome: '', slug: '', id_partido: '', estado: 'PR', foto_url: '', ativo: true });
             setShowModal(true);
           }}
           className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 active:scale-95 uppercase text-xs tracking-widest"
@@ -172,7 +167,7 @@ export default function DeputadosPage() {
           </div>
         ) : (
           filteredDeputados.map(dep => (
-            <div key={dep.id} className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div key={dep.id} className={`bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-all group flex flex-col justify-between ${!dep.ativo ? 'opacity-60 grayscale' : ''}`}>
               <div>
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-4">
@@ -184,11 +179,6 @@ export default function DeputadosPage() {
                           <User size={32} />
                         </div>
                       )}
-                      {dep.is_default && (
-                        <div className="absolute top-0 right-0 p-1 bg-primary text-white" title="Principal">
-                          <CheckCircle2 size={12} />
-                        </div>
-                      )}
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{dep.nome}</h3>
@@ -197,6 +187,9 @@ export default function DeputadosPage() {
                           {dep.partidos?.sigla || 'S/P'}
                         </span>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{dep.estado}</span>
+                        {!dep.ativo && (
+                          <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-black uppercase tracking-widest">Inativo</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -210,7 +203,7 @@ export default function DeputadosPage() {
                           id_partido: dep.id_partido,
                           estado: dep.estado,
                           foto_url: dep.foto_url || '',
-                          is_default: dep.is_default
+                          ativo: dep.ativo
                         });
                         setShowModal(true);
                       }}
@@ -260,7 +253,7 @@ export default function DeputadosPage() {
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nome Parlamentar</label>
                         <input 
                             type="text" required
-                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold text-slate-900 dark:text-white"
                             placeholder="Ex: Deputado Silva"
                             value={formData.nome}
                             onChange={e => handleNomeChange(e.target.value)}
@@ -270,7 +263,7 @@ export default function DeputadosPage() {
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Slug (URL Amigável)</label>
                         <input 
                             type="text" required
-                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium text-slate-500"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium text-slate-600 dark:text-slate-300"
                             placeholder="deputado-silva"
                             value={formData.slug}
                             onChange={e => setFormData({ ...formData, slug: e.target.value })}
@@ -283,7 +276,7 @@ export default function DeputadosPage() {
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Partido</label>
                         <select 
                             required
-                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold text-slate-900 dark:text-white"
                             value={formData.id_partido}
                             onChange={e => setFormData({ ...formData, id_partido: e.target.value })}
                         >
@@ -297,24 +290,24 @@ export default function DeputadosPage() {
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Estado (UF)</label>
                         <input 
                             type="text" required maxLength={2}
-                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold uppercase"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold uppercase text-slate-900 dark:text-white"
                             placeholder="PR"
                             value={formData.estado}
                             onChange={e => setFormData({ ...formData, estado: e.target.value.toUpperCase() })}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Deputado Principal</label>
+                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Status do Deputado</label>
                         <div className="h-[52px] flex items-center">
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input 
                                     type="checkbox" 
                                     className="sr-only peer"
-                                    checked={formData.is_default}
-                                    onChange={e => setFormData({ ...formData, is_default: e.target.checked })}
+                                    checked={formData.ativo}
+                                    onChange={e => setFormData({ ...formData, ativo: e.target.checked })}
                                 />
-                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary"></div>
-                                <span className="ml-3 text-sm font-medium text-slate-600 dark:text-slate-400">Padrão do Sistema</span>
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-green-500"></div>
+                                <span className="ml-3 text-sm font-medium text-slate-600 dark:text-slate-400">Ativo no Sistema</span>
                             </label>
                         </div>
                     </div>
@@ -324,7 +317,7 @@ export default function DeputadosPage() {
                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">URL da Foto</label>
                     <input 
                         type="url"
-                        className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium text-slate-900 dark:text-white"
                         placeholder="https://exemplo.com/foto.jpg"
                         value={formData.foto_url}
                         onChange={e => setFormData({ ...formData, foto_url: e.target.value })}

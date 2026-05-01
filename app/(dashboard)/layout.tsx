@@ -5,11 +5,14 @@ import { Topbar } from '@/components/Topbar';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
+import { useDeputado } from '@/context/DeputadoContext';
+import { ShieldAlert } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, loading, hasPermission } = useAuth();
+  const { selectedDeputado, loading: depLoading } = useDeputado();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -18,12 +21,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => clearTimeout(timer);
   }, []);
 
-  if (!mounted || loading) {
+  if (!mounted || loading || depLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">Carregando...</div>;
   }
 
   if (!user) {
     return null; // Will redirect in AuthContext
+  }
+
+  // If NOT admin and NO selected deputado (meaning inactive or not assigned)
+  if (!user.is_admin && !selectedDeputado) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="max-w-md w-full bg-white p-10 rounded-[3rem] shadow-2xl text-center space-y-8 border border-slate-100">
+          <div className="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto rotate-3 shadow-inner">
+            <ShieldAlert size={48} />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900 leading-tight">Acesso Suspenso</h1>
+            <p className="text-slate-500 mt-4 font-medium leading-relaxed">
+              O mandato selecionado está <span className="text-red-500 font-bold uppercase underline">Inativo</span>. Por favor, entre em contato com o administrador do sistema para mais informações.
+            </p>
+          </div>
+          <button 
+            onClick={() => router.push('/login')}
+            className="w-full bg-slate-900 text-white font-bold py-5 rounded-2xl hover:opacity-90 transition-all uppercase text-xs tracking-widest shadow-xl shadow-slate-200"
+          >
+            Voltar ao Login
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Check if user has permission for the current route

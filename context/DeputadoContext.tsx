@@ -11,7 +11,7 @@ type Deputado = {
   id_partido: string;
   estado: string;
   foto_url: string;
-  is_default?: boolean;
+  ativo?: boolean;
   partidos?: {
     sigla: string;
     nome: string;
@@ -62,6 +62,9 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
         .select('*, partidos(sigla, nome, cor_primaria, cor_secundaria, cor_terciaria)');
       
       if (isPublicRoute && publicId) {
+        // Public pages MUST only show active deputies
+        query = query.eq('ativo', true);
+        
         // Try to match by slug first, or fallback to id if it's a valid UUID
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(publicId);
         if (isUuid) {
@@ -70,7 +73,12 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
           query = query.eq('slug', publicId);
         }
       } else if (!user?.is_admin && user?.id_deputado) {
-        query = query.eq('id', user.id_deputado);
+        // Regular users only see their assigned deputy, but it MUST be active
+        query = query.eq('id', user.id_deputado).eq('ativo', true);
+      } else if (!user?.is_admin) {
+        // If regular user has no id_deputado, they see nothing or only active ones depending on your logic
+        // but user says "desabilite o acesso a todos os usuários que possuem o deputado que não estão ativos"
+        query = query.eq('ativo', true);
       }
 
       const { data, error } = await query;
@@ -84,11 +92,13 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
                return prev;
              }
              // Otherwise, fallback to the default or the first one
-             return data.find(d => d.is_default) || data[0];
+             return data[0];
           });
-        } else if (isPublicRoute) {
-          setSelectedDeputado(null);
+        } else {
+           setSelectedDeputado(null);
         }
+      } else {
+        setSelectedDeputado(null);
       }
       setLoading(false);
     }

@@ -45,7 +45,7 @@ export function Topbar() {
               <option value="" disabled>Selecione um Deputado</option>
               {deputados.map(dep => (
                 <option key={dep.id} value={dep.id}>
-                  {dep.nome} {dep.is_default ? '(Padrão)' : ''} ({dep.partidos?.sigla}-{dep.estado})
+                  {dep.nome} ({dep.partidos?.sigla}-{dep.estado}) {!dep.ativo ? '(Inativo)' : ''}
                 </option>
               ))}
             </select>
