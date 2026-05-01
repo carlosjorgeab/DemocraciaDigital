@@ -146,7 +146,7 @@ export default function PerfisPage() {
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 opacity-70">
                   <input type="checkbox" checked disabled className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Edital (Sempre liberado)</span>
+                  <span className="text-sm font-medium">Adesão Edital (Sempre liberado)</span>
                 </div>
                 {MENU_OPTIONS.map(menu => (
                   <label key={menu.id} className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
@@ -202,7 +202,7 @@ export default function PerfisPage() {
                       <div className="flex flex-wrap gap-1">
                         <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Visão Geral</span>
                         <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Visão Mapa</span>
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Edital</span>
+                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Adesão Edital</span>
                         {perfil.permissoes.map(p => {
                           const menu = MENU_OPTIONS.find(m => m.id === p);
                           return menu ? (

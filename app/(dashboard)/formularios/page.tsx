@@ -6,12 +6,14 @@ import { useDeputado } from '@/context/DeputadoContext';
 
 export default function FormularioEmenda() {
   const { selectedDeputado } = useDeputado();
+  const [editais, setEditais] = useState<any[]>([]);
   const [ministerios, setMinisterios] = useState<any[]>([]);
   const [acoes, setAcoes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   
   const initialFormState = {
+    id_edital: '',
     id_ministerio: '',
     id_acao: '',
     nome_entidade: '',
@@ -30,6 +32,7 @@ export default function FormularioEmenda() {
   useEffect(() => {
     async function fetchData() {
       if (!selectedDeputado) {
+        setEditais([]);
         setMinisterios([]);
         setAcoes([]);
         setFetching(false);
@@ -37,15 +40,32 @@ export default function FormularioEmenda() {
       }
       
       setFetching(true);
-      const { data: minData } = await supabase
-        .from('ministerios')
-        .select('id, nome')
-        .eq('id_deputado', selectedDeputado.id)
-        .order('nome');
       
-      if (minData) {
-        setMinisterios(minData);
+      const today = new Date().toISOString().split('T')[0];
+      
+      const [minResponse, editaisResponse] = await Promise.all([
+        supabase
+          .from('ministerios')
+          .select('id, nome')
+          .eq('id_deputado', selectedDeputado.id)
+          .order('nome'),
+        supabase
+          .from('editais')
+          .select('id, titulo, arquivo_pdf_base64')
+          .eq('id_deputado', selectedDeputado.id)
+          .lte('data_inicio', today)
+          .gte('data_fim', today)
+          .order('titulo')
+      ]);
+      
+      if (minResponse.data) {
+        setMinisterios(minResponse.data);
       }
+      
+      if (editaisResponse.data) {
+        setEditais(editaisResponse.data);
+      }
+      
       setFetching(false);
     }
     fetchData();
@@ -89,16 +109,26 @@ export default function FormularioEmenda() {
     reader.readAsDataURL(file);
   }
 
+  const handleDownloadEdital = () => {
+    const selectedEdital = editais.find(e => e.id === formData.id_edital);
+    if (!selectedEdital?.arquivo_pdf_base64) return;
+    const a = document.createElement('a');
+    a.href = selectedEdital.arquivo_pdf_base64;
+    a.download = `Edital_${selectedEdital.titulo.replace(/\s+/g, '_')}.pdf`;
+    a.click();
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!formData.id_ministerio || !formData.id_acao) {
-      alert('Selecione um ministério e uma ação primeiro.');
+    if (!formData.id_edital || !formData.id_ministerio || !formData.id_acao) {
+      alert('Selecione um edital, ministério e ação primeiro.');
       return;
     }
     
     setLoading(true);
     
     const payload = {
+      id_edital: formData.id_edital,
       id_ministerio: formData.id_ministerio,
       id_acao: formData.id_acao,
       nome_entidade: formData.nome_entidade,
@@ -117,10 +147,10 @@ export default function FormularioEmenda() {
       .insert([payload]);
     
     if (!error) {
-      alert('Edital salvo com sucesso!');
+      alert('Adesão Edital salva com sucesso!');
       setFormData(initialFormState);
     } else {
-      alert(`Erro ao salvar edital: ${error.message || error.details || 'Erro desconhecido'}`);
+      alert(`Erro ao salvar adesão: ${error.message || error.details || 'Erro desconhecido'}`);
       console.error('Supabase insert error:', error);
     }
     
@@ -129,24 +159,68 @@ export default function FormularioEmenda() {
 
   if (fetching) return <div className="p-8">Carregando...</div>;
 
+  const isFormValid = 
+    formData.id_edital !== '' &&
+    formData.id_ministerio !== '' &&
+    formData.id_acao !== '' &&
+    formData.nome_entidade.trim() !== '' &&
+    formData.cnpj.trim() !== '' &&
+    formData.nome_projeto.trim() !== '' &&
+    formData.resumo_projeto.trim() !== '' &&
+    formData.descricao_projeto.trim() !== '' &&
+    formData.como_ficou_sabendo !== '' &&
+    formData.orcamento_url !== '' &&
+    formData.curriculo_url !== '' &&
+    formData.concorda_regras === true;
+
+  const selectedEdital = editais.find(e => e.id === formData.id_edital);
+
   return (
     <div className="p-8 space-y-8 max-w-4xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">
-            Novo Edital
+            Nova Adesão
           </p>
           <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">
-            Preenchimento de Edital
+            Adesão Edital
           </h2>
         </div>
+        
+        {selectedEdital?.arquivo_pdf_base64 && (
+          <button 
+            onClick={handleDownloadEdital}
+            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm border border-slate-200 w-full md:w-auto justify-center"
+          >
+            <Download size={16} />
+            Edital Selecionado: {selectedEdital.titulo} (Baixar)
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white p-4 md:p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
         <div className="grid grid-cols-1 gap-6">
           
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Selecione o Ministério</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Selecione o Edital</label>
+            <select 
+              required
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.id_edital}
+              onChange={e => setFormData({...initialFormState, id_edital: e.target.value})}
+            >
+              <option value="" disabled>Selecione um edital...</option>
+              {editais.map(ed => (
+                <option key={ed.id} value={ed.id}>
+                  {ed.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <fieldset disabled={!formData.id_edital} className={`space-y-6 ${!formData.id_edital ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Selecione o Ministério</label>
             <select 
               required
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
@@ -296,6 +370,7 @@ export default function FormularioEmenda() {
               )}
             </div>
           </div>
+          </fieldset>
         </div>
 
         <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-lg">
@@ -314,8 +389,9 @@ export default function FormularioEmenda() {
             checked={formData.concorda_regras}
             onChange={(e) => setFormData({...formData, concorda_regras: e.target.checked})}
             className="w-5 h-5 text-primary rounded"
+            disabled={!formData.id_edital}
           />
-          <label htmlFor="concorda" className="text-sm font-bold text-slate-700 select-none cursor-pointer">
+          <label htmlFor="concorda" className={`text-sm font-bold text-slate-700 select-none ${formData.id_edital ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
             De acordo com as Regras descritas no Edital
           </label>
         </div>
@@ -323,11 +399,11 @@ export default function FormularioEmenda() {
         <div className="pt-6 flex justify-end">
           <button 
             type="submit" 
-            disabled={loading || !selectedDeputado || !formData.concorda_regras}
+            disabled={loading || !selectedDeputado || !isFormValid}
             className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-8 py-3 rounded-full text-sm font-bold hover:opacity-90 transition-all shadow-md disabled:opacity-50"
           >
             <Save size={18} />
-            {loading ? 'Salvando...' : 'Salvar Edital'}
+            {loading ? 'Salvando...' : 'Salvar Adesão'}
           </button>
         </div>
       </form>
