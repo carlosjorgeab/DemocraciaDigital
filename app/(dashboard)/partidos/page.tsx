@@ -210,6 +210,7 @@ export default function PartidosPage() {
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Sigla</label>
                         <input 
                             type="text" required
+                            maxLength={20}
                             className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold uppercase text-slate-900 dark:text-white"
                             placeholder="Ex: PT"
                             value={formData.sigla}
