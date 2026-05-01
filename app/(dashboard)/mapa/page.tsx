@@ -27,7 +27,8 @@ export default function MapaPage() {
         const { data: emendasData, error: eErr } = await supabase
           .from('orcamentos')
           .select('data')
-          .eq('id_deputado', selectedDeputado.id);
+          .eq('id_deputado', selectedDeputado.id)
+          .eq('etapa', 'Liberado');
         
         if (eErr) console.error("Error fetching emendas years:", eErr);
         emendasData?.forEach(e => { 
@@ -37,7 +38,8 @@ export default function MapaPage() {
         const { data: projetosData, error: pErr } = await supabase
           .from('projetos')
           .select('data')
-          .eq('id_deputado', selectedDeputado.id);
+          .eq('id_deputado', selectedDeputado.id)
+          .eq('etapa', 'Liberado');
         
         if (pErr) console.error("Error fetching projetos years:", pErr);
         projetosData?.forEach(p => { 
@@ -66,14 +68,16 @@ export default function MapaPage() {
         const { data: emendas, error: eErr } = await supabase
           .from('orcamentos')
           .select('municipio, valor, data')
-          .eq('id_deputado', selectedDeputado.id);
+          .eq('id_deputado', selectedDeputado.id)
+          .eq('etapa', 'Liberado');
           
         if (eErr) console.error("Error fetching emendas stats:", eErr);
           
         const { data: projetos, error: pErr } = await supabase
           .from('projetos')
           .select('municipio, valor_projeto, data')
-          .eq('id_deputado', selectedDeputado.id);
+          .eq('id_deputado', selectedDeputado.id)
+          .eq('etapa', 'Liberado');
           
         if (pErr) console.error("Error fetching projetos stats:", pErr);
           

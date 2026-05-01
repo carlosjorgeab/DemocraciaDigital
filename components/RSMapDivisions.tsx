@@ -57,7 +57,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data');
+        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').eq('etapa', 'Liberado');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -87,7 +87,7 @@ export function RSMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
         
         // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data');
+        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').eq('etapa', 'Liberado');
         if (selectedDeputado?.id) {
           projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
         }

@@ -23,11 +23,11 @@ export function Filters() {
       try {
         const years = new Set<number>();
         // Emendas
-        const { data: eData } = await supabase.from('orcamentos').select('data').eq('id_deputado', selectedDeputado.id);
+        const { data: eData } = await supabase.from('orcamentos').select('data').eq('id_deputado', selectedDeputado.id).eq('etapa', 'Liberado');
         eData?.forEach(e => { if (e.data) years.add(new Date(e.data).getFullYear()); });
         
         // Projetos
-        const { data: pData } = await supabase.from('projetos').select('data').eq('id_deputado', selectedDeputado.id);
+        const { data: pData } = await supabase.from('projetos').select('data').eq('id_deputado', selectedDeputado.id).eq('etapa', 'Liberado');
         pData?.forEach(p => { if (p.data) years.add(new Date(p.data).getFullYear()); });
 
         if (years.size === 0) years.add(new Date().getFullYear());

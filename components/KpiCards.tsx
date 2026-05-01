@@ -34,13 +34,15 @@ export function KpiCards() {
       const { data: projetos } = await supabase
         .from('projetos')
         .select('*, areas_tematicas(nome)')
-        .eq('id_deputado', selectedDeputado.id);
+        .eq('id_deputado', selectedDeputado.id)
+        .eq('etapa', 'Liberado');
       
       // Fetch all emendas for this deputy
       const { data: emendas } = await supabase
         .from('orcamentos')
         .select('*')
-        .eq('id_deputado', selectedDeputado.id);
+        .eq('id_deputado', selectedDeputado.id)
+        .eq('etapa', 'Liberado');
 
       if (projetos) {
         let filteredProjetos = projetos;

@@ -57,7 +57,7 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data');
+        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').eq('etapa', 'Liberado');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -84,7 +84,7 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
         }
         
         // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data');
+        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').eq('etapa', 'Liberado');
         if (selectedDeputado?.id) {
           projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
         }

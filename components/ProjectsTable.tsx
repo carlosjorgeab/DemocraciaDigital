@@ -27,7 +27,8 @@ export function ProjectsTable() {
         let query = supabase
           .from('projetos')
           .select('*, areas_tematicas(nome)')
-          .eq('id_deputado', selectedDeputado.id);
+          .eq('id_deputado', selectedDeputado.id)
+          .eq('etapa', 'Liberado');
         
         const { data: projetos } = await query;
         if (projetos) {
@@ -56,7 +57,8 @@ export function ProjectsTable() {
         let query = supabase
           .from('orcamentos')
           .select('*, areas_tematicas(nome)')
-          .eq('id_deputado', selectedDeputado.id);
+          .eq('id_deputado', selectedDeputado.id)
+          .eq('etapa', 'Liberado');
         
         const { data: emendas } = await query;
         if (emendas) {
