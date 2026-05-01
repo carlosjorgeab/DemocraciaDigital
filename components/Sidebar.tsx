@@ -17,20 +17,20 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   const navItems = [
     { href: basePath || '/', icon: LayoutDashboard, label: 'Visão Geral', disabled: false, id: '/' },
     { href: `${basePath}/mapa`, icon: MapPin, label: 'Visão Mapa', disabled: false, id: '/mapa' },
-    { href: `${basePath}/emendas`, icon: Receipt, label: 'Emendas', disabled: false, id: '/emendas' },
     { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Adesão Edital', disabled: false, id: '/formularios' },
-    { href: `${basePath}/editais`, icon: FileSignature, label: 'Editais', disabled: false, id: '/editais' },
+    { href: `${basePath}/emendas`, icon: Receipt, label: 'Emendas', disabled: false, id: '/emendas' },
     { href: `${basePath}/projetos`, icon: FileText, label: 'Meus Projetos', disabled: false, id: '/projetos' },
+    { href: `${basePath}/editais`, icon: FileSignature, label: 'Editais', disabled: false, id: '/editais' },
     { href: `${basePath}/ministerios`, icon: Building2, label: 'Ministérios', disabled: false, id: '/ministerios' },
     { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: true, id: '/relatorios' },
-  ].filter(item => hasPermission(item.id));
-
-  if (!isPublicRoute && (user?.is_admin || hasPermission('/perfis'))) {
-    navItems.push({ href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' });
-  }
-  if (!isPublicRoute && (user?.is_admin || hasPermission('/usuarios'))) {
-    navItems.push({ href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' });
-  }
+    { href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' },
+    { href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' },
+  ].filter(item => {
+    if (item.id === '/perfis' || item.id === '/usuarios') {
+      return !isPublicRoute && (user?.is_admin || hasPermission(item.id));
+    }
+    return hasPermission(item.id);
+  });
 
   const handleLogout = async () => {
     logout();
