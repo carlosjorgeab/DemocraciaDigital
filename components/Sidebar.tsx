@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList, Shield, Users, Building2, FileSignature } from 'lucide-react';
+import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList, Shield, Users, Building2, FileSignature, Plus } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -19,15 +19,21 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: `${basePath}/mapa`, icon: MapPin, label: 'Visão Mapa', disabled: false, id: '/mapa' },
     { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Adesão Edital', disabled: false, id: '/formularios' },
     { href: `${basePath}/emendas`, icon: Receipt, label: 'Emendas', disabled: false, id: '/emendas' },
-    { href: `${basePath}/projetos`, icon: FileText, label: 'Meus Projetos', disabled: false, id: '/projetos' },
+    { href: `${basePath}/projetos`, icon: FileText, label: 'Projetos', disabled: false, id: '/projetos' },
     { href: `${basePath}/editais`, icon: FileSignature, label: 'Editais', disabled: false, id: '/editais' },
     { href: `${basePath}/ministerios`, icon: Building2, label: 'Ministérios', disabled: false, id: '/ministerios' },
     { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: true, id: '/relatorios' },
     { href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' },
     { href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' },
+    { href: '/emendas/nova', icon: Plus, label: 'Nova Emenda', disabled: false, id: '/emendas/nova', isButton: true, color: 'bg-primary' },
+    { href: '/projetos/novo', icon: Plus, label: 'Novo Projeto', disabled: false, id: '/projetos/novo', isButton: true, color: 'bg-secondary' },
+    { href: '/configuracoes', icon: Settings, label: 'Configurações', disabled: false, id: '/configuracoes' },
   ].filter(item => {
-    if (item.id === '/perfis' || item.id === '/usuarios') {
+    if (item.id === '/perfis' || item.id === '/usuarios' || item.id === '/configuracoes') {
       return !isPublicRoute && (user?.is_admin || hasPermission(item.id));
+    }
+    if (item.id === '/emendas/nova' || item.id === '/projetos/novo') {
+      return !isPublicRoute && hasPermission(item.id.split('/')[1]);
     }
     return hasPermission(item.id);
   });
@@ -82,6 +88,20 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
               );
             }
 
+            if (item.isButton) {
+              return (
+                <Link 
+                  key={item.href}
+                  href={item.href} 
+                  onClick={() => setIsOpen && setIsOpen(false)}
+                  className={`w-full py-3 ${item.color} text-white font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 mt-2`}
+                >
+                  <Plus size={16} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            }
+
             return (
               <Link 
                 key={item.href}
@@ -99,29 +119,10 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
             );
           })}
         </nav>
-        
-        <div className="mt-4 space-y-2">
-          {!isPublicRoute && hasPermission('/emendas') && (
-            <Link href="/emendas/nova" className="w-full py-3 bg-primary text-on-primary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
-              Nova Emenda
-            </Link>
-          )}
-          {!isPublicRoute && hasPermission('/projetos') && (
-            <Link href="/projetos/novo" className="w-full py-3 bg-secondary text-on-secondary font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex justify-center">
-              Novo Projeto
-            </Link>
-          )}
-        </div>
       </div>
       
       {!isPublicRoute && (
         <div className="px-4 space-y-1 mt-6">
-          {(user?.is_admin || hasPermission('/configuracoes')) && (
-            <Link href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
-              <Settings size={20} />
-              <span>Configurações</span>
-            </Link>
-          )}
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
             <LogOut size={20} />
             <span>Sair</span>

@@ -47,7 +47,7 @@ export default function ProjetosPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Gestão</p>
-          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">Meus Projetos</h2>
+          <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">Projetos</h2>
           <p className="text-on-surface-variant text-sm">Gerencie os projetos e iniciativas do mandato</p>
         </div>
         <Link href="/projetos/novo" className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md w-full md:w-auto">

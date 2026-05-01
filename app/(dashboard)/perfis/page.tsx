@@ -15,7 +15,7 @@ const MENU_OPTIONS = [
   { id: '/ministerios', label: 'Cadastro de Ministérios' },
   { id: '/emendas', label: 'Emendas' },
   { id: '/editais', label: 'Cadastro de Editais' },
-  { id: '/projetos', label: 'Meus Projetos' },
+  { id: '/projetos', label: 'Projetos' },
   { id: '/relatorios', label: 'Relatórios' },
   { id: '/perfis', label: 'Cadastro de Perfis' },
   { id: '/usuarios', label: 'Cadastro de Usuários' },
