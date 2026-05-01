@@ -6,50 +6,70 @@ import { useDeputado } from '@/context/DeputadoContext';
 
 export default function FormularioEmenda() {
   const { selectedDeputado } = useDeputado();
-  const [emendas, setEmendas] = useState<any[]>([]);
+  const [ministerios, setMinisterios] = useState<any[]>([]);
+  const [acoes, setAcoes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   
   const initialFormState = {
-    id_emenda: '',
+    id_ministerio: '',
+    id_acao: '',
     nome_entidade: '',
     cnpj: '',
     nome_projeto: '',
     resumo_projeto: '',
     descricao_projeto: '',
     orcamento_url: '',
-    curriculo_url: ''
+    curriculo_url: '',
+    como_ficou_sabendo: '',
+    concorda_regras: false
   };
   
   const [formData, setFormData] = useState(initialFormState);
   
   useEffect(() => {
-    async function fetchEmendas() {
+    async function fetchData() {
       if (!selectedDeputado) {
-        setEmendas([]);
+        setMinisterios([]);
+        setAcoes([]);
         setFetching(false);
         return;
       }
       
       setFetching(true);
-      const { data } = await supabase
-        .from('orcamentos')
-        .select('id, objeto, valor, edital_pdf_base64')
-        .eq('id_deputado', selectedDeputado.id);
+      const { data: minData } = await supabase
+        .from('ministerios')
+        .select('id, nome')
+        .eq('id_deputado', selectedDeputado.id)
+        .order('nome');
       
-      if (data) {
-        const emendasComEdital = data.filter(e => e.edital_pdf_base64 && e.edital_pdf_base64.trim() !== '');
-        setEmendas(emendasComEdital);
+      if (minData) {
+        setMinisterios(minData);
       }
       setFetching(false);
     }
-    fetchEmendas();
+    fetchData();
   }, [selectedDeputado]);
 
-  // Calculate Edital based on selected emenda
-  const selectedEmendaId = formData.id_emenda;
-  const selectedEmenda = emendas.find(e => e.id === selectedEmendaId);
-  const editalBase64 = selectedEmenda?.edital_pdf_base64 || null;
+  useEffect(() => {
+    async function fetchAcoes() {
+      if (!formData.id_ministerio) {
+        setAcoes([]);
+        return;
+      }
+      
+      const { data: acoesData } = await supabase
+        .from('acoes')
+        .select('id, nome')
+        .eq('id_ministerio', formData.id_ministerio)
+        .order('nome');
+      
+      if (acoesData) {
+        setAcoes(acoesData);
+      }
+    }
+    fetchAcoes();
+  }, [formData.id_ministerio]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, field: 'orcamento_url' | 'curriculo_url') {
     const file = e.target.files?.[0];
@@ -69,26 +89,27 @@ export default function FormularioEmenda() {
     reader.readAsDataURL(file);
   }
 
-  const handleDownloadEdital = () => {
-    if (!editalBase64) return;
-    const a = document.createElement('a');
-    a.href = editalBase64;
-    const selectedEmenda = emendas.find(e => e.id === formData.id_emenda);
-    a.download = `Edital_${selectedEmenda?.objeto || 'Emenda'}.pdf`;
-    a.click();
-  };
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!formData.id_emenda) {
-      alert('Selecione uma emenda primeiro.');
+    if (!formData.id_ministerio || !formData.id_acao) {
+      alert('Selecione um ministério e uma ação primeiro.');
       return;
     }
     
     setLoading(true);
     
     const payload = {
-      ...formData
+      id_ministerio: formData.id_ministerio,
+      id_acao: formData.id_acao,
+      nome_entidade: formData.nome_entidade,
+      cnpj: formData.cnpj,
+      nome_projeto: formData.nome_projeto,
+      resumo_projeto: formData.resumo_projeto,
+      descricao_projeto: formData.descricao_projeto,
+      orcamento_url: formData.orcamento_url,
+      curriculo_url: formData.curriculo_url,
+      como_ficou_sabendo: formData.como_ficou_sabendo,
+      concorda_regras: formData.concorda_regras
     };
 
     const { error } = await supabase
@@ -96,10 +117,10 @@ export default function FormularioEmenda() {
       .insert([payload]);
     
     if (!error) {
-      alert('Adesão Edital salva com sucesso!');
+      alert('Edital salvo com sucesso!');
       setFormData(initialFormState);
     } else {
-      alert(`Erro ao salvar adesão edital: ${error.message || error.details || 'Erro desconhecido'}`);
+      alert(`Erro ao salvar edital: ${error.message || error.details || 'Erro desconhecido'}`);
       console.error('Supabase insert error:', error);
     }
     
@@ -113,38 +134,47 @@ export default function FormularioEmenda() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">
-            Nova Adesão Edital
+            Novo Edital
           </p>
           <h2 className="text-2xl md:text-3xl font-black font-headline text-on-surface">
-            Preenchimento de Emenda
+            Preenchimento de Edital
           </h2>
         </div>
-        
-        {editalBase64 && (
-          <button 
-            onClick={handleDownloadEdital}
-            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-sm border border-slate-200 w-full md:w-auto justify-center"
-          >
-            <Download size={16} />
-            Download Edital Emenda
-          </button>
-        )}
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white p-4 md:p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
         <div className="grid grid-cols-1 gap-6">
+          
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Selecione a Emenda</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Selecione o Ministério</label>
             <select 
               required
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
-              value={formData.id_emenda}
-              onChange={e => setFormData({...formData, id_emenda: e.target.value})}
+              value={formData.id_ministerio}
+              onChange={e => setFormData({...formData, id_ministerio: e.target.value, id_acao: ''})}
             >
-              <option value="" disabled>Selecione uma emenda...</option>
-              {emendas.map(emenda => (
-                <option key={emenda.id} value={emenda.id}>
-                  {emenda.objeto} - {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(emenda.valor)}
+              <option value="" disabled>Selecione um ministério...</option>
+              {ministerios.map(min => (
+                <option key={min.id} value={min.id}>
+                  {min.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Selecione a Ação</label>
+            <select 
+              required
+              disabled={!formData.id_ministerio}
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.id_acao}
+              onChange={e => setFormData({...formData, id_acao: e.target.value})}
+            >
+              <option value="" disabled>Selecione uma ação...</option>
+              {acoes.map(acao => (
+                <option key={acao.id} value={acao.id}>
+                  {acao.nome}
                 </option>
               ))}
             </select>
@@ -207,6 +237,23 @@ export default function FormularioEmenda() {
           </div>
 
           <div className="space-y-2">
+             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Como ficou sabendo?</label>
+             <select 
+               required
+               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+               value={formData.como_ficou_sabendo}
+               onChange={e => setFormData({...formData, como_ficou_sabendo: e.target.value})}
+             >
+               <option value="" disabled>Selecione uma opção...</option>
+               <option value="Página Deputado(a)">Página Deputado(a)</option>
+               <option value="Instagram">Instagram</option>
+               <option value="Facebook">Facebook</option>
+               <option value="X">X (Twitter)</option>
+               <option value="Outros">Outros</option>
+             </select>
+          </div>
+
+          <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">f) Orçamento: Planilha de valores detalhados do projeto</label>
             <p className="text-xs text-slate-500 mb-2">Se possível destacar o que será destinado a custeio e / ou investimento. (Formato PDF)</p>
             <div className="flex items-center gap-4">
@@ -260,14 +307,27 @@ export default function FormularioEmenda() {
           </p>
         </div>
 
+        <div className="pt-4 flex items-center gap-3">
+          <input 
+            type="checkbox" 
+            id="concorda"
+            checked={formData.concorda_regras}
+            onChange={(e) => setFormData({...formData, concorda_regras: e.target.checked})}
+            className="w-5 h-5 text-primary rounded"
+          />
+          <label htmlFor="concorda" className="text-sm font-bold text-slate-700 select-none cursor-pointer">
+            De acordo com as Regras descritas no Edital
+          </label>
+        </div>
+
         <div className="pt-6 flex justify-end">
           <button 
             type="submit" 
-            disabled={loading || !selectedDeputado}
+            disabled={loading || !selectedDeputado || !formData.concorda_regras}
             className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-8 py-3 rounded-full text-sm font-bold hover:opacity-90 transition-all shadow-md disabled:opacity-50"
           >
             <Save size={18} />
-            {loading ? 'Salvando...' : 'Salvar Adesão Edital'}
+            {loading ? 'Salvando...' : 'Salvar Edital'}
           </button>
         </div>
       </form>

@@ -9,8 +9,6 @@ interface Ministerio {
   id: string;
   nome: string;
   endereco: string;
-  nome_contato: string;
-  telefone_contato: string;
   id_deputado: string;
 }
 
@@ -34,9 +32,7 @@ export default function MinisteriosPage() {
   
   const [formData, setFormData] = useState({
     nome: '',
-    endereco: '',
-    nome_contato: '',
-    telefone_contato: ''
+    endereco: ''
   });
 
   const [acaoFormData, setAcaoFormData] = useState({
@@ -110,7 +106,7 @@ export default function MinisteriosPage() {
       }
       setShowModal(false);
       setEditingMinisterio(null);
-      setFormData({ nome: '', endereco: '', nome_contato: '', telefone_contato: '' });
+      setFormData({ nome: '', endereco: '' });
       fetchData();
     } catch (err) {
       console.error('Unexpected error:', err);
@@ -151,8 +147,7 @@ export default function MinisteriosPage() {
   };
 
   const filteredMinisterios = ministerios.filter(m => 
-    m.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.nome_contato.toLowerCase().includes(searchTerm.toLowerCase())
+    m.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -177,7 +172,7 @@ export default function MinisteriosPage() {
         <button 
           onClick={() => {
             setEditingMinisterio(null);
-            setFormData({ nome: '', endereco: '', nome_contato: '', telefone_contato: '' });
+            setFormData({ nome: '', endereco: '' });
             setShowModal(true);
           }}
           className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 active:scale-95 uppercase text-xs tracking-widest"
@@ -191,7 +186,7 @@ export default function MinisteriosPage() {
         <Search className="text-slate-400" size={20} />
         <input 
           type="text" 
-          placeholder="Buscar ministério ou contato..." 
+          placeholder="Buscar ministério..." 
           className="bg-transparent border-none focus:ring-0 w-full ml-2 text-slate-700 dark:text-slate-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -232,9 +227,7 @@ export default function MinisteriosPage() {
                       setEditingMinisterio(min);
                       setFormData({
                         nome: min.nome,
-                        endereco: min.endereco || '',
-                        nome_contato: min.nome_contato || '',
-                        telefone_contato: min.telefone_contato || ''
+                        endereco: min.endereco || ''
                       });
                       setShowModal(true);
                     }}
@@ -248,23 +241,6 @@ export default function MinisteriosPage() {
                   >
                     <Trash2 size={16} />
                   </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl">
-                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1.5">
-                    <User size={12} />
-                    Contato Principal
-                  </div>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{min.nome_contato || 'N/A'}</p>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl">
-                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1.5">
-                    <Phone size={12} />
-                    Telefone
-                  </div>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{min.telefone_contato || 'N/A'}</p>
                 </div>
               </div>
 
@@ -344,28 +320,6 @@ export default function MinisteriosPage() {
                   value={formData.endereco}
                   onChange={e => setFormData({ ...formData, endereco: e.target.value })}
                 />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nome do Contato</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium"
-                    placeholder="Nome completo"
-                    value={formData.nome_contato}
-                    onChange={e => setFormData({ ...formData, nome_contato: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Telefone do Contato</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium"
-                    placeholder="(00) 00000-0000"
-                    value={formData.telefone_contato}
-                    onChange={e => setFormData({ ...formData, telefone_contato: e.target.value })}
-                  />
-                </div>
               </div>
               <div className="flex gap-4 pt-4">
                 <button 
