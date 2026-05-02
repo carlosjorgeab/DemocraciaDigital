@@ -128,40 +128,23 @@ export function ProjectsTable() {
       return;
     }
 
-    // Define specific fields to export (No IDs or system fields)
+    // Define specific fields to export as requested by user
     const exportData = data.map(item => {
       const raw = item.raw || {};
-      const base = {
-        'Tipo': item.tipo,
-        'Título/Objeto': item.titulo,
-        'Categoria': item.categoria,
-        'Município/Local': item.local,
-        'Valor Total': item.valor,
-        'Progresso (%)': item.progresso,
-        'Status Atual': item.status
+      return {
+        'Iniciativa/Projeto': item.titulo,
+        'Valor': item.valor,
+        'Status': item.status,
+        'Município': item.local,
+        'Data': raw.data ? new Date(raw.data).toLocaleDateString('pt-BR') : '-',
+        'Tipo': item.tipo
       };
-
-      // Add extra readable fields from raw data, excluding IDs and system fields
-      const extra: any = {};
-      const blacklist = ['id', 'created_at', 'updated_at', 'id_deputado', 'id_area_tematica', 'id_partido', 'slug', 'foto_url', 'is_default', 'etapa', 'total_empenhado', 'total_executado', 'ativo'];
-      
-      Object.keys(raw).forEach(key => {
-        if (!blacklist.includes(key) && !key.startsWith('id_') && !key.endsWith('_id') && typeof raw[key] !== 'object') {
-          // Format key name to be more readable (replace underscore with space, capitalize)
-          const readableKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          if (!base.hasOwnProperty(readableKey)) {
-             extra[readableKey] = raw[key];
-          }
-        }
-      });
-
-      return { ...base, ...extra };
     });
 
     if (exportData.length === 0) return;
 
-    // Get all unique headers
-    const allHeaders = Array.from(new Set(exportData.flatMap(Object.keys)));
+    // Get all headers in the specific order defined above
+    const allHeaders = ['Iniciativa/Projeto', 'Valor', 'Status', 'Município', 'Data', 'Tipo'];
 
     const csvContent = [
       allHeaders.join(';'),
