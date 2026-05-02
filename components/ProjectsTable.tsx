@@ -32,6 +32,13 @@ export function ProjectsTable() {
         
         const { data: projetos } = await query;
         if (projetos) {
+          const pIds = projetos.map(p => p.id);
+          const { data: hPagos } = await supabase
+            .from('historico_projetos')
+            .select('id_projeto, valor')
+            .in('id_projeto', pIds)
+            .eq('status', 'Paga');
+
           const formattedProjetos = projetos
             .filter(p => {
               const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
@@ -39,16 +46,21 @@ export function ProjectsTable() {
               const matchMun = filters.municipio === 'Todos' || p.municipio === filters.municipio;
               return matchYear && matchMun;
             })
-            .map(p => ({
-              id: `proj-${p.id}`,
-              titulo: p.descricao,
-              categoria: p.areas_tematicas?.nome || 'Sem Categoria',
-              local: p.municipio || '-',
-              valor: p.valor_projeto,
-              tipo: 'Projeto',
-              status: p.status,
-              progresso: p.total_empenhado > 0 ? Math.round((p.total_executado / p.total_empenhado) * 100) : 0
-            }));
+            .map(p => {
+              const totalPago = hPagos?.filter(h => h.id_projeto === p.id).reduce((acc, curr) => acc + Number(curr.valor), 0) || 0;
+              const valorTotal = Number(p.valor_projeto) || 1;
+              return {
+                id: `proj-${p.id}`,
+                titulo: p.descricao,
+                categoria: p.areas_tematicas?.nome || 'Sem Categoria',
+                local: p.municipio || '-',
+                valor: p.valor_projeto,
+                tipo: 'Projeto',
+                status: p.status,
+                progresso: Math.min(Math.round((totalPago / valorTotal) * 100), 100),
+                raw: p
+              };
+            });
           combinedData = [...combinedData, ...formattedProjetos];
         }
       }
@@ -62,6 +74,13 @@ export function ProjectsTable() {
         
         const { data: emendas } = await query;
         if (emendas) {
+          const eIds = emendas.map(e => e.id);
+          const { data: hPagos } = await supabase
+            .from('historico_emendas')
+            .select('id_emenda, valor')
+            .in('id_emenda', eIds)
+            .eq('status', 'Pagamento');
+
           const formattedEmendas = emendas
             .filter(e => {
               const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
@@ -73,16 +92,21 @@ export function ProjectsTable() {
               
               return matchYear && matchMun && matchCat;
             })
-            .map(e => ({
-              id: `emenda-${e.id}`,
-              titulo: e.objeto,
-              categoria: (e as any).areas_tematicas?.nome || 'Emenda',
-              local: e.municipio || e.beneficiario || '-',
-              valor: e.valor,
-              tipo: e.tipo,
-              status: 'Emenda',
-              progresso: 100 
-            }));
+            .map(e => {
+              const totalPago = hPagos?.filter(h => h.id_emenda === e.id).reduce((acc, curr) => acc + Number(curr.valor), 0) || 0;
+              const valorTotal = Number(e.valor) || 1;
+              return {
+                id: `emenda-${e.id}`,
+                titulo: e.objeto,
+                categoria: (e as any).areas_tematicas?.nome || 'Emenda',
+                local: e.municipio || e.beneficiario || '-',
+                valor: e.valor,
+                tipo: e.tipo,
+                status: 'Emenda',
+                progresso: Math.min(Math.round((totalPago / valorTotal) * 100), 100),
+                raw: e
+              };
+            });
           combinedData = [...combinedData, ...formattedEmendas];
         }
       }
@@ -104,18 +128,26 @@ export function ProjectsTable() {
       return;
     }
 
-    const headers = ['Projeto / Iniciativa', 'Categoria', 'Local Beneficiado', 'Orçamento', 'Tipo', 'Progresso (%)', 'Status Atual'];
+    // Get all unique keys from all raw objects to ensure we export everything
+    const allKeys = new Set<string>();
+    data.forEach(item => {
+      Object.keys(item.raw || {}).forEach(key => allKeys.add(key));
+    });
+    
+    // Add some common synthetic keys if they aren't there
+    const keysArray = ['tipo_iniciativa', ...Array.from(allKeys)];
+
     const csvContent = [
-      headers.join(';'),
-      ...data.map(item => [
-        `"${item.titulo.replace(/"/g, '""')}"`,
-        `"${item.categoria}"`,
-        `"${item.local}"`,
-        item.valor,
-        `"${item.tipo}"`,
-        item.progresso,
-        `"${item.status}"`
-      ].join(';'))
+      keysArray.join(';'),
+      ...data.map(item => {
+        const rawWithTipo = { ...item.raw, tipo_iniciativa: item.tipo };
+        return keysArray.map(key => {
+          const val = rawWithTipo[key];
+          if (val === null || val === undefined) return '""';
+          if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
+          return `"${String(val).replace(/"/g, '""')}"`;
+        }).join(';');
+      })
     ].join('\n');
 
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });

@@ -2,14 +2,14 @@
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Bell, UserCircle, ChevronDown, Building2, Settings } from 'lucide-react';
+import { Search, Bell, UserCircle, ChevronDown, Building2, Settings, Users } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
 
 export function Topbar() {
   const { deputados, selectedDeputado, setSelectedDeputado } = useDeputado();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
@@ -23,10 +23,10 @@ export function Topbar() {
   };
 
   return (
-    <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_12px_40px_rgba(216,0,0,0.05)]">
+    <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_12px_40px_rgba(0,156,59,0.05)]">
       <div className="flex items-center gap-2 md:gap-3 ml-10 md:ml-64">
-        <Logo className="w-6 h-6 md:w-8 md:h-8 text-primary dark:text-red-600 shrink-0" />
-        <h1 className="text-base md:text-xl font-black tracking-tighter text-primary dark:text-red-600 uppercase font-headline truncate max-w-[120px] md:max-w-none">Democracia Digital</h1>
+        <Logo className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
+        <h1 className="text-base md:text-xl font-black tracking-tighter text-secondary dark:text-primary uppercase font-headline truncate max-w-[120px] md:max-w-none">Democracia Digital</h1>
         <span className="hidden md:block h-4 w-[1px] bg-slate-200"></span>
         <span className="hidden md:block text-slate-500 font-medium text-sm">Painel do Parlamentar</span>
       </div>
@@ -66,8 +66,15 @@ export function Topbar() {
               />
             </form>
             <div className="relative group">
-              <button className="p-2 rounded-full text-slate-500 hover:text-primary dark:hover:text-red-400 transition-colors scale-95 active:opacity-80">
-                <UserCircle size={20} />
+              <button className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-100 hover:border-primary transition-all overflow-hidden bg-white shadow-sm active:scale-95">
+                <svg viewBox="0 0 24 24" className="w-full h-full">
+                   <circle cx="12" cy="12" r="12" fill="#009C3B" />
+                   <path d="M12 2L2 12H22L12 2Z" fill="#FFDF00" transform="translate(0, 2)" />
+                   <circle cx="12" cy="12" r="5" fill="#002776" />
+                   <path d="M10 14C10 14 10.5 15.5 12 15.5C13.5 15.5 14 14" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                   <circle cx="9.5" cy="11" r="1.2" fill="white" />
+                   <circle cx="14.5" cy="11" r="1.2" fill="white" />
+                </svg>
               </button>
               
               {/* Profile Dropdown */}
@@ -77,20 +84,40 @@ export function Topbar() {
                     <p className="text-xs text-slate-400 uppercase font-black tracking-widest mb-1">Logado como</p>
                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.email || 'Parlamentar'}</p>
                   </div>
-                  <Link 
-                    href="/ministerios" 
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                  
+                  {user?.is_admin && (
+                    <>
+                      <Link 
+                        href="/perfis" 
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                      >
+                        <UserCircle size={16} />
+                        <span>Perfil</span>
+                      </Link>
+                      <Link 
+                        href="/usuarios" 
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                      >
+                        <Users size={16} />
+                        <span>Usuário</span>
+                      </Link>
+                      <Link 
+                        href="/configuracoes" 
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                      >
+                        <Settings size={16} />
+                        <span>Configurações</span>
+                      </Link>
+                    </>
+                  )}
+                  
+                  <button 
+                    onClick={() => logout()}
+                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-slate-50 dark:border-slate-700 mt-2"
                   >
-                    <Building2 size={16} />
-                    <span>Cadastro de Ministérios</span>
-                  </Link>
-                  <Link 
-                    href="/configuracoes" 
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
-                  >
-                    <Settings size={16} />
-                    <span>Configurações</span>
-                  </Link>
+                    <Settings size={16} className="rotate-45" /> 
+                    <span>Sair</span>
+                  </button>
                 </div>
               )}
             </div>
