@@ -171,7 +171,7 @@ export function ProjectsTable() {
     <section className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
       <div className="p-8 flex justify-between items-center border-b border-surface-container-low">
         <div>
-          <h4 className="text-xl font-headline font-bold text-on-surface">Minhas Iniciativas</h4>
+          <h4 className="text-xl font-headline font-bold text-black dark:text-black">Minhas Iniciativas</h4>
           <p className="text-xs text-on-surface-variant font-medium mt-1">Acompanhamento das iniciativas do {selectedDeputado ? `Deputado ${selectedDeputado.nome}` : 'Deputado'}</p>
         </div>
         <button 

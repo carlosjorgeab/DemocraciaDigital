@@ -232,7 +232,7 @@ export function Charts() {
         </div>
         
         <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
-          <h4 className="text-xl font-headline font-bold text-on-surface self-start mb-2">Impacto Social</h4>
+          <h4 className="text-xl font-headline font-bold text-black dark:text-black">Impacto Social</h4>
           <p className="text-sm text-on-surface-variant self-start mb-8">Foco por Área Temática</p>
           
           <div className="relative w-48 h-48 mb-8">

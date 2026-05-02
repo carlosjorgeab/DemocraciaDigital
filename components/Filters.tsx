@@ -63,20 +63,26 @@ export function Filters() {
   };
 
   return (
-    <section className="glass-panel p-4 rounded-xl shadow-sm border border-white/50">
-      <div className="flex flex-wrap items-center gap-4 lg:gap-6">
-        {/* Dynamic Year Multi-select - Increased space */}
-        <div className="flex items-center gap-2 flex-[2] min-w-[250px]">
-          <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 whitespace-nowrap shrink-0">
-            <Calendar size={12} className="text-primary" />
+    <section className="glass-panel p-4 rounded-xl shadow-sm border border-white/50 overflow-hidden">
+      <div className="flex flex-nowrap items-center gap-4 lg:gap-6 overflow-x-auto no-scrollbar">
+        {/* Label for section */}
+        <div className="flex items-center gap-2 pr-4 border-r border-slate-200 shrink-0">
+          <Filter size={16} className="text-black" />
+          <h5 className="text-sm font-black uppercase text-black tracking-tighter">Filtros Inteligentes</h5>
+        </div>
+
+        {/* Dynamic Year Multi-select */}
+        <div className="flex items-center gap-2 shrink-0">
+          <label className="text-xs uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 whitespace-nowrap shrink-0">
+            <Calendar size={14} className="text-primary" />
             Ano
           </label>
-          <div className="flex flex-wrap gap-1.5 flex-1 overflow-x-auto no-scrollbar py-1">
+          <div className="flex gap-1.5 py-1">
             {availableYears.map(year => (
               <button
                 key={year}
                 onClick={() => toggleYear(year)}
-                className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all border whitespace-nowrap shrink-0 ${
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border whitespace-nowrap shrink-0 ${
                   filters.anosFiscais.includes(year)
                   ? 'bg-primary text-white border-primary shadow-sm'
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300 shadow-sm'
@@ -87,20 +93,20 @@ export function Filters() {
             ))}
             <button 
               onClick={toggleAllYears}
-              className="text-[10px] font-black uppercase text-primary px-2 hover:bg-primary/5 rounded shrink-0"
+              className="text-xs font-black uppercase text-primary px-2 hover:bg-primary/5 rounded shrink-0 whitespace-nowrap"
             >
               {filters.anosFiscais.length === availableYears.length ? 'Nenhum' : 'Todos'}
             </button>
           </div>
         </div>
 
-        <div className="h-8 w-[1px] bg-slate-200 hidden lg:block"></div>
+        <div className="h-8 w-[1px] bg-slate-200 shrink-0"></div>
 
-        {/* Municipality Filter - Reduced space */}
-        <div className="flex items-center gap-2 flex-1 min-w-[120px] max-w-[180px]">
-          <MapPin size={12} className="text-primary shrink-0" />
+        {/* Municipality Filter */}
+        <div className="flex items-center gap-2 shrink-0">
+          <MapPin size={14} className="text-primary shrink-0" />
           <select 
-            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none w-full cursor-pointer truncate"
+            className="bg-transparent border-none font-bold text-slate-700 text-sm focus:ring-0 outline-none cursor-pointer truncate"
             value={filters.municipio}
             onChange={(e) => setFilters({ ...filters, municipio: e.target.value })}
           >
@@ -114,10 +120,10 @@ export function Filters() {
         </div>
 
         {/* Tipo Verba */}
-        <div className="flex items-center gap-2">
-          <Tag size={12} className="text-primary shrink-0" />
+        <div className="flex items-center gap-2 shrink-0">
+          <Tag size={14} className="text-primary shrink-0" />
           <select 
-            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none cursor-pointer"
+            className="bg-transparent border-none font-bold text-slate-700 text-sm focus:ring-0 outline-none cursor-pointer whitespace-nowrap"
             value={filters.tipoVerba}
             onChange={(e) => setFilters({ ...filters, tipoVerba: e.target.value })}
           >
@@ -128,10 +134,10 @@ export function Filters() {
         </div>
 
         {/* Dynamic Area Filter */}
-        <div className="flex items-center gap-2 flex-1 min-w-[150px]">
-          <Filter size={12} className="text-primary shrink-0" />
+        <div className="flex items-center gap-2 shrink-0">
+          <Tag size={14} className="text-primary shrink-0" />
           <select 
-            className="bg-transparent border-none font-bold text-slate-700 text-xs focus:ring-0 outline-none cursor-pointer w-full"
+            className="bg-transparent border-none font-bold text-slate-700 text-sm focus:ring-0 outline-none cursor-pointer"
             value={filters.categoria}
             onChange={(e) => setFilters({ ...filters, categoria: e.target.value })}
           >
@@ -147,7 +153,7 @@ export function Filters() {
           className="p-2 text-slate-400 hover:text-primary transition-colors ml-auto shrink-0"
           title="Resetar Filtros"
         >
-          <RefreshCw size={16} />
+          <RefreshCw size={18} />
         </button>
       </div>
     </section>
