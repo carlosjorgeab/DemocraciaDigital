@@ -3,6 +3,7 @@ import { Work_Sans, Inter } from 'next/font/google';
 import './globals.css';
 import { DeputadoProvider } from '@/context/DeputadoContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { InactivityHandler } from '@/components/InactivityHandler';
 
 const workSans = Work_Sans({
   subsets: ['latin'],
@@ -24,9 +25,25 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="pt-BR" className={`${workSans.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="font-body bg-background text-on-background bg-subtle-flag min-h-screen antialiased" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark')
+                } else {
+                  document.documentElement.classList.remove('dark')
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="font-body bg-background text-on-background bg-subtle-flag min-h-screen antialiased dark:bg-slate-950 dark:text-white" suppressHydrationWarning>
         <AuthProvider>
           <DeputadoProvider>
+            <InactivityHandler />
             {children}
           </DeputadoProvider>
         </AuthProvider>

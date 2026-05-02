@@ -59,7 +59,7 @@ export default function PublicHome() {
              <Logo className="w-8 h-8 text-primary" />
              <div className="flex flex-col">
                 <h1 className="text-sm font-black uppercase tracking-tighter text-primary leading-none">Democracia Digital</h1>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Chamada Pública</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Sistema Parlamentar</span>
              </div>
           </div>
 
@@ -84,7 +84,7 @@ export default function PublicHome() {
               }`}
             >
               <MapPin size={18} className={activeTab === 'mapa' ? 'text-primary' : 'text-slate-400'} />
-              <span>Mapa</span>
+              <span>Visão Mapa</span>
             </button>
           </div>
 
