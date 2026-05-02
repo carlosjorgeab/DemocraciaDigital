@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Settings, Save, Bell, Shield, Globe, Moon, Clock, Lock, MonitorStop } from 'lucide-react';
+import { Settings, Save, Bell, Shield, Globe, Moon, Clock, Lock, MonitorStop, RefreshCw } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function ConfiguracoesPage() {
   const [activeTab, setActiveTab] = useState('geral');
@@ -8,20 +9,42 @@ export default function ConfiguracoesPage() {
   const [sessionTimeout, setSessionTimeout] = useState('30');
   const [disableMultiLogin, setDisableMultiLogin] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Load from localStorage
+    fetchConfigs();
+
+    // Initial theme check
     const savedDark = localStorage.getItem('theme') === 'dark';
     setDarkMode(savedDark);
-    if (savedDark) document.documentElement.classList.add('dark');
-
-    const savedTimeout = localStorage.getItem('session_timeout') || '30';
-    setSessionTimeout(savedTimeout);
-
-    const savedMulti = localStorage.getItem('disable_multi_login') === 'true';
-    setDisableMultiLogin(savedMulti);
   }, []);
+
+  const fetchConfigs = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('configuracoes_sistema')
+        .select('*');
+
+      if (error) throw error;
+
+      if (data) {
+        data.forEach(config => {
+          if (config.chave === 'session_timeout') setSessionTimeout(config.valor);
+          if (config.chave === 'disable_multi_login') setDisableMultiLogin(config.valor === 'true');
+          if (config.chave === 'theme_default') {
+             // We prioritize user's local theme choice but could use this as fallback
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching configs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleDarkMode = () => {
     const newVal = !darkMode;
@@ -35,10 +58,33 @@ export default function ConfiguracoesPage() {
     }
   };
 
-  const handleSave = () => {
-    localStorage.setItem('session_timeout', sessionTimeout);
-    localStorage.setItem('disable_multi_login', String(disableMultiLogin));
-    alert('Configurações salvas com sucesso!');
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      
+      // Save to localStorage for immediate client-side effect
+      localStorage.setItem('session_timeout', sessionTimeout);
+      localStorage.setItem('disable_multi_login', String(disableMultiLogin));
+
+      // Save to Database
+      const updates = [
+        { chave: 'session_timeout', valor: sessionTimeout },
+        { chave: 'disable_multi_login', valor: String(disableMultiLogin) }
+      ];
+
+      for (const update of updates) {
+        await supabase
+          .from('configuracoes_sistema')
+          .upsert(update, { onConflict: 'chave' });
+      }
+
+      alert('Configurações salvas no banco de dados com sucesso!');
+    } catch (error) {
+      console.error('Error saving configs:', error);
+      alert('Erro ao salvar as configurações.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const tabs = [
@@ -123,10 +169,11 @@ export default function ConfiguracoesPage() {
               <div className="pt-8 flex justify-end">
                 <button 
                   onClick={handleSave}
-                  className="flex items-center gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:opacity-90 active:scale-95"
+                  disabled={saving || loading}
+                  className="flex items-center gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:opacity-90 active:scale-95 disabled:opacity-50"
                 >
-                  <Save size={18} />
-                  Salvar Alterações
+                  {saving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                  {saving ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
               </div>
             </div>
@@ -139,67 +186,76 @@ export default function ConfiguracoesPage() {
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Controle de sessão e proteção de dados</p>
               </div>
 
-              <div className="space-y-6">
-                {/* Tempo de Inatividade */}
-                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-4">
-                  <div className="flex items-center gap-3 text-slate-900 dark:text-white">
-                    <Clock size={20} className="text-primary" />
-                    <p className="font-bold">Tempo de Inatividade</p>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Encerrar sessão automaticamente após minutos sem atividade.</p>
-                  <div className="flex items-center gap-4">
-                    <input 
-                      type="number" 
-                      min="1" max="1440"
-                      className="w-24 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 font-bold focus:border-primary outline-none text-slate-900 dark:text-white"
-                      value={sessionTimeout}
-                      onChange={(e) => setSessionTimeout(e.target.value)}
-                    />
-                    <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Minutos</span>
-                  </div>
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <RefreshCw size={32} className="animate-spin mb-4" />
+                  <p className="font-bold uppercase tracking-widest text-xs">Carregando configurações...</p>
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Tempo de Inatividade */}
+                  <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-4">
+                    <div className="flex items-center gap-3 text-slate-900 dark:text-white">
+                      <Clock size={20} className="text-primary" />
+                      <p className="font-bold">Tempo de Inatividade</p>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Encerrar sessão automaticamente após minutos sem atividade.</p>
+                    <div className="flex items-center gap-4">
+                      <input 
+                        type="number" 
+                        min="1" max="1440"
+                        className="w-24 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 font-bold focus:border-primary outline-none text-slate-900 dark:text-white"
+                        value={sessionTimeout}
+                        onChange={(e) => setSessionTimeout(e.target.value)}
+                        disabled={saving}
+                      />
+                      <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Minutos</span>
+                    </div>
+                  </div>
 
-                {/* Login Simultâneo */}
-                <div 
-                  onClick={() => setDisableMultiLogin(!disableMultiLogin)}
-                  className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-primary transition-all group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100 dark:border-slate-700 group-hover:text-primary transition-colors">
-                       <MonitorStop size={20} />
+                  {/* Login Simultâneo */}
+                  <div 
+                    onClick={() => !saving && setDisableMultiLogin(!disableMultiLogin)}
+                    className={`flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all group ${saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100 dark:border-slate-700 group-hover:text-primary transition-colors">
+                         <MonitorStop size={20} />
+                      </div>
+                      <div>
+                         <p className="font-bold text-slate-900 dark:text-white">Impedir Login Simultâneo</p>
+                         <p className="text-xs text-slate-500 dark:text-slate-400">Deslogar outros dispositivos se houver um novo acesso</p>
+                      </div>
                     </div>
-                    <div>
-                       <p className="font-bold text-slate-900 dark:text-white">Impedir Login Simultâneo</p>
-                       <p className="text-xs text-slate-500 dark:text-slate-400">Deslogar outros dispositivos se houver um novo acesso</p>
+                    <div className={`relative inline-block w-12 h-6 transition-colors duration-200 ease-in-out ${disableMultiLogin ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'} rounded-full`}>
+                      <div className={`absolute top-1 w-4 h-4 transition-all duration-200 ease-in-out bg-white rounded-full ${disableMultiLogin ? 'left-7' : 'left-1'}`}></div>
                     </div>
                   </div>
-                  <div className={`relative inline-block w-12 h-6 transition-colors duration-200 ease-in-out ${disableMultiLogin ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'} rounded-full`}>
-                    <div className={`absolute top-1 w-4 h-4 transition-all duration-200 ease-in-out bg-white rounded-full ${disableMultiLogin ? 'left-7' : 'left-1'}`}></div>
-                  </div>
-                </div>
 
-                {/* Autenticação em Duas Etapas (Placeholder funcional) */}
-                <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 opacity-50 cursor-not-allowed">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100 dark:border-slate-700">
-                       <Lock size={20} />
+                  {/* Autenticação em Duas Etapas (Placeholder funcional) */}
+                  <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 opacity-50 cursor-not-allowed">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100 dark:border-slate-700">
+                         <Lock size={20} />
+                      </div>
+                      <div>
+                         <p className="font-bold text-slate-900 dark:text-white">Autenticação em Dois Fatores</p>
+                         <p className="text-xs text-slate-500 dark:text-slate-400">Camada extra de segurança (Em breve)</p>
+                      </div>
                     </div>
-                    <div>
-                       <p className="font-bold text-slate-900 dark:text-white">Autenticação em Dois Fatores</p>
-                       <p className="text-xs text-slate-500 dark:text-slate-400">Camada extra de segurança (Em breve)</p>
-                    </div>
+                    <span className="text-[10px] font-black uppercase bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">Desabilitado</span>
                   </div>
-                  <span className="text-[10px] font-black uppercase bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">Desabilitado</span>
                 </div>
-              </div>
+              )}
 
               <div className="pt-8 flex justify-end">
                 <button 
                   onClick={handleSave}
-                  className="flex items-center gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:opacity-90 active:scale-95"
+                  disabled={saving || loading}
+                  className="flex items-center gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:opacity-90 active:scale-95 disabled:opacity-50"
                 >
-                  <Save size={18} />
-                  Salvar Alterações
+                  {saving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                  {saving ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
               </div>
             </div>
