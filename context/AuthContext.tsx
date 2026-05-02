@@ -36,6 +36,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check local storage for session
     const storedUser = localStorage.getItem('democracia_user');
     const storedSession = localStorage.getItem('democracia_session_id');
+    const storedTheme = localStorage.getItem('theme');
+
+    if (storedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else if (storedTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+    }
+
     if (storedUser) {
       // eslint-disable-next-line
       setUser(JSON.parse(storedUser));
@@ -124,6 +132,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         is_admin: data.is_admin,
         perfil: data.perfil
       };
+
+      // Apply theme preference from user profile
+      if (data.theme_preference) {
+        localStorage.setItem('theme', data.theme_preference);
+        if (data.theme_preference === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
 
       setUser(userData);
       setSessionId(newSessionId);

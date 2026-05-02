@@ -61,15 +61,18 @@ export default function ConfiguracoesPage() {
   const handleSave = async () => {
     try {
       setSaving(true);
+      const themeVal = darkMode ? 'dark' : 'light';
       
       // Save to localStorage for immediate client-side effect
+      localStorage.setItem('theme', themeVal);
       localStorage.setItem('session_timeout', sessionTimeout);
       localStorage.setItem('disable_multi_login', String(disableMultiLogin));
 
-      // Save to Database
+      // 1. Update system-wide configurations
       const updates = [
         { chave: 'session_timeout', valor: sessionTimeout },
-        { chave: 'disable_multi_login', valor: String(disableMultiLogin) }
+        { chave: 'disable_multi_login', valor: String(disableMultiLogin) },
+        { chave: 'theme_default', valor: themeVal }
       ];
 
       for (const update of updates) {
@@ -78,7 +81,17 @@ export default function ConfiguracoesPage() {
           .upsert(update, { onConflict: 'chave' });
       }
 
-      alert('Configurações salvas no banco de dados com sucesso!');
+      // 2. Update current user preference if logged in
+      const userStr = localStorage.getItem('democracia_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        await supabase
+          .from('usuarios')
+          .update({ theme_preference: themeVal })
+          .eq('id', user.id);
+      }
+
+      alert('Configurações salvas com sucesso!');
     } catch (error) {
       console.error('Error saving configs:', error);
       alert('Erro ao salvar as configurações.');
