@@ -128,26 +128,50 @@ export function ProjectsTable() {
       return;
     }
 
-    // Get all unique keys from all raw objects to ensure we export everything
-    const allKeys = new Set<string>();
-    data.forEach(item => {
-      Object.keys(item.raw || {}).forEach(key => allKeys.add(key));
+    // Define specific fields to export (No IDs or system fields)
+    const exportData = data.map(item => {
+      const raw = item.raw || {};
+      const base = {
+        'Tipo': item.tipo,
+        'Título/Objeto': item.titulo,
+        'Categoria': item.categoria,
+        'Município/Local': item.local,
+        'Valor Total': item.valor,
+        'Progresso (%)': item.progresso,
+        'Status Atual': item.status
+      };
+
+      // Add extra readable fields from raw data, excluding IDs and system fields
+      const extra: any = {};
+      const blacklist = ['id', 'created_at', 'updated_at', 'id_deputado', 'id_area_tematica', 'id_partido', 'slug', 'foto_url', 'is_default', 'etapa', 'total_empenhado', 'total_executado', 'ativo'];
+      
+      Object.keys(raw).forEach(key => {
+        if (!blacklist.includes(key) && !key.startsWith('id_') && !key.endsWith('_id') && typeof raw[key] !== 'object') {
+          // Format key name to be more readable (replace underscore with space, capitalize)
+          const readableKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          if (!base.hasOwnProperty(readableKey)) {
+             extra[readableKey] = raw[key];
+          }
+        }
+      });
+
+      return { ...base, ...extra };
     });
-    
-    // Add some common synthetic keys if they aren't there
-    const keysArray = ['tipo_iniciativa', ...Array.from(allKeys)];
+
+    if (exportData.length === 0) return;
+
+    // Get all unique headers
+    const allHeaders = Array.from(new Set(exportData.flatMap(Object.keys)));
 
     const csvContent = [
-      keysArray.join(';'),
-      ...data.map(item => {
-        const rawWithTipo = { ...item.raw, tipo_iniciativa: item.tipo };
-        return keysArray.map(key => {
-          const val = rawWithTipo[key];
+      allHeaders.join(';'),
+      ...exportData.map(row => 
+        allHeaders.map(header => {
+          const val = (row as any)[header];
           if (val === null || val === undefined) return '""';
-          if (typeof val === 'object') return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
           return `"${String(val).replace(/"/g, '""')}"`;
-        }).join(';');
-      })
+        }).join(';')
+      )
     ].join('\n');
 
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });

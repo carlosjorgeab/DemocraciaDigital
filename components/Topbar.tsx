@@ -66,14 +66,11 @@ export function Topbar() {
               />
             </form>
             <div className="relative group">
-              <button className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-100 hover:border-primary transition-all overflow-hidden bg-white shadow-sm active:scale-95">
+              <button className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-100 dark:border-slate-800 hover:border-primary transition-all overflow-hidden bg-white dark:bg-slate-900 shadow-sm active:scale-95">
                 <svg viewBox="0 0 24 24" className="w-full h-full">
                    <circle cx="12" cy="12" r="12" fill="#009C3B" />
-                   <path d="M12 2L2 12H22L12 2Z" fill="#FFDF00" transform="translate(0, 2)" />
-                   <circle cx="12" cy="12" r="5" fill="#002776" />
-                   <path d="M10 14C10 14 10.5 15.5 12 15.5C13.5 15.5 14 14" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                   <circle cx="9.5" cy="11" r="1.2" fill="white" />
-                   <circle cx="14.5" cy="11" r="1.2" fill="white" />
+                   <circle cx="12" cy="10" r="4" fill="#002776" />
+                   <path d="M5 20C5 17 8 15 12 15C16 15 19 17 19 20" fill="#002776" />
                 </svg>
               </button>
               
