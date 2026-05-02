@@ -184,12 +184,12 @@ export function Charts() {
         <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col">
           <div className="flex justify-between items-end mb-6 border-b border-slate-100 pb-4">
             <div className="flex gap-6">
-              <h3 className="text-xl font-headline font-bold text-on-surface">
+              <h3 className="text-xl font-headline font-bold text-black dark:text-black">
                 Histórico de Execução
               </h3>
             </div>
             
-            <div className="flex gap-4 text-xs font-bold">
+            <div className="flex gap-4 text-xs font-bold text-black dark:text-black">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-tertiary rounded-sm"></div>
                 <span>Empenhado</span>
@@ -223,7 +223,7 @@ export function Charts() {
                         title={`Pago: ${formatCurrency(data.pago)}`}
                       ></div>
                     </div>
-                    <span className="text-[10px] text-center font-bold text-on-surface-variant">{data.month}</span>
+                    <span className="text-[10px] text-center font-bold text-black dark:text-black">{data.month}</span>
                   </div>
                 );
               })}
@@ -233,7 +233,7 @@ export function Charts() {
         
         <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
           <h4 className="text-xl font-headline font-bold text-black dark:text-black">Impacto Social</h4>
-          <p className="text-sm text-on-surface-variant self-start mb-8">Foco por Área Temática</p>
+          <p className="text-sm text-black dark:text-black self-start mb-8">Foco por Área Temática</p>
           
           <div className="relative w-48 h-48 mb-8">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -268,12 +268,12 @@ export function Charts() {
           
           <div className="w-full space-y-3">
             {categories.map(cat => (
-              <div key={cat.name} className="flex justify-between items-center text-sm font-medium">
+              <div key={cat.name} className="flex justify-between items-center text-sm font-medium text-black dark:text-black">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }}></div>
-                  <span>{cat.name}</span>
+                  <span className="text-black dark:text-black">{cat.name}</span>
                 </div>
-                <span className="font-bold">{total > 0 ? Math.round((cat.value / total) * 100) : 0}%</span>
+                <span className="font-bold text-black dark:text-black">{total > 0 ? Math.round((cat.value / total) * 100) : 0}%</span>
               </div>
             ))}
           </div>

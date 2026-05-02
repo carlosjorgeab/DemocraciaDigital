@@ -64,13 +64,22 @@ export function Filters() {
 
   return (
     <section className="glass-panel p-4 rounded-xl shadow-sm border border-white/50 overflow-hidden">
-      <div className="flex flex-nowrap items-center gap-4 lg:gap-6 overflow-x-auto no-scrollbar">
-        {/* Label for section */}
-        <div className="flex items-center gap-2 pr-4 border-r border-slate-200 shrink-0">
-          <Filter size={16} className="text-black" />
-          <h5 className="text-sm font-black uppercase text-black tracking-tighter">Filtros Inteligentes</h5>
-        </div>
+      {/* Label for section - Moved above */}
+      <div className="flex items-center gap-2 mb-4">
+        <Filter size={16} className="text-black" />
+        <h5 className="text-sm font-black uppercase text-black tracking-tighter">Filtros Inteligentes</h5>
+        
+        <button 
+          onClick={() => resetFilters()}
+          className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 hover:text-primary transition-colors ml-auto px-2 py-1 rounded-lg hover:bg-primary/5"
+          title="Resetar Filtros"
+        >
+          <RefreshCw size={14} />
+          Resetar Filtros
+        </button>
+      </div>
 
+      <div className="flex flex-nowrap items-center gap-4 lg:gap-6 overflow-x-auto no-scrollbar">
         {/* Dynamic Year Multi-select */}
         <div className="flex items-center gap-2 shrink-0">
           <label className="text-xs uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 whitespace-nowrap shrink-0">
@@ -147,14 +156,6 @@ export function Filters() {
             ))}
           </select>
         </div>
-        
-        <button 
-          onClick={resetFilters}
-          className="p-2 text-slate-400 hover:text-primary transition-colors ml-auto shrink-0"
-          title="Resetar Filtros"
-        >
-          <RefreshCw size={18} />
-        </button>
       </div>
     </section>
   );
