@@ -24,6 +24,15 @@ export function Charts() {
     async function fetchChartData() {
       if (!selectedDeputado) return;
 
+      // Fetch all areas tematicas to get their colors
+      const { data: areasList } = await supabase.from('areas_tematicas').select('nome, cor');
+      const areaColors: Record<string, string> = {};
+      if (areasList) {
+        areasList.forEach(a => {
+          areaColors[a.nome] = a.cor || '#cbd5e1'; // fallback to slate-300
+        });
+      }
+
       let categoryTotals: Record<string, number> = {};
       let totalValue = 0;
       
@@ -82,13 +91,13 @@ export function Charts() {
         }
       }
 
-      const colors = ['#005baa', '#009b3a', '#fedf00', '#slate-300'];
+      const defaultColors = ['#005baa', '#009b3a', '#fedf00', '#cbd5e1'];
       
       const formattedCategories = Object.entries(categoryTotals)
         .map(([name, value], index) => ({
           name,
           value,
-          color: colors[index % colors.length]
+          color: areaColors[name] || defaultColors[index % defaultColors.length]
         }))
         .sort((a, b) => b.value - a.value);
 

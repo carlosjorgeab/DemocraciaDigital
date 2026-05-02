@@ -24,6 +24,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: `${basePath}/ministerios`, icon: Building2, label: 'Ministérios', disabled: false, id: '/ministerios' },
     { href: '/partidos', icon: Flag, label: 'Partidos', disabled: false, id: '/partidos' },
     { href: '/deputados', icon: IdCard, label: 'Deputados', disabled: false, id: '/deputados' },
+    { href: '/areas-tematicas', icon: Tags, label: 'Áreas Temáticas', disabled: false, id: '/areas-tematicas' },
     { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: true, id: '/relatorios' },
     { href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' },
     { href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' },
