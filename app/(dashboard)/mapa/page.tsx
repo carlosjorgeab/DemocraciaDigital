@@ -73,17 +73,10 @@ export default function MapaPage() {
           
         if (eErr) console.error("Error fetching emendas stats:", eErr);
           
-        const { data: projetos, error: pErr } = await supabase
-          .from('projetos')
-          .select('municipio, valor_projeto, data')
-          .eq('id_deputado', selectedDeputado.id)
-          .eq('etapa', 'Liberado');
+
           
-        if (pErr) console.error("Error fetching projetos stats:", pErr);
-          
-        if (emendas || projetos) {
+        if (emendas) {
           let eList = emendas || [];
-          let pList = projetos || [];
 
           // Apply year filter
           if (selectedYears.length > 0) {
@@ -91,14 +84,9 @@ export default function MapaPage() {
                const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
                return selectedYears.includes(y);
              });
-             pList = pList.filter(p => {
-               const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
-               return selectedYears.includes(y);
-             });
           } else {
             // If none selected, result is 0
             eList = [];
-            pList = [];
           }
 
           const normalizeMun = (m: string) => m ? m.split('-')[0].trim().toLowerCase() : '';
@@ -108,17 +96,11 @@ export default function MapaPage() {
             const m = normalizeMun(e.municipio);
             if (m) uniqueMunSet.add(m);
           });
-          pList.forEach(p => {
-            const m = normalizeMun(p.municipio);
-            if (m) uniqueMunSet.add(m);
-          });
-          
           const totalE = eList.reduce((acc, curr) => acc + (Number(curr.valor) || 0), 0);
-          const totalP = pList.reduce((acc, curr) => acc + (Number(curr.valor_projeto) || 0), 0);
           
           setStats({
-            totalCount: eList.length + pList.length,
-            totalValor: totalE + totalP,
+            totalCount: eList.length,
+            totalValor: totalE,
             totalMunicipios: uniqueMunSet.size
           });
         }
@@ -229,7 +211,7 @@ export default function MapaPage() {
             <FileText size={24} />
           </div>
           <div>
-            <p className="text-sm font-bold text-slate-500 uppercase tracking-tight">Emendas e Projetos</p>
+            <p className="text-sm font-bold text-slate-500 uppercase tracking-tight">Emendas</p>
             <p className="text-2xl font-black text-slate-800 tracking-tighter">{stats.totalCount}</p>
           </div>
         </div>

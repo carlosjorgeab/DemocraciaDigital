@@ -14,7 +14,6 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
   const { selectedDeputado } = useDeputado();
   
   const [areas, setAreas] = useState<any[]>([]);
-  const [municipios, setMunicipios] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
   const [formData, setFormData] = useState({
@@ -23,27 +22,13 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     ementa: '',
     tipo: 'Projeto de Lei Ordinária (PL)',
     autor: '',
-    municipio: '',
-    valor_projeto: 0,
-    valor_projeto_formatted: '',
     id_area_tematica: '',
-    etapa: 'Liberado'
+    etapa: 'Liberado',
+    tramitacao: 'Em elaboração',
+    url_legislativo: ''
   });
 
-  const formatCurrency = (value: string | number) => {
-    const stringValue = String(value).replace(/\D/g, '');
-    const amount = Number(stringValue) / 100;
-    return amount.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-  };
 
-  const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCurrency(e.target.value);
-    const numericValue = Number(e.target.value.replace(/\D/g, '')) / 100;
-    setFormData({ ...formData, valor_projeto_formatted: formatted, valor_projeto: numericValue });
-  };
 
   useEffect(() => {
     async function fetchData() {
@@ -51,13 +36,6 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
       
       const { data: areasData } = await supabase.from('areas_tematicas').select('*');
       if (areasData) setAreas(areasData);
-
-      const { data: municipiosData } = await supabase
-        .from('municipio')
-        .select('*, unidade_federacao!inner(sigla)')
-        .eq('unidade_federacao.sigla', selectedDeputado.estado)
-        .order('nome');
-      if (municipiosData) setMunicipios(municipiosData);
 
       if (isEditing) {
         const { data: projetoData } = await supabase.from('projetos').select('*').eq('id', resolvedParams.id).single();
@@ -67,15 +45,19 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
             descricao: projetoData.descricao,
             ementa: projetoData.ementa || '',
             tipo: projetoData.tipo || 'Projeto de Lei Ordinária (PL)',
-            autor: projetoData.autor || '',
-            municipio: projetoData.municipio || '',
-            valor_projeto: projetoData.valor_projeto,
-            valor_projeto_formatted: formatCurrency(projetoData.valor_projeto * 100),
+            autor: projetoData.autor || selectedDeputado?.nome || '',
             id_area_tematica: projetoData.id_area_tematica || '',
-            etapa: projetoData.etapa || 'Liberado'
+            etapa: projetoData.etapa || 'Liberado',
+            tramitacao: projetoData.tramitacao || 'Em elaboração',
+            url_legislativo: projetoData.url_legislativo || ''
           });
         }
         setFetching(false);
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          autor: selectedDeputado?.nome || ''
+        }));
       }
     }
     fetchData();
@@ -85,15 +67,12 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     e.preventDefault();
     setLoading(true);
     
+    const finalPayload = { ...formData, id_deputado: selectedDeputado?.id || null };
     if (isEditing) {
-      const { valor_projeto_formatted, ...payload } = formData;
-      const finalPayload = { ...payload, id_deputado: selectedDeputado?.id || null };
       const { error } = await supabase.from('projetos').update(finalPayload).eq('id', resolvedParams.id);
       if (!error) router.push('/projetos');
       else alert('Erro ao atualizar projeto');
     } else {
-      const { valor_projeto_formatted, ...payload } = formData;
-      const finalPayload = { ...payload, id_deputado: selectedDeputado?.id || null };
       const { error } = await supabase.from('projetos').insert([finalPayload]);
       if (!error) router.push('/projetos');
       else alert('Erro ao salvar projeto');
@@ -158,31 +137,14 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Autor do Projeto</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Autor do Projeto (Inalterável)</label>
             <input 
               type="text" 
-              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+              disabled
+              className="w-full bg-slate-100 border border-transparent rounded-lg px-4 py-3 text-sm outline-none cursor-not-allowed text-slate-500 font-bold"
               value={formData.autor}
-              onChange={e => setFormData({...formData, autor: e.target.value})}
               placeholder="Nome do autor"
             />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Município</label>
-            <select 
-              required
-              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
-              value={formData.municipio}
-              onChange={e => setFormData({...formData, municipio: e.target.value})}
-            >
-              <option value="" disabled>Selecione um município</option>
-              {municipios.map(mun => (
-                <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
-                  {mun.nome} - {mun.unidade_federacao?.sigla}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="space-y-2">
@@ -201,14 +163,33 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Valor do Projeto</label>
-            <input 
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tramitação</label>
+            <select 
               required
-              type="text" 
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
+              value={formData.tramitacao}
+              onChange={e => setFormData({...formData, tramitacao: e.target.value})}
+            >
+              <option value="Em elaboração">Em elaboração</option>
+              <option value="Protocolado na Mesa Diretora">Protocolado na Mesa Diretora</option>
+              <option value="Em análise na CCJ">Em análise na CCJ (Comissão de Constituição e Justiça)</option>
+              <option value="Em análise nas Comissões Temáticas">Em análise nas Comissões Temáticas</option>
+              <option value="Aguardando votação no Plenário">Aguardando votação no Plenário</option>
+              <option value="Aprovado / Enviado para Sanção">Aprovado / Enviado para Sanção</option>
+              <option value="Sancionado e Publicado">Sancionado e Publicado</option>
+              <option value="Veto Parcial / Total">Veto Parcial / Total</option>
+              <option value="Arquivado">Arquivado</option>
+            </select>
+          </div>
+
+          <div className="space-y-2 col-span-1 md:col-span-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Link da URL do Projeto Legislativo</label>
+            <input 
+              type="url" 
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
-              value={formData.valor_projeto_formatted}
-              onChange={handleCurrencyChange}
-              placeholder="R$ 0,00"
+              value={formData.url_legislativo}
+              onChange={e => setFormData({...formData, url_legislativo: e.target.value})}
+              placeholder="Ex: https://www.al.gov.br/processo/..."
             />
           </div>
 

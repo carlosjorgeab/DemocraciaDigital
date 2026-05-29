@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Edit, Trash2, Search, History } from 'lucide-react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useDeputado } from '@/context/DeputadoContext';
 
@@ -76,9 +76,9 @@ export default function ProjetosPage() {
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Ementa</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Tipo</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Autor</th>
-                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Município</th>
-                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Orçamento</th>
-                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Status</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Tramitação</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">URL</th>
+                <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider">Etapa</th>
                 <th className="px-6 py-4 text-[10px] uppercase font-black text-on-surface-variant tracking-wider text-right">Ações</th>
               </tr>
             </thead>
@@ -106,23 +106,26 @@ export default function ProjetosPage() {
                       <p className="text-sm text-on-surface">{projeto.autor || '-'}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-on-surface">{projeto.municipio || '-'}</p>
+                      <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded">
+                        {projeto.tramitacao || 'Em elaboração'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-bold text-sm text-on-surface">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(projeto.valor_projeto)}
-                      </p>
+                      {projeto.url_legislativo ? (
+                        <a href={projeto.url_legislativo} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline font-bold">
+                          Ver Link
+                        </a>
+                      ) : (
+                        <span className="text-slate-400 text-xs">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-slate-100 text-slate-600 font-bold text-[10px] rounded-full uppercase">
-                        {projeto.status}
+                        {projeto.etapa || 'Liberado'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/projetos/${projeto.id}/historico`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-blue-50" title="Histórico">
-                          <History size={16} />
-                        </Link>
                         <Link href={`/projetos/${projeto.id}/editar`} className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-red-50" title="Editar">
                           <Edit size={16} />
                         </Link>

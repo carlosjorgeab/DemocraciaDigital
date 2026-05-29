@@ -83,33 +83,6 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
           });
         }
         
-        // 3. Fetch Projetos
-        let projQuery = supabase.from('projetos').select('municipio, valor_projeto, data').eq('etapa', 'Liberado');
-        if (selectedDeputado?.id) {
-          projQuery = projQuery.eq('id_deputado', selectedDeputado.id);
-        }
-        
-        const { data: projetosData } = await projQuery;
-        
-        if (projetosData) {
-           projetosData.forEach(item => {
-            if (item.municipio && !item.municipio.toUpperCase().includes('- PR')) return;
-
-            const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
-            if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
-
-            if (item.municipio) {
-               const cityName = item.municipio.split('-')[0].trim();
-               if (stats[cityName]) {
-                  stats[cityName].projetos += Number(item.valor_projeto || 0);
-               } else {
-                  const cityKey = Object.keys(stats).find(k => k.toLowerCase() === cityName.toLowerCase());
-                  if (cityKey) stats[cityKey].projetos += Number(item.valor_projeto || 0);
-               }
-            }
-          });
-        }
-        
         setMapStats(stats);
       } catch (err) {
         console.error("Error loading map stats:", err);
@@ -122,7 +95,7 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
   }, [selectedDeputado?.id, selectedYears]);
 
   const nonZeroTotals = Object.values(mapStats)
-    .map(stat => (stat.emendas || 0) + (stat.projetos || 0))
+    .map(stat => stat.emendas || 0)
     .filter(val => val > 0);
     
   let thresholds: number[] = [];
@@ -144,7 +117,7 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
 
   const getDynamicOpacity = (cityName: string): number | null => {
     if (!mapStats[cityName]) return null;
-    const total = (mapStats[cityName].emendas || 0) + (mapStats[cityName].projetos || 0);
+    const total = mapStats[cityName].emendas || 0;
     if (total <= 0) return null;
     if (thresholds.length === 0) return null;
     
@@ -239,13 +212,7 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
                         </span>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-xs text-slate-300">
-                        <Target className="w-3.5 h-3.5 text-orange-400" />
-                        <span>Projetos:</span>
-                        <span className="font-medium text-white ml-auto">
-                            {formatCurrency(mapStats[hoveredName]?.projetos || 0)}
-                        </span>
-                    </div>
+                    {/* Removed Projetos tooltip */}
                 </div>
             )}
         </div>

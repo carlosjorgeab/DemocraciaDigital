@@ -27,65 +27,14 @@ export function KpiCards() {
       let iniciativasAtivas = 0;
       let emLicitacao = 0;
 
-      let projetoIds: string[] = [];
       let emendaIds: string[] = [];
 
-      // Fetch all projects for this deputy
-      const { data: projetos } = await supabase
-        .from('projetos')
-        .select('*, areas_tematicas(nome)')
-        .eq('id_deputado', selectedDeputado.id)
-        .eq('etapa', 'Liberado');
-      
       // Fetch all emendas for this deputy
       const { data: emendas } = await supabase
         .from('orcamentos')
         .select('*')
         .eq('id_deputado', selectedDeputado.id)
         .eq('etapa', 'Liberado');
-
-      if (projetos) {
-        let filteredProjetos = projetos;
-        
-        // Apply filters
-        if (filters.tipoVerba !== 'Todas' && filters.tipoVerba !== 'Projetos') filteredProjetos = [];
-        if (filters.categoria !== 'Todas') {
-          filteredProjetos = filteredProjetos.filter(p => p.areas_tematicas?.nome === filters.categoria);
-        }
-        
-        // Filter by Year using empenho date or fallback to project date
-        if (filters.anosFiscais.length > 0) {
-          // In a real app we'd fetch actual empenho dates for each project to filter correctly
-          // For now, if we have the history we check it, or fallback
-          filteredProjetos = filteredProjetos.filter(p => {
-             const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
-             return filters.anosFiscais.includes(y);
-          });
-        }
-
-        if (filters.municipio !== 'Todos') {
-          filteredProjetos = filteredProjetos.filter(p => p.municipio === filters.municipio);
-        }
-
-        // Fetch ids of projects that have 'Liquidada' in history
-        const pIds = filteredProjetos.map(p => p.id);
-        let liquidadaPIds = new Set<string>();
-        if (pIds.length > 0) {
-          const { data: hLiquidada } = await supabase
-            .from('historico_projetos')
-            .select('id_projeto')
-            .in('id_projeto', pIds)
-            .eq('status', 'Liquidada');
-          hLiquidada?.forEach(h => liquidadaPIds.add(h.id_projeto));
-        }
-
-        filteredProjetos.forEach(p => {
-          verbaDestinada += Number(p.valor_projeto) || 0;
-          if (p.status === 'Em Licitação') emLicitacao++;
-          if (!liquidadaPIds.has(p.id)) iniciativasAtivas++;
-          projetoIds.push(p.id);
-        });
-      }
 
       if (emendas) {
         let filteredEmendas = emendas;
@@ -137,18 +86,7 @@ export function KpiCards() {
         });
       }
 
-      if (projetoIds.length > 0) {
-        const chunkSize = 200;
-        for (let i = 0; i < projetoIds.length; i += chunkSize) {
-          const chunk = projetoIds.slice(i, i + chunkSize);
-          const { data: histProj } = await supabase
-            .from('historico_projetos')
-            .select('valor')
-            .in('id_projeto', chunk)
-            .eq('status', 'Paga');
-          if (histProj) totalExecutado += histProj.reduce((acc, curr) => acc + Number(curr.valor), 0);
-        }
-      }
+
 
       if (emendaIds.length > 0) {
         const chunkSize = 200;

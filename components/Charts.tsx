@@ -36,34 +36,9 @@ export function Charts() {
       let categoryTotals: Record<string, number> = {};
       let totalValue = 0;
       
-      let projetoIds: string[] = [];
       let emendaIds: string[] = [];
 
-      if (filters.tipoVerba === 'Todas' || filters.tipoVerba === 'Projetos') {
-        let query = supabase
-          .from('projetos')
-          .select('*, areas_tematicas(nome)')
-          .eq('id_deputado', selectedDeputado.id)
-          .eq('etapa', 'Liberado');
-        
-        const { data: projetos } = await query;
-        if (projetos) {
-          projetos.forEach(p => {
-            const cat = p.areas_tematicas?.nome || 'Outros';
-            const y = p.data ? new Date(p.data).getFullYear() : new Date().getFullYear();
-            
-            const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);
-            const matchMun = filters.municipio === 'Todos' || p.municipio === filters.municipio;
-            const matchCat = filters.categoria === 'Todas' || filters.categoria === cat;
 
-            if (matchYear && matchMun && matchCat) {
-              categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(p.valor_projeto);
-              totalValue += Number(p.valor_projeto);
-              projetoIds.push(p.id);
-            }
-          });
-        }
-      }
 
       if (filters.tipoVerba === 'Todas' || filters.tipoVerba === 'Emendas') {
         let query = supabase
@@ -108,28 +83,7 @@ export function Charts() {
       const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
       const newMonthlyData = months.slice(0, 6).map(m => ({ month: m, empenhado: 0, pago: 0 }));
 
-      if (projetoIds.length > 0) {
-        const chunkSize = 200;
-        for (let i = 0; i < projetoIds.length; i += chunkSize) {
-          const chunk = projetoIds.slice(i, i + chunkSize);
-          const { data: histProj } = await supabase
-            .from('historico_projetos')
-            .select('status, data, valor')
-            .in('id_projeto', chunk)
-            .in('status', ['Empenhada', 'Paga']);
-          
-          if (histProj) {
-            histProj.forEach(h => {
-              const date = new Date(h.data);
-              const monthIndex = date.getMonth(); // 0-11
-              if (monthIndex < 6) { // Only first 6 months for now
-                if (h.status === 'Empenhada') newMonthlyData[monthIndex].empenhado += Number(h.valor);
-                if (h.status === 'Paga') newMonthlyData[monthIndex].pago += Number(h.valor);
-              }
-            });
-          }
-        }
-      }
+
 
       if (emendaIds.length > 0) {
         const chunkSize = 200;

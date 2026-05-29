@@ -25,10 +25,6 @@ export function Filters() {
         // Emendas
         const { data: eData } = await supabase.from('orcamentos').select('data').eq('id_deputado', selectedDeputado.id).eq('etapa', 'Liberado');
         eData?.forEach(e => { if (e.data) years.add(new Date(e.data).getFullYear()); });
-        
-        // Projetos
-        const { data: pData } = await supabase.from('projetos').select('data').eq('id_deputado', selectedDeputado.id).eq('etapa', 'Liberado');
-        pData?.forEach(p => { if (p.data) years.add(new Date(p.data).getFullYear()); });
 
         if (years.size === 0) years.add(new Date().getFullYear());
         setAvailableYears(Array.from(years).sort((a, b) => b - a));
@@ -138,7 +134,6 @@ export function Filters() {
           >
             <option value="Todas">Verba: Todas</option>
             <option value="Emendas">Emendas</option>
-            <option value="Projetos">Projetos</option>
           </select>
         </div>
 
