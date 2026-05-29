@@ -30,7 +30,7 @@ export function EmendasTable() {
         .select(`
           *,
           areas_tematicas(nome),
-          projetos(titulo, ementa)
+          projetos(descricao, ementa)
         `)
         .eq('id_deputado', selectedDeputado.id)
         .eq('etapa', 'Liberado');
@@ -51,32 +51,9 @@ export function EmendasTable() {
     fetchEmendas();
   }, [selectedDeputado]);
 
-  // Apply filters and search input
+  // Apply search input filter
   useEffect(() => {
     let result = [...emendas];
-
-    // Filter by year
-    if (filters.anosFiscais.length > 0) {
-      result = result.filter(e => {
-        const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
-        return filters.anosFiscais.includes(y);
-      });
-    }
-
-    // Filter by type of budget
-    if (filters.tipoVerba !== 'Todas') {
-      result = result.filter(e => e.tipo === filters.tipoVerba);
-    }
-
-    // Filter by thematic category
-    if (filters.categoria !== 'Todas') {
-      result = result.filter(e => e.areas_tematicas?.nome === filters.categoria);
-    }
-
-    // Filter by municipality
-    if (filters.municipio !== 'Todos') {
-      result = result.filter(e => e.municipio === filters.municipio);
-    }
 
     // Filter by user search term
     if (searchTerm.trim() !== '') {
@@ -85,12 +62,14 @@ export function EmendasTable() {
         (e.objeto && e.objeto.toLowerCase().includes(term)) ||
         (e.beneficiario && e.beneficiario.toLowerCase().includes(term)) ||
         (e.autor && e.autor.toLowerCase().includes(term)) ||
-        (e.tipo && e.tipo.toLowerCase().includes(term))
+        (e.tipo && e.tipo.toLowerCase().includes(term)) ||
+        (e.municipio && e.municipio.toLowerCase().includes(term)) ||
+        (e.areas_tematicas?.nome && e.areas_tematicas.nome.toLowerCase().includes(term))
       );
     }
 
     setFilteredEmendas(result);
-  }, [emendas, filters, searchTerm]);
+  }, [emendas, searchTerm]);
 
   // Handle single deletion
   const handleDelete = async (id: string) => {
@@ -197,8 +176,8 @@ export function EmendasTable() {
                   <td className="px-6 py-4 max-w-xs">
                     {emenda.projetos ? (
                       <div>
-                        <p className="text-xs font-bold text-slate-700 line-clamp-1">{emenda.projetos.titulo}</p>
-                        <p className="text-[10px] text-slate-500 line-clamp-1">{emenda.projetos.ementa}</p>
+                        <p className="text-xs font-bold text-slate-700 line-clamp-1">{emenda.projetos.descricao}</p>
+                        <p className="text-[10px] text-slate-500 line-clamp-1">{emenda.projetos.ementa || '-'}</p>
                       </div>
                     ) : (
                       <span className="text-xs text-slate-400 italic">Sem vínculo</span>
