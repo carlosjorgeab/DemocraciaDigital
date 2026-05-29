@@ -32,7 +32,8 @@ export function EmendasTable() {
           areas_tematicas(nome),
           projetos(titulo, ementa)
         `)
-        .eq('id_deputado', selectedDeputado.id);
+        .eq('id_deputado', selectedDeputado.id)
+        .eq('etapa', 'Liberado');
 
       if (error) {
         console.error('Error fetching emendas for list:', error);
@@ -142,26 +143,25 @@ export function EmendasTable() {
               <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider">Tipo / Categoria</th>
               <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider">Projeto Vinculado</th>
               <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider">Valor</th>
-              <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider">Etapa</th>
               <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-medium">
+                <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">
                   Carregando emendas...
                 </td>
               </tr>
             ) : !selectedDeputado ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-medium">
+                <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">
                   Selecione um deputado no topo da página.
                 </td>
               </tr>
             ) : filteredEmendas.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-medium">
+                <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">
                   Nenhuma emenda para exibir com os filtros selecionados.
                 </td>
               </tr>
@@ -207,15 +207,6 @@ export function EmendasTable() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="font-bold text-sm text-slate-900">
                       {formatCurrency(Number(emenda.valor) || 0)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-[10px] font-black rounded-full uppercase ${
-                      emenda.etapa === 'Liberado' 
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                        : 'bg-amber-50 text-amber-700 border border-amber-100'
-                    }`}>
-                      {emenda.etapa || 'Liberado'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
