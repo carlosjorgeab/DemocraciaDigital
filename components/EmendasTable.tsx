@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useFilters } from '@/context/FilterContext';
-import { Search, Edit, Trash2, History, FileText, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { Search } from 'lucide-react';
 
 export function EmendasTable() {
   const { selectedDeputado } = useDeputado();
@@ -122,25 +121,24 @@ export function EmendasTable() {
               <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider">Tipo / Categoria</th>
               <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider">Projeto Vinculado</th>
               <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider">Valor</th>
-              <th className="px-6 py-4 text-[10px] uppercase font-black text-slate-500 tracking-wider text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">
+                <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
                   Carregando emendas...
                 </td>
               </tr>
             ) : !selectedDeputado ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">
+                <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
                   Selecione um deputado no topo da página.
                 </td>
               </tr>
             ) : filteredEmendas.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">
+                <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
                   Nenhuma emenda para exibir com os filtros selecionados.
                 </td>
               </tr>
@@ -187,31 +185,6 @@ export function EmendasTable() {
                     <span className="font-bold text-sm text-slate-900">
                       {formatCurrency(Number(emenda.valor) || 0)}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Link 
-                        href={`/emendas/${emenda.id}/historico`} 
-                        className="p-1.5 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-100" 
-                        title="Histórico de Tramitação"
-                      >
-                        <History size={15} />
-                      </Link>
-                      <Link 
-                        href={`/emendas/${emenda.id}/editar`} 
-                        className="p-1.5 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-100" 
-                        title="Editar Emenda"
-                      >
-                        <Edit size={15} />
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(emenda.id)} 
-                        className="p-1.5 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50" 
-                        title="Excluir Emenda"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
                   </td>
                 </tr>
               ))
