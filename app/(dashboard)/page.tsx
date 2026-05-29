@@ -2,6 +2,7 @@
 import { KpiCards } from '@/components/KpiCards';
 import { Filters } from '@/components/Filters';
 import { Charts } from '@/components/Charts';
+import { EmendasTable } from '@/components/EmendasTable';
 import { Share, Download } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { FilterProvider } from '@/context/FilterContext';
@@ -67,6 +68,7 @@ export default function Home() {
         <Filters />
         <KpiCards />
         <Charts />
+        <EmendasTable />
         
       </div>
     </FilterProvider>
