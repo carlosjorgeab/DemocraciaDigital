@@ -104,11 +104,28 @@ export default function DetalhesAdesao() {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CNPJ</p>
                 <p className="font-bold text-slate-700">{submission.cnpj}</p>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 col-span-1 md:col-span-2 border-t border-slate-100 pt-4 mt-2">
+                <p className="text-xs font-black text-primary uppercase tracking-widest mb-3">Informações de Contato</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome do Contato</p>
+                    <p className="font-bold text-slate-750">{submission.contato_nome || '-'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Telefone</p>
+                    <p className="font-bold text-slate-700">{submission.contato_telefone || '-'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">E-mail</p>
+                    <p className="font-bold text-slate-700">{submission.contato_email || '-'}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1 border-t border-slate-100 pt-4">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Como ficou sabendo</p>
                 <p className="font-bold text-slate-700">{submission.como_ficou_sabendo}</p>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 border-t border-slate-100 pt-4">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data de Envio</p>
                 <p className="font-bold text-slate-700">{new Date(submission.created_at).toLocaleDateString('pt-BR')} às {new Date(submission.created_at).toLocaleTimeString('pt-BR')}</p>
               </div>

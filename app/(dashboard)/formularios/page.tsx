@@ -24,7 +24,10 @@ export default function FormularioEmenda() {
     orcamento_url: '',
     curriculo_url: '',
     como_ficou_sabendo: '',
-    concorda_regras: false
+    concorda_regras: false,
+    contato_nome: '',
+    contato_telefone: '',
+    contato_email: ''
   };
   
   const [formData, setFormData] = useState(initialFormState);
@@ -139,7 +142,10 @@ export default function FormularioEmenda() {
       orcamento_url: formData.orcamento_url,
       curriculo_url: formData.curriculo_url,
       como_ficou_sabendo: formData.como_ficou_sabendo,
-      concorda_regras: formData.concorda_regras
+      concorda_regras: formData.concorda_regras,
+      contato_nome: formData.contato_nome,
+      contato_telefone: formData.contato_telefone,
+      contato_email: formData.contato_email
     };
 
     const { error } = await supabase
@@ -165,6 +171,9 @@ export default function FormularioEmenda() {
     formData.id_acao !== '' &&
     formData.nome_entidade.trim() !== '' &&
     formData.cnpj.trim() !== '' &&
+    formData.contato_nome.trim() !== '' &&
+    formData.contato_telefone.trim() !== '' &&
+    formData.contato_email.trim() !== '' &&
     formData.nome_projeto.trim() !== '' &&
     formData.resumo_projeto.trim() !== '' &&
     formData.descricao_projeto.trim() !== '' &&
@@ -277,6 +286,47 @@ export default function FormularioEmenda() {
             />
           </div>
 
+          <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100/80 space-y-4">
+            <h4 className="text-xs font-black uppercase tracking-wider text-primary">Contato da Entidade</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Nome Completo</label>
+                <input 
+                  required
+                  type="text" 
+                  className="w-full bg-white border border-slate-200 focus:border-primary/40 rounded-lg px-4 py-3 text-sm outline-none transition-all"
+                  value={formData.contato_nome}
+                  onChange={e => setFormData({...formData, contato_nome: e.target.value})}
+                  placeholder="Nome do responsável"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Telefone</label>
+                <input 
+                  required
+                  type="text" 
+                  className="w-full bg-white border border-slate-200 focus:border-primary/40 rounded-lg px-4 py-3 text-sm outline-none transition-all"
+                  value={formData.contato_telefone}
+                  onChange={e => setFormData({...formData, contato_telefone: e.target.value})}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">E-mail</label>
+                <input 
+                  required
+                  type="email" 
+                  className="w-full bg-white border border-slate-200 focus:border-primary/40 rounded-lg px-4 py-3 text-sm outline-none transition-all"
+                  value={formData.contato_email}
+                  onChange={e => setFormData({...formData, contato_email: e.target.value})}
+                  placeholder="contato@entidade.org"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">c) Nome do projeto</label>
             <input 
@@ -328,7 +378,7 @@ export default function FormularioEmenda() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">f) Orçamento: Planilha de valores detalhados do projeto</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">PROJETO:</label>
             <p className="text-xs text-slate-500 mb-2">Se possível destacar o que será destinado a custeio e / ou investimento. (Formato PDF)</p>
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-medium">
