@@ -73,7 +73,7 @@ export default function PublicHome() {
               }`}
             >
               <LayoutDashboard size={18} className={activeTab === 'geral' ? 'text-primary' : 'text-slate-400'} />
-              <span>Visão Geral</span>
+              <span className="hidden md:inline">Visão Geral</span>
             </button>
             <button 
               onClick={() => handleTabChange('mapa')}
@@ -84,11 +84,22 @@ export default function PublicHome() {
               }`}
             >
               <MapPin size={18} className={activeTab === 'mapa' ? 'text-primary' : 'text-slate-400'} />
-              <span>Visão Mapa</span>
+              <span className="hidden md:inline">Visão Mapa</span>
+            </button>
+            <button 
+              onClick={() => {
+                if (selectedDeputado) {
+                  router.push(`/p/${selectedDeputado.slug || selectedDeputado.id}/projetos`);
+                }
+              }}
+              className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+              <span className="hidden md:inline">Projetos</span>
             </button>
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
               Transparência Parlamentar
             </div>
