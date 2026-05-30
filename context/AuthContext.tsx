@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasPermission = (menu: string) => {
     const isPublicRoute = pathname?.startsWith('/p/');
     if (isPublicRoute) {
-      return menu === '/' || menu === '/mapa' || menu === '/formularios' || menu === '/processos';
+      return menu === '/' || menu === '/mapa' || menu === '/formularios';
     }
     if (!user) return false;
     if (user.is_admin) return true;
