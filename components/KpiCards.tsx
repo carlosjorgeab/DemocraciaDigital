@@ -150,7 +150,7 @@ export function KpiCards() {
       </div>
       
       <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-100">
-        <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Saldo em Caixa</p>
+        <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">A Empenhar</p>
         <h3 className="text-4xl font-headline font-black text-slate-800">{formatCurrency(totals.saldoCaixa)}</h3>
         <div className="flex items-center gap-1 mt-2 text-emerald-600 font-bold text-xs">
           <Wallet size={14} />

@@ -25,7 +25,8 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     id_area_tematica: '',
     etapa: 'Liberado',
     tramitacao: 'Em elaboração',
-    url_legislativo: ''
+    url_legislativo: '',
+    numero_proposicao: ''
   });
 
 
@@ -49,7 +50,8 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
             id_area_tematica: projetoData.id_area_tematica || '',
             etapa: projetoData.etapa || 'Liberado',
             tramitacao: projetoData.tramitacao || 'Em elaboração',
-            url_legislativo: projetoData.url_legislativo || ''
+            url_legislativo: projetoData.url_legislativo || '',
+            numero_proposicao: projetoData.numero_proposicao || ''
           });
         }
         setFetching(false);
@@ -190,6 +192,18 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
               value={formData.url_legislativo}
               onChange={e => setFormData({...formData, url_legislativo: e.target.value})}
               placeholder="Ex: https://www.al.gov.br/processo/..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Nº Proposição</label>
+            <input 
+              type="text" 
+              maxLength={15}
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+              value={formData.numero_proposicao}
+              onChange={e => setFormData({...formData, numero_proposicao: e.target.value})}
+              placeholder="Ex: PL 123/2026"
             />
           </div>
 

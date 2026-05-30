@@ -86,6 +86,10 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
         }
         setFetching(false);
       } else {
+        setFormData(prev => ({
+          ...prev,
+          autor: selectedDeputado?.nome || ''
+        }));
         setFetching(false);
       }
     }
