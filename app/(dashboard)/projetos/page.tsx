@@ -20,7 +20,7 @@ export default function ProjetosPage() {
 
       const { data, error } = await supabase
         .from('projetos')
-        .select('*, areas_tematicas(nome, cor)')
+        .select('*, areas_tematicas(nome, cor, icone_url)')
         .eq('id_deputado', selectedDeputado.id);
       
       if (data) setProjetos(data);
@@ -35,7 +35,7 @@ export default function ProjetosPage() {
       if (selectedDeputado) {
         const { data } = await supabase
           .from('projetos')
-          .select('*, areas_tematicas(nome, cor)')
+          .select('*, areas_tematicas(nome, cor, icone_url)')
           .eq('id_deputado', selectedDeputado.id);
         if (data) setProjetos(data);
       }
@@ -93,7 +93,23 @@ export default function ProjetosPage() {
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-bold text-sm text-on-surface">{projeto.descricao}</p>
-                        <p className="text-xs text-on-surface-variant font-medium">{projeto.areas_tematicas?.nome}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          {projeto.areas_tematicas?.icone_url && (
+                            projeto.areas_tematicas.icone_url.startsWith('<svg') ? (
+                              <div 
+                                dangerouslySetInnerHTML={{ __html: projeto.areas_tematicas.icone_url }} 
+                                className="w-3.5 h-3.5 flex items-center justify-center p-0.5" 
+                                style={{ color: projeto.areas_tematicas.cor }} 
+                              />
+                            ) : (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={projeto.areas_tematicas.icone_url} alt="" className="w-3.5 h-3.5 object-contain" />
+                            )
+                          )}
+                          <p className="text-xs font-semibold" style={{ color: projeto.areas_tematicas?.cor || '#64748b' }}>
+                            {projeto.areas_tematicas?.nome}
+                          </p>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
