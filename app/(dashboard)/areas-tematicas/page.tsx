@@ -14,36 +14,132 @@ type AreaTematica = {
 
 const PRESET_ICONS = [
   {
-    nome: 'Saúde',
+    nome: 'Saúde / Medicina',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`
   },
   {
-    nome: 'Educação',
+    nome: 'Educação / Ensino',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>`
   },
   {
-    nome: 'Segurança',
+    nome: 'Segurança Pública',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`
   },
   {
-    nome: 'Esporte',
+    nome: 'Esporte / Lazer',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="10"/><path d="M6 12A6 6 0 0 1 18 12"/><path d="M12 6A6 6 0 0 1 12 18"/></svg>`
   },
   {
-    nome: 'Cultura',
+    nome: 'Cultura / Eventos',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><circle cx="12" cy="12" r="3"/></svg>`
   },
   {
-    nome: 'Habitação',
+    nome: 'Habitação / Moradia',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>`
   },
   {
-    nome: 'Ambiente',
+    nome: 'Meio Ambiente / Ecologia',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 1 8a7 7 0 0 1-9 10Z"/><path d="M9 22v-4"/></svg>`
   },
   {
-    nome: 'Inovação',
+    nome: 'Inovação / Tecnologia',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M16.26 16.26l1.41 1.41M2 12h2M20 12h2"/><circle cx="12" cy="12" r="4"/></svg>`
+  },
+  {
+    nome: 'Agricultura / Agronegócio',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M7 20h10"/><path d="M10 20c0-1.7.7-4 3-5.5a9.9 9.9 0 0 1 7-1.5"/><path d="M14 20c0-3.3 2.7-6 6-6"/><path d="M12 14a8.9 8.9 0 0 0-6-6"/><path d="M12 10a5 5 0 0 0-4-4"/></svg>`
+  },
+  {
+    nome: 'Infraestrutura / Obras',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M4 22V4c0-.5.2-1 .6-1.4C5 2.2 5.5 2 6 2h12c.5 0 1 .2 1.4.6.4.4.6.9.6 1.4v18M10 22v-4a2 2 0 0 1 4 0v4M6 6h2M6 10h2M11 6h2M11 10h2M16 6h2M16 10h2M6 14h2M16 14h2"/></svg>`
+  },
+  {
+    nome: 'Assistência Social',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+  },
+  {
+    nome: 'Transporte / Mobilidade',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M4 11h16"/><path d="M6 16v2"/><path d="M18 16v2"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/></svg>`
+  },
+  {
+    nome: 'Saneamento / Recursos Hídricos',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-11-7-11S5 10.7 5 15a7 7 0 0 0 7 7z"/></svg>`
+  },
+  {
+    nome: 'Turismo / Viagens',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`
+  },
+  {
+    nome: 'Finanças / Economia / Orçamento',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`
+  },
+  {
+    nome: 'Trabalho / Emprego',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`
+  },
+  {
+    nome: 'Justiça / Direitos / Cidadania',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg>`
+  },
+  {
+    nome: 'Gestão / Administração / Relatórios',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`
+  },
+  {
+    nome: 'Ciência / Pesquisa / Laboratório',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M4 22h16L15 12V4h-6v8L4 22z"/><path d="M6 18h12"/></svg>`
+  },
+  {
+    nome: 'Tecnologia da Informação / TI',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/></svg>`
+  },
+  {
+    nome: 'Energia / Elétrica / Iluminação',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`
+  },
+  {
+    nome: 'Comunicação / Mídia / Imprensa',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M2 10h6l4.6-3.8c.8-.6 1.4-.2 1.4.8v10c0 1-.6 1.4-1.4.8L8 14H2a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/><path d="M17 14c1.1-1.2 1.1-3 0-4.2M20.5 17c2.3-2.6 2.3-6.6 0-9"/></svg>`
+  },
+  {
+    nome: 'Indústria / Fábrica / Comércio',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M18 20V10l-4 4V10l-4 4V10L6 14V4H2v16h16Z"/><circle cx="17.5" cy="5.5" r="1.5"/></svg>`
+  },
+  {
+    nome: 'Causa Animal / Bem-Estar',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M6 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M18 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M12 21a5 5 0 0 0 5-5c0-1.66-2-3-5-3s-5 1.34-5 3a5 5 0 0 0 5 5Z"/></svg>`
+  },
+  {
+    nome: 'Sustentabilidade / Planejamento',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M16.26 16.26l1.41 1.41M2 12h2M20 12h2M6.34 17.66l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`
+  },
+  {
+    nome: 'Alimentação / Nutrição / Gastronomia',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M3 2v7c0 1.1.9 2 2 2h4V2M7 2v20M21 15V2v0a5 5 0 0 0-5 5v8c0 1.1.9 2 2 2h3Zm-3 0v5"/></svg>`
+  },
+  {
+    nome: 'Desenvolvimento Urbano / Cidade Inteligente',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`
+  },
+  {
+    nome: 'História / Patrimônio / Monumento',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><line x1="2" y1="22" x2="22" y2="22"/><path d="M12 2L2 7h20L12 2zM4 22V9h3v13H4zm6 0V9h3v13h-3zm6 0V9h3v13h-3zm5 0V9h2v13h-2z"/></svg>`
+  },
+  {
+    nome: 'Defesa Civil / Prevenção de Desastres / Alerta',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+  },
+  {
+    nome: 'Inclusão Social / Cidadania / Acessibilidade',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`
+  },
+  {
+    nome: 'Vias Públicas / Rodovias / Rotas',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/></svg>`
+  },
+  {
+    nome: 'Projetos / Premiações / Estrela / Suporte',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="m12 3-1.912 5.886H3.886L9.043 12.5 7.13 18.386 12 14.772l4.87 3.614-1.913-5.886 5.157-3.614h-6.202L12 3Z"/></svg>`
   }
 ];
 
@@ -54,6 +150,7 @@ export default function AreasTematicasPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentArea, setCurrentArea] = useState<Partial<AreaTematica>>({ nome: '', cor: '#005baa', icone_url: '' });
   const [error, setError] = useState('');
+  const [iconSearch, setIconSearch] = useState('');
 
   async function fetchAreas() {
     setLoading(true);
@@ -185,24 +282,49 @@ export default function AreasTematicasPage() {
               </p>
             </div>
 
-            {/* Grid de Presets */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
-              {PRESET_ICONS.map((preset) => (
-                <button
-                  key={preset.nome}
-                  type="button"
-                  onClick={() => setCurrentArea({ ...currentArea, icone_url: preset.svg })}
-                  className={`p-3 flex flex-col items-center justify-center border-2 rounded-2xl transition-all ${
-                    currentArea.icone_url === preset.svg
-                      ? 'border-primary bg-primary/5 text-primary scale-102 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-500 hover:text-slate-700'
-                  }`}
-                  title={preset.nome}
-                >
-                  <div dangerouslySetInnerHTML={{ __html: preset.svg }} className="w-8 h-8 flex items-center justify-center" style={{ color: currentArea.cor || '#005baa' }} />
-                  <span className="text-[10px] font-bold mt-1 text-center line-clamp-1">{preset.nome}</span>
-                </button>
-              ))}
+            {/* Filtro do Ícone e Grid de Presets */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <input 
+                  type="text"
+                  placeholder="Pesquisar ícone por nome..."
+                  value={iconSearch}
+                  onChange={(e) => setIconSearch(e.target.value)}
+                  className="w-full max-w-md px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-primary/30"
+                />
+                {iconSearch && (
+                  <button 
+                    type="button"
+                    onClick={() => setIconSearch('')}
+                    className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 dark:hover:text-slate-350 tracking-wider transition-colors"
+                  >
+                    Limpar
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-64 overflow-y-auto p-2.5 border border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30">
+                {PRESET_ICONS.filter(preset => preset.nome.toLowerCase().includes(iconSearch.toLowerCase())).length === 0 ? (
+                  <p className="col-span-full py-8 text-center text-xs font-bold text-slate-400">Nenhum ícone encontrado para "{iconSearch}"</p>
+                ) : (
+                  PRESET_ICONS.filter(preset => preset.nome.toLowerCase().includes(iconSearch.toLowerCase())).map((preset) => (
+                    <button
+                      key={preset.nome}
+                      type="button"
+                      onClick={() => setCurrentArea({ ...currentArea, icone_url: preset.svg })}
+                      className={`p-3.5 flex flex-col items-center justify-center border-2 rounded-2xl transition-all ${
+                        currentArea.icone_url === preset.svg
+                          ? 'border-primary bg-primary/5 text-primary scale-102 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-500 hover:text-slate-700'
+                      }`}
+                      title={preset.nome}
+                    >
+                      <div dangerouslySetInnerHTML={{ __html: preset.svg }} className="w-8 h-8 flex items-center justify-center" style={{ color: currentArea.cor || '#005baa' }} />
+                      <span className="text-[10px] font-black mt-2 text-center line-clamp-1 leading-tight tracking-tight">{preset.nome}</span>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
 
             {/* Custom file uploader */}
