@@ -18,12 +18,42 @@ export default function ProjetosPage() {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data: projectsData, error } = await supabase
         .from('projetos')
-        .select('*, areas_tematicas(nome, cor, icone_url)')
+        .select('*, areas_tematicas(id, nome, cor, icone_url)')
         .eq('id_deputado', selectedDeputado.id);
       
-      if (data) setProjetos(data);
+      if (projectsData) {
+        // Fetch all relation mapping
+        const enriched = await Promise.all(projectsData.map(async (p: any) => {
+          const areaMap = new Map();
+          if (p.areas_tematicas) {
+            areaMap.set(p.areas_tematicas.id, p.areas_tematicas);
+          }
+          
+          try {
+            const { data: rels } = await supabase
+              .from('projeto_areas')
+              .select('areas_tematicas(id, nome, cor, icone_url)')
+              .eq('id_projeto', p.id);
+            
+            if (rels) {
+              rels.forEach((r: any) => {
+                const area = Array.isArray(r.areas_tematicas) ? r.areas_tematicas[0] : r.areas_tematicas;
+                if (area && area.id) areaMap.set(area.id, area);
+              });
+            }
+          } catch (e) {
+            // safe fail
+          }
+          
+          return {
+            ...p,
+            all_areas: Array.from(areaMap.values())
+          };
+        }));
+        setProjetos(enriched);
+      }
       setLoading(false);
     }
     fetchProjetos();
@@ -33,11 +63,36 @@ export default function ProjetosPage() {
     if (confirm('Tem certeza que deseja excluir este projeto?')) {
       await supabase.from('projetos').delete().eq('id', id);
       if (selectedDeputado) {
-        const { data } = await supabase
+        const { data: projectsData } = await supabase
           .from('projetos')
-          .select('*, areas_tematicas(nome, cor, icone_url)')
+          .select('*, areas_tematicas(id, nome, cor, icone_url)')
           .eq('id_deputado', selectedDeputado.id);
-        if (data) setProjetos(data);
+        
+        if (projectsData) {
+          const enriched = await Promise.all(projectsData.map(async (p: any) => {
+            const areaMap = new Map();
+            if (p.areas_tematicas) {
+              areaMap.set(p.areas_tematicas.id, p.areas_tematicas);
+            }
+            try {
+              const { data: rels } = await supabase
+                .from('projeto_areas')
+                .select('areas_tematicas(id, nome, cor, icone_url)')
+                .eq('id_projeto', p.id);
+              if (rels) {
+                rels.forEach((r: any) => {
+                  const area = Array.isArray(r.areas_tematicas) ? r.areas_tematicas[0] : r.areas_tematicas;
+                  if (area && area.id) areaMap.set(area.id, area);
+                });
+              }
+            } catch (e) {}
+            return {
+              ...p,
+              all_areas: Array.from(areaMap.values())
+            };
+          }));
+          setProjetos(enriched);
+        }
       }
     }
   }
@@ -93,22 +148,55 @@ export default function ProjetosPage() {
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-bold text-sm text-on-surface">{projeto.descricao}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          {projeto.areas_tematicas?.icone_url && (
-                            projeto.areas_tematicas.icone_url.startsWith('<svg') ? (
+                         <div className="flex flex-wrap gap-1 mt-1 max-w-xs">
+                          {projeto.all_areas && projeto.all_areas.length > 0 ? (
+                            projeto.all_areas.map((area: any) => (
                               <div 
-                                dangerouslySetInnerHTML={{ __html: projeto.areas_tematicas.icone_url }} 
-                                className="w-3.5 h-3.5 flex items-center justify-center p-0.5" 
-                                style={{ color: projeto.areas_tematicas.cor }} 
-                              />
-                            ) : (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={projeto.areas_tematicas.icone_url} alt="" className="w-3.5 h-3.5 object-contain" />
-                            )
+                                key={area.id} 
+                                className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 border rounded-md"
+                                style={{ borderColor: (area.cor || 'var(--color-primary)') + '22' }}
+                              >
+                                {area.icone_url && (
+                                  area.icone_url.startsWith('<svg') ? (
+                                    <div 
+                                      dangerouslySetInnerHTML={{ __html: area.icone_url }} 
+                                      className="un-svg w-3 h-3 flex items-center justify-center" 
+                                      style={{ color: area.cor }} 
+                                    />
+                                  ) : (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={area.icone_url} alt="" className="w-3 h-3 object-contain" />
+                                  )
+                                )}
+                                <span className="text-[10px] font-black" style={{ color: area.cor }}>
+                                  {area.nome}
+                                </span>
+                              </div>
+                            ))
+                          ) : projeto.areas_tematicas ? (
+                            <div 
+                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 border rounded-md"
+                              style={{ borderColor: (projeto.areas_tematicas.cor || 'var(--color-primary)') + '22' }}
+                            >
+                              {projeto.areas_tematicas.icone_url && (
+                                projeto.areas_tematicas.icone_url.startsWith('<svg') ? (
+                                  <div 
+                                    dangerouslySetInnerHTML={{ __html: projeto.areas_tematicas.icone_url }} 
+                                    className="un-svg w-3 h-3 flex items-center justify-center" 
+                                    style={{ color: projeto.areas_tematicas.cor }} 
+                                  />
+                                ) : (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={projeto.areas_tematicas.icone_url} alt="" className="w-3 h-3 object-contain" />
+                                )
+                              )}
+                              <span className="text-[10px] font-black" style={{ color: projeto.areas_tematicas.cor }}>
+                                {projeto.areas_tematicas.nome}
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-slate-400 font-medium">Nenhuma área</p>
                           )}
-                          <p className="text-xs font-semibold" style={{ color: projeto.areas_tematicas?.cor || '#64748b' }}>
-                            {projeto.areas_tematicas?.nome}
-                          </p>
                         </div>
                       </div>
                     </td>

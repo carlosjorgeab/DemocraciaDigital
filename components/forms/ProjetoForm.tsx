@@ -16,6 +16,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
   const [areas, setAreas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
+  const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     data: new Date().toISOString().split('T')[0],
     descricao: '',
@@ -28,8 +29,6 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     url_legislativo: '',
     numero_proposicao: ''
   });
-
-
 
   useEffect(() => {
     async function fetchData() {
@@ -53,6 +52,18 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
             url_legislativo: projetoData.url_legislativo || '',
             numero_proposicao: projetoData.numero_proposicao || ''
           });
+
+          // Fetch multiple thematic areas from relation table
+          const { data: relations } = await supabase
+            .from('projeto_areas')
+            .select('id_area_tematica')
+            .eq('id_projeto', resolvedParams.id);
+          
+          if (relations && relations.length > 0) {
+            setSelectedAreaIds(relations.map((r: any) => r.id_area_tematica));
+          } else if (projetoData.id_area_tematica) {
+            setSelectedAreaIds([projetoData.id_area_tematica]);
+          }
         }
         setFetching(false);
       } else {
@@ -65,19 +76,62 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     fetchData();
   }, [isEditing, resolvedParams?.id, selectedDeputado]);
 
+  const handleToggleArea = (areaId: string) => {
+    setSelectedAreaIds(prev =>
+      prev.includes(areaId)
+        ? prev.filter(id => id !== areaId)
+        : [...prev, areaId]
+    );
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     
-    const finalPayload = { ...formData, id_deputado: selectedDeputado?.id || null };
+    // Save first selected area as id_area_tematica in projects table for backwards compatibility
+    const finalPayload = { 
+      ...formData, 
+      id_area_tematica: selectedAreaIds[0] || null,
+      id_deputado: selectedDeputado?.id || null 
+    };
+
     if (isEditing) {
       const { error } = await supabase.from('projetos').update(finalPayload).eq('id', resolvedParams.id);
-      if (!error) router.push('/projetos');
-      else alert('Erro ao atualizar projeto');
+      if (!error) {
+        try {
+          await supabase.from('projeto_areas').delete().eq('id_projeto', resolvedParams.id);
+          if (selectedAreaIds.length > 0) {
+            const relations = selectedAreaIds.map(areaId => ({
+              id_projeto: resolvedParams.id,
+              id_area_tematica: areaId
+            }));
+            await supabase.from('projeto_areas').insert(relations);
+          }
+        } catch (err) {
+          console.error('Error saving projects-areas relations:', err);
+        }
+        router.push('/projetos');
+      } else {
+        alert('Erro ao atualizar projeto');
+      }
     } else {
-      const { error } = await supabase.from('projetos').insert([finalPayload]);
-      if (!error) router.push('/projetos');
-      else alert('Erro ao salvar projeto');
+      const { data: newProj, error } = await supabase.from('projetos').insert([finalPayload]).select().single();
+      if (!error && newProj) {
+        try {
+          if (selectedAreaIds.length > 0) {
+            const relations = selectedAreaIds.map(areaId => ({
+              id_projeto: newProj.id,
+              id_area_tematica: areaId
+            }));
+            await supabase.from('projeto_areas').insert(relations);
+          }
+        } catch (err) {
+          console.error('Error saving projects-areas relations:', err);
+        }
+        router.push('/projetos');
+      } else {
+        alert('Erro ao salvar projeto');
+      }
     }
     setLoading(false);
   }
@@ -139,29 +193,59 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Autor do Projeto (Inalterável)</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Autor do Projeto</label>
             <input 
               type="text" 
-              disabled
-              className="w-full bg-slate-100 border border-transparent rounded-lg px-4 py-3 text-sm outline-none cursor-not-allowed text-slate-500 font-bold"
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
               value={formData.autor}
+              onChange={e => setFormData({...formData, autor: e.target.value})}
               placeholder="Nome do autor"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Área Temática</label>
-            <select 
-              required
-              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
-              value={formData.id_area_tematica}
-              onChange={e => setFormData({...formData, id_area_tematica: e.target.value})}
-            >
-              <option value="" disabled>Selecione uma área</option>
-              {areas.map(area => (
-                <option key={area.id} value={area.id}>{area.nome}</option>
-              ))}
-            </select>
+          <div className="space-y-2 col-span-1 md:col-span-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Áreas Temáticas</label>
+            <p className="text-xs text-slate-500 mb-2">Selecione uma ou mais áreas temáticas para este projeto:</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {areas.map(area => {
+                const isSelected = selectedAreaIds.includes(area.id);
+                return (
+                  <button
+                    key={area.id}
+                    type="button"
+                    onClick={() => handleToggleArea(area.id)}
+                    className={`flex items-center gap-2 p-3 border-2 rounded-2xl transition-all text-left ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 text-primary scale-[1.02] shadow-sm'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400 hover:text-slate-800'
+                    }`}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-xl flex items-center justify-center p-1.5 transition-transform duration-300 bg-slate-50 dark:bg-slate-800 border shadow-sm shrink-0"
+                      style={{ 
+                        borderColor: isSelected ? area.cor : '#e2e8f0',
+                        color: area.cor || '#005baa'
+                      }}
+                    >
+                      {area.icone_url ? (
+                        area.icone_url.startsWith('<svg') ? (
+                          <div 
+                            dangerouslySetInnerHTML={{ __html: area.icone_url }} 
+                            className="w-full h-full flex items-center justify-center" 
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={area.icone_url} alt="" className="w-full h-full object-contain" />
+                        )
+                      ) : (
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: area.cor || '#005baa' }} />
+                      )}
+                    </div>
+                    <span className="text-xs font-bold line-clamp-2 leading-tight">{area.nome}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -180,6 +264,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
               <option value="Aprovado / Enviado para Sanção">Aprovado / Enviado para Sanção</option>
               <option value="Sancionado e Publicado">Sancionado e Publicado</option>
               <option value="Veto Parcial / Total">Veto Parcial / Total</option>
+              <option value="Acompanhar no Link...">Acompanhar no Link...</option>
               <option value="Arquivado">Arquivado</option>
             </select>
           </div>
@@ -221,7 +306,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Data do Projeto</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Data Apresentação</label>
             <input 
               required
               type="date" 

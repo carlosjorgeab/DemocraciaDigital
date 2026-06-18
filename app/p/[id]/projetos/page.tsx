@@ -16,28 +16,47 @@ export default function ProjetosPublicPage() {
       if (!selectedDeputado) return;
       
       setLoading(true);
-      // Fetch all projects for this deputado to extract unique areas
+      
+      const uniqueAreasMap = new Map();
+
+      // 1. Fetch direct references (backward compatibility / direct fallback)
       const { data: projetosData, error } = await supabase
         .from('projetos')
         .select('id_area_tematica, areas_tematicas(id, nome, cor, icone_url)')
         .eq('id_deputado', selectedDeputado.id)
-        .eq('etapa', 'Liberado'); // Only show published projects if there is an etapa field
+        .eq('etapa', 'Liberado');
 
       if (projetosData && !error) {
-        // Extract unique areas
-        const uniqueAreasMap = new Map();
         projetosData.forEach((p: any) => {
           const area = Array.isArray(p.areas_tematicas) ? p.areas_tematicas[0] : p.areas_tematicas;
           if (area && area.id) {
-            if (!uniqueAreasMap.has(area.id)) {
-              uniqueAreasMap.set(area.id, area);
-            }
+            uniqueAreasMap.set(area.id, area);
           }
         });
-        
-        const areasArray = Array.from(uniqueAreasMap.values()).sort((a, b) => a.nome.localeCompare(b.nome));
-        setAreas(areasArray);
       }
+
+      // 2. Fetch many-to-many references from join table
+      try {
+        const { data: rels, error: relError } = await supabase
+          .from('projeto_areas')
+          .select('id_area_tematica, areas_tematicas(id, nome, cor, icone_url), projetos!inner(id_deputado, etapa)')
+          .eq('projetos.id_deputado', selectedDeputado.id)
+          .eq('projetos.etapa', 'Liberado');
+
+        if (rels && !relError) {
+          rels.forEach((r: any) => {
+            const area = Array.isArray(r.areas_tematicas) ? r.areas_tematicas[0] : r.areas_tematicas;
+            if (area && area.id) {
+              uniqueAreasMap.set(area.id, area);
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Could not load from mapping table (transient or schema pending):', err);
+      }
+      
+      const areasArray = Array.from(uniqueAreasMap.values()).sort((a, b) => a.nome.localeCompare(b.nome));
+      setAreas(areasArray);
       setLoading(false);
     }
     

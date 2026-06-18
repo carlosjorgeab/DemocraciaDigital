@@ -33,19 +33,89 @@ export default function ProjetosAreaPage() {
         setArea(areaData);
       }
       
-      // Fetch projects for this area and deputado
-      const { data: projetosData, error } = await supabase
+      // 1. Fetch direct projects (backward compatibility / fallback)
+      const { data: directProjetos } = await supabase
         .from('projetos')
         .select('*')
         .eq('id_deputado', selectedDeputado.id)
         .eq('id_area_tematica', areaId)
-        .eq('etapa', 'Liberado')
-        .order('numero_proposicao', { ascending: false });
+        .eq('etapa', 'Liberado');
 
-      if (projetosData && !error) {
-        setProjetos(projetosData);
+      // 2. Fetch projects mapped via join table
+      let mappedProjetos: any[] = [];
+      try {
+        const { data: rels } = await supabase
+          .from('projeto_areas')
+          .select('id_projeto, projetos(*)')
+          .eq('id_area_tematica', areaId)
+          .eq('projetos.id_deputado', selectedDeputado.id)
+          .eq('projetos.etapa', 'Liberado');
+
+        if (rels) {
+          mappedProjetos = rels
+            .map((r: any) => Array.isArray(r.projetos) ? r.projetos[0] : r.projetos)
+            .filter(Boolean);
+        }
+      } catch (err) {
+        console.warn('Could not query mapping table:', err);
       }
-      
+
+      // Merge to unique projects list
+      const uniqueMap = new Map();
+      if (directProjetos) {
+        directProjetos.forEach(p => uniqueMap.set(p.id, p));
+      }
+      mappedProjetos.forEach(p => uniqueMap.set(p.id, p));
+
+      const mergedProjetosList = Array.from(uniqueMap.values());
+
+      // Fetch all areas related to each merged project to display tags
+      const enrichedProjetos = await Promise.all(mergedProjetosList.map(async (p: any) => {
+        const pAreasMap = new Map();
+
+        // Safe inclusion of direct path
+        if (p.id_area_tematica) {
+          const { data: directArea } = await supabase
+            .from('areas_tematicas')
+            .select('id, nome, cor, icone_url')
+            .eq('id', p.id_area_tematica)
+            .single();
+          if (directArea) pAreasMap.set(directArea.id, directArea);
+        }
+
+        // Fetch join-table paths
+        try {
+          const { data: assoc } = await supabase
+            .from('projeto_areas')
+            .select('areas_tematicas(id, nome, cor, icone_url)')
+            .eq('id_projeto', p.id);
+          
+          if (assoc) {
+            assoc.forEach((a: any) => {
+              const areaObj = Array.isArray(a.areas_tematicas) ? a.areas_tematicas[0] : a.areas_tematicas;
+              if (areaObj && areaObj.id) {
+                pAreasMap.set(areaObj.id, areaObj);
+              }
+            });
+          }
+        } catch (e) {
+          // Safe fail
+        }
+
+        return {
+          ...p,
+          all_areas: Array.from(pAreasMap.values())
+        };
+      }));
+
+      // Sort by numero_proposicao desc
+      enrichedProjetos.sort((a, b) => {
+        const numA = a.numero_proposicao || '';
+        const numB = b.numero_proposicao || '';
+        return numB.localeCompare(numA);
+      });
+
+      setProjetos(enrichedProjetos);
       setLoading(false);
     }
     
@@ -155,6 +225,22 @@ export default function ProjetosAreaPage() {
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
                     {projeto.descricao}
                   </h3>
+
+                  {/* Multiple Thematic Areas */}
+                  {projeto.all_areas && projeto.all_areas.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {projeto.all_areas.map((a: any) => (
+                        <div 
+                          key={a.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50/50 dark:bg-slate-800 border rounded-full text-xs font-bold transition-all shadow-xs"
+                          style={{ borderColor: (a.cor || 'var(--color-primary)') + '33', color: a.cor || 'var(--color-primary)' }}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: a.cor || 'var(--color-primary)' }} />
+                          {a.nome}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
