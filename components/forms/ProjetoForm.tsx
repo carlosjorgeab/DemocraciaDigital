@@ -23,7 +23,6 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     ementa: '',
     tipo: 'Projeto de Lei Ordinária (PL)',
     autor: '',
-    id_area_tematica: '',
     etapa: 'Liberado',
     tramitacao: 'Em elaboração',
     url_legislativo: '',
@@ -46,7 +45,6 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
             ementa: projetoData.ementa || '',
             tipo: projetoData.tipo || 'Projeto de Lei Ordinária (PL)',
             autor: projetoData.autor || selectedDeputado?.nome || '',
-            id_area_tematica: projetoData.id_area_tematica || '',
             etapa: projetoData.etapa || 'Liberado',
             tramitacao: projetoData.tramitacao || 'Em elaboração',
             url_legislativo: projetoData.url_legislativo || '',
@@ -88,10 +86,8 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     e.preventDefault();
     setLoading(true);
     
-    // Save first selected area as id_area_tematica in projects table for backwards compatibility
     const finalPayload = { 
       ...formData, 
-      id_area_tematica: selectedAreaIds[0] || null,
       id_deputado: selectedDeputado?.id || null 
     };
 

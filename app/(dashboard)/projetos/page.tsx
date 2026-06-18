@@ -20,39 +20,33 @@ export default function ProjetosPage() {
 
       const { data: projectsData, error } = await supabase
         .from('projetos')
-        .select('*, areas_tematicas(id, nome, cor, icone_url)')
+        .select(`
+          *,
+          projeto_areas(
+            areas_tematicas(id, nome, cor, icone_url)
+          )
+        `)
         .eq('id_deputado', selectedDeputado.id);
       
       if (projectsData) {
-        // Fetch all relation mapping
-        const enriched = await Promise.all(projectsData.map(async (p: any) => {
+        const enriched = projectsData.map((p: any) => {
           const areaMap = new Map();
-          if (p.areas_tematicas) {
-            areaMap.set(p.areas_tematicas.id, p.areas_tematicas);
+          if (p.projeto_areas) {
+            p.projeto_areas.forEach((pa: any) => {
+              const area = Array.isArray(pa.areas_tematicas) ? pa.areas_tematicas[0] : pa.areas_tematicas;
+              if (area && area.id) {
+                areaMap.set(area.id, area);
+              }
+            });
           }
-          
-          try {
-            const { data: rels } = await supabase
-              .from('projeto_areas')
-              .select('areas_tematicas(id, nome, cor, icone_url)')
-              .eq('id_projeto', p.id);
-            
-            if (rels) {
-              rels.forEach((r: any) => {
-                const area = Array.isArray(r.areas_tematicas) ? r.areas_tematicas[0] : r.areas_tematicas;
-                if (area && area.id) areaMap.set(area.id, area);
-              });
-            }
-          } catch (e) {
-            // safe fail
-          }
-          
           return {
             ...p,
             all_areas: Array.from(areaMap.values())
           };
-        }));
+        });
         setProjetos(enriched);
+      } else {
+        setProjetos([]);
       }
       setLoading(false);
     }
@@ -65,32 +59,30 @@ export default function ProjetosPage() {
       if (selectedDeputado) {
         const { data: projectsData } = await supabase
           .from('projetos')
-          .select('*, areas_tematicas(id, nome, cor, icone_url)')
+          .select(`
+            *,
+            projeto_areas(
+              areas_tematicas(id, nome, cor, icone_url)
+            )
+          `)
           .eq('id_deputado', selectedDeputado.id);
         
         if (projectsData) {
-          const enriched = await Promise.all(projectsData.map(async (p: any) => {
+          const enriched = projectsData.map((p: any) => {
             const areaMap = new Map();
-            if (p.areas_tematicas) {
-              areaMap.set(p.areas_tematicas.id, p.areas_tematicas);
+            if (p.projeto_areas) {
+              p.projeto_areas.forEach((pa: any) => {
+                const area = Array.isArray(pa.areas_tematicas) ? pa.areas_tematicas[0] : pa.areas_tematicas;
+                if (area && area.id) {
+                  areaMap.set(area.id, area);
+                }
+              });
             }
-            try {
-              const { data: rels } = await supabase
-                .from('projeto_areas')
-                .select('areas_tematicas(id, nome, cor, icone_url)')
-                .eq('id_projeto', p.id);
-              if (rels) {
-                rels.forEach((r: any) => {
-                  const area = Array.isArray(r.areas_tematicas) ? r.areas_tematicas[0] : r.areas_tematicas;
-                  if (area && area.id) areaMap.set(area.id, area);
-                });
-              }
-            } catch (e) {}
             return {
               ...p,
               all_areas: Array.from(areaMap.values())
             };
-          }));
+          });
           setProjetos(enriched);
         }
       }

@@ -19,23 +19,6 @@ export default function ProjetosPublicPage() {
       
       const uniqueAreasMap = new Map();
 
-      // 1. Fetch direct references (backward compatibility / direct fallback)
-      const { data: projetosData, error } = await supabase
-        .from('projetos')
-        .select('id_area_tematica, areas_tematicas(id, nome, cor, icone_url)')
-        .eq('id_deputado', selectedDeputado.id)
-        .eq('etapa', 'Liberado');
-
-      if (projetosData && !error) {
-        projetosData.forEach((p: any) => {
-          const area = Array.isArray(p.areas_tematicas) ? p.areas_tematicas[0] : p.areas_tematicas;
-          if (area && area.id) {
-            uniqueAreasMap.set(area.id, area);
-          }
-        });
-      }
-
-      // 2. Fetch many-to-many references from join table
       try {
         const { data: rels, error: relError } = await supabase
           .from('projeto_areas')
@@ -52,7 +35,7 @@ export default function ProjetosPublicPage() {
           });
         }
       } catch (err) {
-        console.warn('Could not load from mapping table (transient or schema pending):', err);
+        console.error('Error loading areas from mapping table:', err);
       }
       
       const areasArray = Array.from(uniqueAreasMap.values()).sort((a, b) => a.nome.localeCompare(b.nome));

@@ -33,20 +33,12 @@ export default function ProjetosAreaPage() {
         setArea(areaData);
       }
       
-      // 1. Fetch direct projects (backward compatibility / fallback)
-      const { data: directProjetos } = await supabase
-        .from('projetos')
-        .select('*')
-        .eq('id_deputado', selectedDeputado.id)
-        .eq('id_area_tematica', areaId)
-        .eq('etapa', 'Liberado');
-
-      // 2. Fetch projects mapped via join table
+      // Fetch projects mapped via join table
       let mappedProjetos: any[] = [];
       try {
         const { data: rels } = await supabase
           .from('projeto_areas')
-          .select('id_projeto, projetos(*)')
+          .select('id_projeto, projetos!inner(*)')
           .eq('id_area_tematica', areaId)
           .eq('projetos.id_deputado', selectedDeputado.id)
           .eq('projetos.etapa', 'Liberado');
@@ -57,31 +49,12 @@ export default function ProjetosAreaPage() {
             .filter(Boolean);
         }
       } catch (err) {
-        console.warn('Could not query mapping table:', err);
+        console.error('Could not query mapping table:', err);
       }
-
-      // Merge to unique projects list
-      const uniqueMap = new Map();
-      if (directProjetos) {
-        directProjetos.forEach(p => uniqueMap.set(p.id, p));
-      }
-      mappedProjetos.forEach(p => uniqueMap.set(p.id, p));
-
-      const mergedProjetosList = Array.from(uniqueMap.values());
 
       // Fetch all areas related to each merged project to display tags
-      const enrichedProjetos = await Promise.all(mergedProjetosList.map(async (p: any) => {
+      const enrichedProjetos = await Promise.all(mappedProjetos.map(async (p: any) => {
         const pAreasMap = new Map();
-
-        // Safe inclusion of direct path
-        if (p.id_area_tematica) {
-          const { data: directArea } = await supabase
-            .from('areas_tematicas')
-            .select('id, nome, cor, icone_url')
-            .eq('id', p.id_area_tematica)
-            .single();
-          if (directArea) pAreasMap.set(directArea.id, directArea);
-        }
 
         // Fetch join-table paths
         try {
