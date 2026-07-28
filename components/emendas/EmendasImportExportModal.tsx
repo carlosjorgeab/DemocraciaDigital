@@ -196,16 +196,21 @@ export default function EmendasImportExportModal({
   };
 
   const parseValueToNumber = (val: any): number => {
-    if (typeof val === 'number') return val;
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
     if (!val) return 0;
     let str = String(val).trim();
-    // Remove R$ or currency symbols
+    // Remove R$ and white space
     str = str.replace(/R\$\s?/gi, '').replace(/\s/g, '');
-    // Handle Brazilian currency format: 150.000,00 -> 150000.00
+
     if (str.includes(',') && str.includes('.')) {
+      // e.g. "1.234.567,89" -> "1234567.89"
       str = str.replace(/\./g, '').replace(',', '.');
     } else if (str.includes(',')) {
+      // e.g. "1234567,89" -> "1234567.89"
       str = str.replace(',', '.');
+    } else if (/^\d{1,3}(\.\d{3})+$/.test(str)) {
+      // e.g. "500.000" or "1.500.000" (Brazilian thousands separator)
+      str = str.replace(/\./g, '');
     }
     const num = parseFloat(str);
     return isNaN(num) ? 0 : num;
@@ -255,6 +260,32 @@ export default function EmendasImportExportModal({
       .replace(/[^a-z0-9]/g, '');
   };
 
+  const identifyColumn = (key: string): 'objeto' | 'autor' | 'data' | 'area_tematica' | 'beneficiario' | 'tipo' | 'municipio' | 'numero_emenda' | 'valor' | 'etapa' | null => {
+    const norm = normalizeKey(key);
+
+    // Order matters! Check 'valor' FIRST so 'Valor da Emenda' is not matched by 'emenda'
+    if (norm.includes('valor') || norm.includes('vlr')) return 'valor';
+    if (
+      norm.includes('numero') ||
+      norm.includes('numemenda') ||
+      norm.includes('nemenda') ||
+      norm.includes('noemenda') ||
+      norm === 'emenda' ||
+      norm === 'numeroemenda' ||
+      norm === 'num'
+    ) return 'numero_emenda';
+    if (norm.includes('objeto') || norm.includes('descricao')) return 'objeto';
+    if (norm.includes('beneficiario') || norm.includes('favorecido')) return 'beneficiario';
+    if (norm.includes('municipio') || norm.includes('cidade')) return 'municipio';
+    if (norm.includes('areatematica') || (norm.includes('area') && !norm.includes('emenda')) || norm.includes('categoria')) return 'area_tematica';
+    if (norm.includes('autor') || norm.includes('deputado')) return 'autor';
+    if (norm.includes('tipo')) return 'tipo';
+    if (norm === 'data' || norm.includes('data') || norm.includes('dtemenda') || norm.includes('dt')) return 'data';
+    if (norm.includes('etapa') || norm.includes('status') || norm.includes('fase')) return 'etapa';
+
+    return null;
+  };
+
   const processFile = async (selectedFile: File) => {
     setLoading(true);
     setFile(selectedFile);
@@ -275,44 +306,54 @@ export default function EmendasImportExportModal({
       }
 
       const rows: EmendaImportRow[] = rawRows.map((row, index) => {
-        // Map keys flexibly
-        let objeto = '';
-        let autor = selectedDeputado?.nome || '';
-        let dateVal: any = '';
-        let areaTematicaNome = '';
-        let beneficiario = '';
-        let tipo = 'Individuais (RP 6)';
-        let municipio = '';
-        let numeroEmenda = '';
-        let valorRaw: any = 0;
-        let etapa = 'Liberado';
+        const rowKeys = Object.keys(row);
 
-        Object.keys(row).forEach(originalKey => {
-          const norm = normalizeKey(originalKey);
-          const val = row[originalKey];
-
-          if (norm.includes('objeto')) {
-            objeto = String(val).trim();
-          } else if (norm.includes('autor')) {
-            autor = String(val).trim() || selectedDeputado?.nome || '';
-          } else if (norm === 'data' || norm.includes('data') || norm.includes('dtemenda')) {
-            dateVal = val;
-          } else if (norm.includes('areatematica') || norm.includes('area') || norm.includes('categoria')) {
-            areaTematicaNome = String(val).trim();
-          } else if (norm.includes('beneficiario')) {
-            beneficiario = String(val).trim();
-          } else if (norm.includes('tipo')) {
-            tipo = String(val).trim();
-          } else if (norm.includes('municipio')) {
-            municipio = String(val).trim();
-          } else if (norm.includes('numeroemenda') || norm.includes('numero') || norm.includes('emenda')) {
-            numeroEmenda = String(val).trim();
-          } else if (norm.includes('valor')) {
-            valorRaw = val;
-          } else if (norm.includes('etapa') || norm.includes('status')) {
-            etapa = String(val).trim();
+        // 1. Map fields by key name using strict identifyColumn
+        const fieldMap = new Map<string, any>();
+        rowKeys.forEach((originalKey) => {
+          const field = identifyColumn(originalKey);
+          if (field) {
+            fieldMap.set(field, row[originalKey]);
           }
         });
+
+        // 2. Positional order fallback if any field was not matched by name
+        // Ordered as requested:
+        // 0: Objeto, 1: Autor, 2: DATA, 3: Area Tematica, 4: Beneficiário,
+        // 5: Tipo, 6: Município, 7: Numero Emenda, 8: Valor da Emenda (R$), 9: Etapa
+        const orderedFields: Array<'objeto' | 'autor' | 'data' | 'area_tematica' | 'beneficiario' | 'tipo' | 'municipio' | 'numero_emenda' | 'valor' | 'etapa'> = [
+          'objeto',
+          'autor',
+          'data',
+          'area_tematica',
+          'beneficiario',
+          'tipo',
+          'municipio',
+          'numero_emenda',
+          'valor',
+          'etapa'
+        ];
+
+        orderedFields.forEach((field, posIdx) => {
+          if (!fieldMap.has(field) && rowKeys[posIdx] !== undefined) {
+            const keyAtPos = rowKeys[posIdx];
+            const fieldForPosKey = identifyColumn(keyAtPos);
+            if (!fieldForPosKey || fieldForPosKey === field) {
+              fieldMap.set(field, row[keyAtPos]);
+            }
+          }
+        });
+
+        const objeto = fieldMap.has('objeto') ? String(fieldMap.get('objeto')).trim() : '';
+        const autor = fieldMap.has('autor') ? String(fieldMap.get('autor')).trim() : (selectedDeputado?.nome || '');
+        const dateVal = fieldMap.get('data') || '';
+        const areaTematicaNome = fieldMap.has('area_tematica') ? String(fieldMap.get('area_tematica')).trim() : '';
+        const beneficiario = fieldMap.has('beneficiario') ? String(fieldMap.get('beneficiario')).trim() : '';
+        const tipo = fieldMap.has('tipo') ? String(fieldMap.get('tipo')).trim() : 'Individuais (RP 6)';
+        const municipio = fieldMap.has('municipio') ? String(fieldMap.get('municipio')).trim() : '';
+        const numeroEmenda = fieldMap.has('numero_emenda') ? String(fieldMap.get('numero_emenda')).trim() : '';
+        const valorRaw = fieldMap.get('valor');
+        const etapa = fieldMap.has('etapa') ? String(fieldMap.get('etapa')).trim() : 'Liberado';
 
         const valor = parseValueToNumber(valorRaw);
         const dateIso = parseDateToISO(dateVal);
