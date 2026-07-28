@@ -25,6 +25,7 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
     beneficiario: '',
     municipio: '',
     autor: '',
+    numero_emenda: '',
     valor: 0,
     valor_formatted: '',
     id_projeto: '',
@@ -77,6 +78,7 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
             beneficiario: orcamentoData.beneficiario || '',
             municipio: orcamentoData.municipio || '',
             autor: orcamentoData.autor || '',
+            numero_emenda: orcamentoData.numero_emenda || '',
             valor: orcamentoData.valor,
             valor_formatted: formatCurrency(orcamentoData.valor * 100),
             id_projeto: orcamentoData.id_projeto || '',
@@ -152,6 +154,17 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
               value={formData.objeto}
               onChange={e => setFormData({...formData, objeto: e.target.value})}
               placeholder="Ex: Emenda para reforma..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Número Emenda</label>
+            <input 
+              type="text" 
+              className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all"
+              value={formData.numero_emenda}
+              onChange={e => setFormData({...formData, numero_emenda: e.target.value})}
+              placeholder="Ex: 20260001"
             />
           </div>
 
