@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Home from '@/app/(dashboard)/page';
 import MapaPage from '@/app/(dashboard)/mapa/page';
-import { LayoutDashboard, MapPin } from 'lucide-react';
+import BaseEleitoralPage from '@/app/(dashboard)/base-eleitoral/page';
+import { LayoutDashboard, MapPin, Compass } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
 import { useDeputado } from '@/context/DeputadoContext';
@@ -13,15 +14,18 @@ export default function PublicHome() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = searchParams?.get('tab');
-  const [activeTab, setActiveTab] = useState<'geral' | 'mapa'>(tabParam === 'mapa' ? 'mapa' : 'geral');
+  const [activeTab, setActiveTab] = useState<'geral' | 'mapa' | 'base-eleitoral'>(
+    tabParam === 'base-eleitoral' ? 'base-eleitoral' : tabParam === 'mapa' ? 'mapa' : 'geral'
+  );
   const { selectedDeputado, loading: depLoading } = useDeputado();
 
   useEffect(() => {
-    if (tabParam === 'mapa') setActiveTab('mapa');
+    if (tabParam === 'base-eleitoral') setActiveTab('base-eleitoral');
+    else if (tabParam === 'mapa') setActiveTab('mapa');
     else setActiveTab('geral');
   }, [tabParam]);
 
-  const handleTabChange = (tab: 'geral' | 'mapa') => {
+  const handleTabChange = (tab: 'geral' | 'mapa' | 'base-eleitoral') => {
     setActiveTab(tab);
     const params = new URLSearchParams(searchParams?.toString());
     params.set('tab', tab);
@@ -87,6 +91,17 @@ export default function PublicHome() {
               <span className="hidden md:inline">Visão Mapa</span>
             </button>
             <button 
+              onClick={() => handleTabChange('base-eleitoral')}
+              className={`flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${
+                activeTab === 'base-eleitoral' 
+                ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-primary/10 scale-105' 
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'
+              }`}
+            >
+              <Compass size={18} className={activeTab === 'base-eleitoral' ? 'text-primary' : 'text-slate-400'} />
+              <span className="hidden md:inline">Base Eleitoral</span>
+            </button>
+            <button 
               onClick={() => {
                 if (selectedDeputado) {
                   router.push(`/p/${selectedDeputado.slug || selectedDeputado.id}/projetos`);
@@ -112,9 +127,13 @@ export default function PublicHome() {
           <div className="animate-in fade-in duration-500">
             <Home />
           </div>
-        ) : (
+        ) : activeTab === 'mapa' ? (
           <div className="animate-in fade-in duration-500">
             <MapaPage />
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-500">
+            <BaseEleitoralPage />
           </div>
         )}
       </main>

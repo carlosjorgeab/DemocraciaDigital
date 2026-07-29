@@ -2,7 +2,7 @@
 import { useDeputado } from '@/context/DeputadoContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { Logo } from '@/components/Logo';
-import { LayoutDashboard, MapPin, Grid } from 'lucide-react';
+import { LayoutDashboard, MapPin, Compass, Grid } from 'lucide-react';
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 
@@ -59,6 +59,13 @@ export default function ProjetosPublicLayout({ children }: { children: React.Rea
             >
               <MapPin size={18} className="text-slate-400" />
               <span className="hidden md:inline">Visão Mapa</span>
+            </Link>
+            <Link 
+              href={`${publicUrl}?tab=base-eleitoral`}
+              className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50"
+            >
+              <Compass size={18} className="text-slate-400" />
+              <span className="hidden md:inline">Base Eleitoral</span>
             </Link>
             <div 
               className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 bg-white dark:bg-slate-700 text-primary shadow-lg shadow-primary/10 scale-105"

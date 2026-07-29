@@ -17,13 +17,24 @@ const ParanaMap = dynamic(() => import('@/components/ParanaMap'), {
   )
 });
 
+const STATE_NAMES: Record<string, string> = {
+  'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 'BA': 'Bahia', 'CE': 'Ceará',
+  'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás', 'MA': 'Maranhão', 'MT': 'Mato Grosso',
+  'MS': 'Mato Grosso do Sul', 'MG': 'Minas Gerais', 'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná',
+  'PE': 'Pernambuco', 'PI': 'Piauí', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte',
+  'RS': 'Rio Grande do Sul', 'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina',
+  'SP': 'São Paulo', 'SE': 'Sergipe', 'TO': 'Tocantins'
+};
+
 export default function BaseEleitoralPage() {
   const { selectedDeputado } = useDeputado();
 
   const [loading, setLoading] = useState(true);
   const [municipiosMapData, setMunicipiosMapData] = useState<any[]>([]);
   const [totalInvestimento, setTotalInvestimento] = useState(0);
-  const [totalEmendasCount, setTotalEmendasCount] = useState(0);
+
+  const deputadoState = (selectedDeputado?.estado || 'PR').toUpperCase();
+  const stateName = STATE_NAMES[deputadoState] || deputadoState;
 
   useEffect(() => {
     async function loadBaseEleitoral() {
@@ -51,7 +62,6 @@ export default function BaseEleitoralPage() {
         }> = {};
 
         let sumVal = 0;
-        let sumCount = 0;
 
         emendasData.forEach((e: any) => {
           const munObj = Array.isArray(e.municipio) ? e.municipio[0] : e.municipio;
@@ -75,13 +85,11 @@ export default function BaseEleitoralPage() {
             munGroup[mKey].emendas.push(e);
 
             sumVal += val;
-            sumCount += 1;
           }
         });
 
         setMunicipiosMapData(Object.values(munGroup));
         setTotalInvestimento(sumVal);
-        setTotalEmendasCount(sumCount);
       }
 
       setLoading(false);
@@ -100,8 +108,8 @@ export default function BaseEleitoralPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Mapeamento Territorial</p>
-          <h2 className="text-3xl font-black font-headline text-slate-900 dark:text-white">Base Eleitoral - Paraná</h2>
-          <p className="text-slate-500 text-sm">Visualização geoespacial das emendas e recursos alocados pelo parlamentar</p>
+          <h2 className="text-3xl font-black font-headline text-slate-900 dark:text-white">Base Eleitoral - {stateName} ({deputadoState})</h2>
+          <p className="text-slate-500 text-sm">Visualização geoespacial das emendas e recursos alocados pelo parlamentar em {stateName}</p>
         </div>
 
         <div className="flex gap-3">
@@ -131,10 +139,10 @@ export default function BaseEleitoralPage() {
       {loading ? (
         <div className="w-full h-[600px] bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 gap-2">
           <MapPin size={32} className="animate-bounce text-primary" />
-          <span className="text-xs font-bold uppercase tracking-wider">Carregando dados cartográficos...</span>
+          <span className="text-xs font-bold uppercase tracking-wider">Carregando dados cartográficos de {stateName}...</span>
         </div>
       ) : (
-        <ParanaMap municipios={municipiosMapData} />
+        <ParanaMap municipios={municipiosMapData} uf={deputadoState} />
       )}
     </div>
   );

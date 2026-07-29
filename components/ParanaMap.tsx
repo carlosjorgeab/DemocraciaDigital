@@ -64,6 +64,45 @@ const PR_COORDINATES: Record<string, [number, number]> = {
   'Ivaiporã': [-24.2481, -51.6833]
 };
 
+const STATE_NAMES: Record<string, string> = {
+  'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 'BA': 'Bahia', 'CE': 'Ceará',
+  'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás', 'MA': 'Maranhão', 'MT': 'Mato Grosso',
+  'MS': 'Mato Grosso do Sul', 'MG': 'Minas Gerais', 'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná',
+  'PE': 'Pernambuco', 'PI': 'Piauí', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte',
+  'RS': 'Rio Grande do Sul', 'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina',
+  'SP': 'São Paulo', 'SE': 'Sergipe', 'TO': 'Tocantins'
+};
+
+const STATE_CENTERS: Record<string, { center: [number, number]; zoom: number }> = {
+  'AC': { center: [-9.02, -70.81], zoom: 7 },
+  'AL': { center: [-9.57, -36.78], zoom: 8 },
+  'AM': { center: [-3.41, -65.85], zoom: 6 },
+  'AP': { center: [1.41, -51.77], zoom: 7 },
+  'BA': { center: [-12.57, -41.70], zoom: 6 },
+  'CE': { center: [-5.20, -39.53], zoom: 7 },
+  'DF': { center: [-15.78, -47.92], zoom: 10 },
+  'ES': { center: [-19.18, -40.30], zoom: 8 },
+  'GO': { center: [-15.82, -49.83], zoom: 7 },
+  'MA': { center: [-5.42, -45.44], zoom: 6 },
+  'MT': { center: [-12.64, -55.42], zoom: 6 },
+  'MS': { center: [-20.77, -54.78], zoom: 7 },
+  'MG': { center: [-18.51, -44.55], zoom: 6 },
+  'PA': { center: [-1.99, -54.93], zoom: 6 },
+  'PB': { center: [-7.24, -36.78], zoom: 8 },
+  'PR': { center: [-24.89, -51.55], zoom: 7 },
+  'PE': { center: [-8.38, -37.86], zoom: 8 },
+  'PI': { center: [-7.71, -42.80], zoom: 6 },
+  'RJ': { center: [-22.25, -42.50], zoom: 8 },
+  'RN': { center: [-5.81, -36.59], zoom: 8 },
+  'RS': { center: [-30.03, -53.20], zoom: 7 },
+  'RO': { center: [-10.83, -63.34], zoom: 7 },
+  'RR': { center: [1.99, -61.33], zoom: 7 },
+  'SC': { center: [-27.24, -50.21], zoom: 7 },
+  'SP': { center: [-22.20, -48.50], zoom: 7 },
+  'SE': { center: [-10.57, -37.38], zoom: 8 },
+  'TO': { center: [-10.18, -48.33], zoom: 7 },
+};
+
 interface MunicipioData {
   id: string;
   nome: string;
@@ -85,9 +124,21 @@ function MapController({ selectedCoords }: { selectedCoords: [number, number] | 
   return null;
 }
 
-export default function ParanaMap({ municipios }: { municipios: MunicipioData[] }) {
+function StateAutoCenter({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [center, zoom, map]);
+  return null;
+}
+
+export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: MunicipioData[]; uf?: string }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCoords, setSelectedCoords] = useState<[number, number] | null>(null);
+
+  const currentUF = (uf || 'PR').toUpperCase();
+  const stateName = STATE_NAMES[currentUF] || currentUF;
+  const stateConfig = STATE_CENTERS[currentUF] || { center: [-24.89, -51.55], zoom: 7 };
 
   // Filter municipalities
   const filteredMunicipios = municipios.filter(m =>
@@ -124,7 +175,9 @@ export default function ParanaMap({ municipios }: { municipios: MunicipioData[] 
           <div className="flex items-center gap-2">
             <MapPin size={20} className="text-primary" />
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Mapa da Base Eleitoral (Paraná / Brasil)</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                Mapa da Base Eleitoral - {stateName} ({currentUF})
+              </h3>
               <p className="text-[10px] text-slate-400 font-medium">Toque nos marcadores para visualizar o investimento por município</p>
             </div>
           </div>
@@ -138,8 +191,8 @@ export default function ParanaMap({ municipios }: { municipios: MunicipioData[] 
 
         <div className="flex-1 w-full h-full relative">
           <MapContainer
-            center={[-24.89, -51.55]}
-            zoom={7}
+            center={stateConfig.center}
+            zoom={stateConfig.zoom}
             scrollWheelZoom={true}
             className="w-full h-full z-0"
             style={{ height: '100%', width: '100%' }}
@@ -148,6 +201,7 @@ export default function ParanaMap({ municipios }: { municipios: MunicipioData[] 
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <StateAutoCenter center={stateConfig.center} zoom={stateConfig.zoom} />
             <MapController selectedCoords={selectedCoords} />
 
             {municipios.map(m => {
@@ -221,7 +275,7 @@ export default function ParanaMap({ municipios }: { municipios: MunicipioData[] 
           <Search className="absolute left-3.5 top-3 text-slate-400" size={16} />
           <input
             type="text"
-            placeholder="Buscar município do Paraná..."
+            placeholder={`Buscar município em ${stateName}...`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none focus:border-primary"

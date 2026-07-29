@@ -408,82 +408,46 @@ export default function EmendasImportExportModal({
     }
   };
 
-  const findMunicipioId = (rawMun: string, municipioMap: Map<string, string>, stateSigla: string = 'PR'): string | null => {
+  const findMunicipioId = (rawMun: string, stateMap: Map<string, string>, fallbackMap: Map<string, string>): string | null => {
     if (!rawMun || !rawMun.trim()) return null;
     const str = rawMun.trim();
 
-    // 1. Direct full match
-    const normFull = normalizeKey(str);
-    if (municipioMap.has(normFull)) {
-      return municipioMap.get(normFull)!;
+    // 1. Clean the string
+    let clean = str;
+    // Remove IBGE numeric code at start (e.g. "4106902 - Curitiba" -> "Curitiba")
+    clean = clean.replace(/^\d+[\s\-\/]+/, '').trim();
+    // Remove common municipal prefixes
+    clean = clean.replace(/^(municipio\s+de|município\s+de|prefeitura\s+municipal\s+de|prefeitura\s+de|pm\s+de|pm\s+|governo\s+municipal\s+de)/i, '').trim();
+
+    const normClean = normalizeKey(clean);
+
+    // 2. Check Deputy's state map FIRST with clean name
+    if (stateMap.has(normClean)) {
+      return stateMap.get(normClean)!;
     }
 
-    // 2. Try adding stateSigla if not present
-    if (stateSigla && !normFull.endsWith(normalizeKey(stateSigla))) {
-      const normWithState = normalizeKey(`${str}-${stateSigla}`);
-      if (municipioMap.has(normWithState)) {
-        return municipioMap.get(normWithState)!;
-      }
-    }
-
-    // 3. Remove IBGE numeric code if present (e.g. "4106902 - Curitiba" -> "Curitiba")
-    const withoutIbge = str.replace(/^\d+[\s\-\/]+/, '').trim();
-    if (withoutIbge && withoutIbge !== str) {
-      const normWithoutIbge = normalizeKey(withoutIbge);
-      if (municipioMap.has(normWithoutIbge)) {
-        return municipioMap.get(normWithoutIbge)!;
-      }
-      if (stateSigla) {
-        const normIbgeState = normalizeKey(`${withoutIbge}-${stateSigla}`);
-        if (municipioMap.has(normIbgeState)) {
-          return municipioMap.get(normIbgeState)!;
-        }
-      }
-    }
-
-    // 4. Split by common delimiters like '-', '/', '(', ',', '–'
-    const parts = (withoutIbge || str)
+    // 3. Try splitting by common delimiters in Deputy's State
+    const parts = clean
       .split(/[\-\/\(\,\–]/)
       .map(p => p.replace(/\)/g, '').trim())
       .filter(Boolean);
 
     for (const part of parts) {
       const normPart = normalizeKey(part);
-      if (municipioMap.has(normPart)) {
-        return municipioMap.get(normPart)!;
-      }
-      if (stateSigla) {
-        const normPartState = normalizeKey(`${part}-${stateSigla}`);
-        if (municipioMap.has(normPartState)) {
-          return municipioMap.get(normPartState)!;
-        }
+      if (stateMap.has(normPart)) {
+        return stateMap.get(normPart)!;
       }
     }
 
-    // 5. Strip common municipal prefixes ("Município de", "Prefeitura Municipal de", "Prefeitura de", "PM de", etc.)
-    const stripped = (withoutIbge || str)
-      .replace(/^(municipio\s+de|município\s+de|prefeitura\s+municipal\s+de|prefeitura\s+de|pm\s+de|pm\s+|governo\s+municipal\s+de)/i, '')
-      .trim();
+    // 4. Fallback to fallbackMap (all Brazil municipalities)
+    if (fallbackMap.has(normClean)) {
+      return fallbackMap.get(normClean)!;
+    }
 
-    if (stripped && stripped !== str) {
-      const normStripped = normalizeKey(stripped);
-      if (municipioMap.has(normStripped)) {
-        return municipioMap.get(normStripped)!;
-      }
-      if (stateSigla) {
-        const normStrippedState = normalizeKey(`${stripped}-${stateSigla}`);
-        if (municipioMap.has(normStrippedState)) {
-          return municipioMap.get(normStrippedState)!;
-        }
-      }
-
-      // Try parts of stripped
-      const strippedParts = stripped.split(/[\-\/\(\,\–]/).map(p => p.replace(/\)/g, '').trim()).filter(Boolean);
-      for (const sp of strippedParts) {
-        const normSp = normalizeKey(sp);
-        if (municipioMap.has(normSp)) {
-          return municipioMap.get(normSp)!;
-        }
+    for (const part of parts) {
+      const normPart = normalizeKey(part);
+      if (fallbackMap.has(normPart)) {
+        return fallbackMap.get(normPart)!;
       }
     }
 
@@ -515,34 +479,62 @@ export default function EmendasImportExportModal({
         });
       }
 
-      const deputadoState = selectedDeputado?.estado || 'PR';
+      const deputadoState = (selectedDeputado?.estado || 'PR').toUpperCase();
 
-      // Fetch ALL municipios without default 1000 page limit
-      const { data: existingMunicipios } = await supabase
-        .from('municipio')
-        .select('id, nome, unidade_federacao(sigla)')
-        .range(0, 9999);
+      // Fetch ALL municipalities across Brazil paginated (to bypass PostgREST max 1000 rows limit)
+      let allMuns: any[] = [];
+      let page = 0;
+      const pageSize = 1000;
+      let hasMore = true;
 
-      const municipioMap = new Map<string, string>();
-      if (existingMunicipios) {
-        existingMunicipios.forEach((m: any) => {
-          const normName = normalizeKey(m.nome);
-          const ufObj = Array.isArray(m.unidade_federacao) ? m.unidade_federacao[0] : m.unidade_federacao;
-          const ufSigla = ufObj?.sigla ? ufObj.sigla.toUpperCase() : '';
+      while (hasMore && page < 10) {
+        const { data: pageMuns, error: munErr } = await supabase
+          .from('municipio')
+          .select('id, nome, unidade_federacao(sigla)')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
 
-          if (ufSigla) {
-            municipioMap.set(normalizeKey(`${m.nome}-${ufSigla}`), m.id);
-            municipioMap.set(normalizeKey(`${m.nome}/${ufSigla}`), m.id);
-            municipioMap.set(normalizeKey(`${m.nome} ${ufSigla}`), m.id);
-            municipioMap.set(normalizeKey(`${m.nome}(${ufSigla})`), m.id);
+        if (munErr) {
+          console.error("Erro ao buscar municípios:", munErr);
+          break;
+        }
+
+        if (pageMuns && pageMuns.length > 0) {
+          allMuns = allMuns.concat(pageMuns);
+          if (pageMuns.length < pageSize) {
+            hasMore = false;
+          } else {
+            page++;
           }
-
-          // Index by clean name (preferring deputado's state or first seen)
-          if (!municipioMap.has(normName) || (ufSigla && ufSigla === deputadoState.toUpperCase())) {
-            municipioMap.set(normName, m.id);
-          }
-        });
+        } else {
+          hasMore = false;
+        }
       }
+
+      const stateMunicipioMap = new Map<string, string>();
+      const fallbackMunicipioMap = new Map<string, string>();
+
+      allMuns.forEach((m: any) => {
+        const normName = normalizeKey(m.nome);
+        const ufObj = Array.isArray(m.unidade_federacao) ? m.unidade_federacao[0] : m.unidade_federacao;
+        const ufSigla = ufObj?.sigla ? ufObj.sigla.toUpperCase() : '';
+
+        // Prioritize indexing in Deputy's State Map
+        if (ufSigla === deputadoState) {
+          stateMunicipioMap.set(normName, m.id);
+        }
+
+        // Index in fallback map
+        if (!fallbackMunicipioMap.has(normName) || ufSigla === deputadoState) {
+          fallbackMunicipioMap.set(normName, m.id);
+        }
+
+        if (ufSigla) {
+          fallbackMunicipioMap.set(normalizeKey(`${m.nome}-${ufSigla}`), m.id);
+          fallbackMunicipioMap.set(normalizeKey(`${m.nome}/${ufSigla}`), m.id);
+          fallbackMunicipioMap.set(normalizeKey(`${m.nome} ${ufSigla}`), m.id);
+          fallbackMunicipioMap.set(normalizeKey(`${m.nome}(${ufSigla})`), m.id);
+        }
+      });
 
       // Collect new areas to create
       const missingAreaNames = new Set<string>();
@@ -576,7 +568,7 @@ export default function EmendasImportExportModal({
 
         let munId: string | null = null;
         if (r.municipio) {
-          munId = findMunicipioId(r.municipio, municipioMap, deputadoState);
+          munId = findMunicipioId(r.municipio, stateMunicipioMap, fallbackMunicipioMap);
         }
 
         return {
