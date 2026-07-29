@@ -23,7 +23,7 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
     tipo: 'Individuais (RP 6)',
     objeto: '',
     beneficiario: '',
-    municipio: '',
+    id_municipio: '',
     autor: '',
     numero_emenda: '',
     valor: 0,
@@ -76,7 +76,7 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
             tipo: orcamentoData.tipo || 'Individuais (RP 6)',
             objeto: orcamentoData.objeto || '',
             beneficiario: orcamentoData.beneficiario || '',
-            municipio: orcamentoData.municipio || '',
+            id_municipio: orcamentoData.id_municipio || '',
             autor: orcamentoData.autor || '',
             numero_emenda: orcamentoData.numero_emenda || '',
             valor: orcamentoData.valor,
@@ -111,6 +111,7 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
     const payload = {
       ...restFormData,
       id_deputado: selectedDeputado.id,
+      id_municipio: formData.id_municipio || null,
       id_projeto: formData.id_projeto || null,
       id_area_tematica: formData.id_area_tematica || null
     };
@@ -197,12 +198,12 @@ export default function EmendaForm({ id }: { id?: string } = {}) {
             <select 
               required
               className="w-full bg-surface-container-low border border-transparent focus:border-primary/40 focus:bg-white rounded-lg px-4 py-3 text-sm outline-none transition-all appearance-none"
-              value={formData.municipio}
-              onChange={e => setFormData({...formData, municipio: e.target.value})}
+              value={formData.id_municipio}
+              onChange={e => setFormData({...formData, id_municipio: e.target.value})}
             >
               <option value="" disabled>Selecione um município</option>
               {municipios.map(mun => (
-                <option key={mun.id} value={`${mun.nome} - ${mun.unidade_federacao?.sigla}`}>
+                <option key={mun.id} value={mun.id}>
                   {mun.nome} - {mun.unidade_federacao?.sigla}
                 </option>
               ))}

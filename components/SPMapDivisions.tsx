@@ -57,7 +57,7 @@ export function SPMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').eq('etapa', 'Liberado');
+        let orcQuery = supabase.from('orcamentos').select('valor, data, municipio(nome, unidade_federacao(sigla))').eq('etapa', 'Liberado');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -66,23 +66,20 @@ export function SPMapDivisions({ onHover, onBack, selectedYears = [] }: { onHove
         if (eErr) console.error("Error fetching emendas map data SP:", eErr);
         
         if (emendasData) {
-          emendasData.forEach(item => {
-            // Only process items for this state
-            if (item.municipio && !item.municipio.toUpperCase().includes('- SP')) return;
+          emendasData.forEach((item: any) => {
+            const munObj = Array.isArray(item.municipio) ? item.municipio[0] : item.municipio;
+            const cityName = munObj?.nome;
+            if (!cityName) return;
 
             const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
-            if (item.municipio) {
-               // Normalize city name: split by '-' and trim
-               const cityName = item.municipio.split('-')[0].trim();
-               if (stats[cityName]) {
-                  stats[cityName].emendas += Number(item.valor || 0);
-               } else {
-                  // Try case-insensitive fallback if exact match fails
-                  const cityKey = Object.keys(stats).find(k => k.toLowerCase() === cityName.toLowerCase());
-                  if (cityKey) stats[cityKey].emendas += Number(item.valor || 0);
-               }
+            if (stats[cityName]) {
+               stats[cityName].emendas += Number(item.valor || 0);
+            } else {
+               // Try case-insensitive fallback if exact match fails
+               const cityKey = Object.keys(stats).find(k => k.toLowerCase() === cityName.toLowerCase());
+               if (cityKey) stats[cityKey].emendas += Number(item.valor || 0);
             }
           });
         }

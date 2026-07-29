@@ -29,7 +29,8 @@ export function EmendasTable() {
         .select(`
           *,
           areas_tematicas(nome),
-          projetos(descricao, ementa)
+          projetos(descricao, ementa),
+          municipio(nome, unidade_federacao(sigla))
         `)
         .eq('id_deputado', selectedDeputado.id)
         .eq('etapa', 'Liberado');
@@ -57,14 +58,18 @@ export function EmendasTable() {
     // Filter by user search term
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
-      result = result.filter(e => 
-        (e.objeto && e.objeto.toLowerCase().includes(term)) ||
-        (e.beneficiario && e.beneficiario.toLowerCase().includes(term)) ||
-        (e.autor && e.autor.toLowerCase().includes(term)) ||
-        (e.tipo && e.tipo.toLowerCase().includes(term)) ||
-        (e.municipio && e.municipio.toLowerCase().includes(term)) ||
-        (e.areas_tematicas?.nome && e.areas_tematicas.nome.toLowerCase().includes(term))
-      );
+      result = result.filter(e => {
+        const munObj = Array.isArray(e.municipio) ? e.municipio[0] : e.municipio;
+        const munName = munObj?.nome || '';
+        return (
+          (e.objeto && e.objeto.toLowerCase().includes(term)) ||
+          (e.beneficiario && e.beneficiario.toLowerCase().includes(term)) ||
+          (e.autor && e.autor.toLowerCase().includes(term)) ||
+          (e.tipo && e.tipo.toLowerCase().includes(term)) ||
+          (munName && munName.toLowerCase().includes(term)) ||
+          (e.areas_tematicas?.nome && e.areas_tematicas.nome.toLowerCase().includes(term))
+        );
+      });
     }
 
     setFilteredEmendas(result);
@@ -156,7 +161,12 @@ export function EmendasTable() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm font-medium text-slate-750">
-                      {emenda.municipio || 'Estadual'}
+                      {(() => {
+                        const munObj = Array.isArray(emenda.municipio) ? emenda.municipio[0] : emenda.municipio;
+                        if (!munObj?.nome) return 'Estadual';
+                        const ufSigla = munObj.unidade_federacao ? (Array.isArray(munObj.unidade_federacao) ? munObj.unidade_federacao[0]?.sigla : munObj.unidade_federacao.sigla) : '';
+                        return `${munObj.nome}${ufSigla ? ` - ${ufSigla}` : ''}`;
+                      })()}
                     </span>
                   </td>
                   <td className="px-6 py-4">

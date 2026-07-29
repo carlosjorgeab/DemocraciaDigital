@@ -57,7 +57,7 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
         }
 
         // 2. Fetch Orcamentos (Emendas)
-        let orcQuery = supabase.from('orcamentos').select('municipio, valor, data').eq('etapa', 'Liberado');
+        let orcQuery = supabase.from('orcamentos').select('valor, data, municipio(nome, unidade_federacao(sigla))').eq('etapa', 'Liberado');
         if (selectedDeputado?.id) {
           orcQuery = orcQuery.eq('id_deputado', selectedDeputado.id);
         }
@@ -65,20 +65,19 @@ export default function PRMapDivisions({ onHover, onBack, selectedYears = [] }: 
         const { data: emendasData } = await orcQuery;
         
         if (emendasData) {
-          emendasData.forEach(item => {
-            if (item.municipio && !item.municipio.toUpperCase().includes('- PR')) return;
+          emendasData.forEach((item: any) => {
+            const munObj = Array.isArray(item.municipio) ? item.municipio[0] : item.municipio;
+            const cityName = munObj?.nome;
+            if (!cityName) return;
 
             const y = item.data ? new Date(item.data).getFullYear() : new Date().getFullYear();
             if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
 
-            if (item.municipio) {
-               const cityName = item.municipio.split('-')[0].trim();
-               if (stats[cityName]) {
-                  stats[cityName].emendas += Number(item.valor || 0);
-               } else {
-                  const cityKey = Object.keys(stats).find(k => k.toLowerCase() === cityName.toLowerCase());
-                  if (cityKey) stats[cityKey].emendas += Number(item.valor || 0);
-               }
+            if (stats[cityName]) {
+               stats[cityName].emendas += Number(item.valor || 0);
+            } else {
+               const cityKey = Object.keys(stats).find(k => k.toLowerCase() === cityName.toLowerCase());
+               if (cityKey) stats[cityKey].emendas += Number(item.valor || 0);
             }
           });
         }

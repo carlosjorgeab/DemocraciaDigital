@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { Plus, Search, FileSignature, Calendar, Download, Trash2, Edit2, AlertCircle, Save, X, ClipboardList } from 'lucide-react';
+import { Plus, Search, FileSignature, Calendar, Download, Trash2, Edit2, AlertCircle, Save, X, ClipboardList, AlertTriangle } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 
 interface Edital {
@@ -432,18 +432,37 @@ export default function EditaisPage() {
             Nenhum edital encontrado para este deputado.
           </div>
         ) : (
-          filteredEditais.map(edital => (
-            <div key={edital.id} className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-4 hover:shadow-md transition-shadow group">
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center shrink-0">
-                    <FileSignature size={24} />
+          filteredEditais.map(edital => {
+            const now = new Date();
+            const end = edital.data_fim ? new Date(edital.data_fim + 'T23:59:59') : null;
+            const daysRemaining = end ? Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 999;
+            const isExpiringSoon = daysRemaining >= 0 && daysRemaining <= 5;
+            const isExpired = daysRemaining < 0;
+
+            return (
+              <div key={edital.id} className={`bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border space-y-4 hover:shadow-md transition-shadow group relative ${isExpiringSoon ? 'border-amber-300 dark:border-amber-700/80 bg-amber-50/20' : 'border-slate-100 dark:border-slate-700'}`}>
+                {isExpiringSoon && (
+                  <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md animate-pulse self-start w-fit">
+                    <AlertTriangle size={12} />
+                    Urgente: Encerra em {daysRemaining === 0 ? 'hoje' : `${daysRemaining} dia(s)`}!
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">{edital.titulo}</h3>
+                )}
+
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isExpiringSoon ? 'bg-amber-500/10 text-amber-600' : 'bg-primary/10 text-primary'}`}>
+                      <FileSignature size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">{edital.titulo}</h3>
+                      {isExpired ? (
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Encerrado</span>
+                      ) : !isExpiringSoon && (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Em Aberto ({daysRemaining} dias)</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
               <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl flex items-center gap-3">
                  <Calendar className="text-slate-400" size={16} />
@@ -513,7 +532,8 @@ export default function EditaisPage() {
                 </button>
               </div>
             </div>
-          ))
+          );
+        })
         )}
       </div>
     </div>

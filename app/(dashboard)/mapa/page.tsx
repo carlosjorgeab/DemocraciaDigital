@@ -67,13 +67,11 @@ export default function MapaPage() {
       try {
         const { data: emendas, error: eErr } = await supabase
           .from('orcamentos')
-          .select('municipio, valor, data')
+          .select('id_municipio, valor, data, municipio(nome)')
           .eq('id_deputado', selectedDeputado.id)
           .eq('etapa', 'Liberado');
           
         if (eErr) console.error("Error fetching emendas stats:", eErr);
-          
-
           
         if (emendas) {
           let eList = emendas || [];
@@ -89,11 +87,11 @@ export default function MapaPage() {
             eList = [];
           }
 
-          const normalizeMun = (m: string) => m ? m.split('-')[0].trim().toLowerCase() : '';
           const uniqueMunSet = new Set<string>();
           
-          eList.forEach(e => {
-            const m = normalizeMun(e.municipio);
+          eList.forEach((e: any) => {
+            const munObj = Array.isArray(e.municipio) ? e.municipio[0] : e.municipio;
+            const m = e.id_municipio || (munObj?.nome ? munObj.nome.trim().toLowerCase() : '');
             if (m) uniqueMunSet.add(m);
           });
           const totalE = eList.reduce((acc, curr) => acc + (Number(curr.valor) || 0), 0);

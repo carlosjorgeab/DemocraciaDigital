@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useFilters } from '@/context/FilterContext';
 import { supabase } from '@/lib/supabase';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export function Charts() {
   const { selectedDeputado } = useDeputado();
@@ -11,13 +12,19 @@ export function Charts() {
   const [categories, setCategories] = useState<{ name: string; value: number; color: string }[]>([]);
   const [total, setTotal] = useState(0);
   
-  const [monthlyData, setMonthlyData] = useState<{ month: string; empenhado: number; pago: number }[]>([
-    { month: 'JAN', empenhado: 0, pago: 0 },
-    { month: 'FEV', empenhado: 0, pago: 0 },
-    { month: 'MAR', empenhado: 0, pago: 0 },
-    { month: 'ABR', empenhado: 0, pago: 0 },
-    { month: 'MAI', empenhado: 0, pago: 0 },
-    { month: 'JUN', empenhado: 0, pago: 0 },
+  const [monthlyData, setMonthlyData] = useState<{ month: string; liberadas: number; emAnalise: number }[]>([
+    { month: 'Jan', liberadas: 0, emAnalise: 0 },
+    { month: 'Fev', liberadas: 0, emAnalise: 0 },
+    { month: 'Mar', liberadas: 0, emAnalise: 0 },
+    { month: 'Abr', liberadas: 0, emAnalise: 0 },
+    { month: 'Mai', liberadas: 0, emAnalise: 0 },
+    { month: 'Jun', liberadas: 0, emAnalise: 0 },
+    { month: 'Jul', liberadas: 0, emAnalise: 0 },
+    { month: 'Ago', liberadas: 0, emAnalise: 0 },
+    { month: 'Set', liberadas: 0, emAnalise: 0 },
+    { month: 'Out', liberadas: 0, emAnalise: 0 },
+    { month: 'Nov', liberadas: 0, emAnalise: 0 },
+    { month: 'Dez', liberadas: 0, emAnalise: 0 },
   ]);
 
   useEffect(() => {
@@ -29,38 +36,49 @@ export function Charts() {
       const areaColors: Record<string, string> = {};
       if (areasList) {
         areasList.forEach(a => {
-          areaColors[a.nome] = a.cor || '#cbd5e1'; // fallback to slate-300
+          areaColors[a.nome] = a.cor || '#cbd5e1';
         });
       }
 
       let categoryTotals: Record<string, number> = {};
       let totalValue = 0;
-      
-      let emendaIds: string[] = [];
 
-
+      // Initialize monthly data array (12 months)
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const monthlyMap = monthNames.map(m => ({ month: m, liberadas: 0, emAnalise: 0 }));
 
       if (filters.tipoVerba === 'Todas' || filters.tipoVerba === 'Emendas') {
-        let query = supabase
+        const { data: emendas } = await supabase
           .from('orcamentos')
-          .select('*, areas_tematicas(nome)')
-          .eq('id_deputado', selectedDeputado.id)
-          .eq('etapa', 'Liberado');
-        
-        const { data: emendas } = await query;
+          .select('*, areas_tematicas(nome), municipio(nome)')
+          .eq('id_deputado', selectedDeputado.id);
+
         if (emendas) {
-          emendas.forEach(e => {
-            const cat = (e as any).areas_tematicas?.nome || 'Outros';
-            const y = e.data ? new Date(e.data).getFullYear() : new Date().getFullYear();
+          emendas.forEach((e: any) => {
+            const munObj = Array.isArray(e.municipio) ? e.municipio[0] : e.municipio;
+            const munName = munObj?.nome || '';
+            const cat = e.areas_tematicas?.nome || 'Outros';
+            const dateObj = e.data ? new Date(e.data) : new Date();
+            const y = dateObj.getFullYear();
+            const monthIdx = dateObj.getMonth();
 
             const matchYear = filters.anosFiscais.length === 0 || filters.anosFiscais.includes(y);
-            const matchMun = filters.municipio === 'Todos' || e.municipio === filters.municipio;
+            const matchMun = filters.municipio === 'Todos' || munName === filters.municipio;
             const matchCat = filters.categoria === 'Todas' || filters.categoria === cat;
 
             if (matchYear && matchMun && matchCat) {
-              categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(e.valor);
-              totalValue += Number(e.valor);
-              emendaIds.push(e.id);
+              const val = Number(e.valor) || 0;
+              if (e.etapa === 'Liberado') {
+                categoryTotals[cat] = (categoryTotals[cat] || 0) + val;
+                totalValue += val;
+                if (monthIdx >= 0 && monthIdx < 12) {
+                  monthlyMap[monthIdx].liberadas += val;
+                }
+              } else {
+                if (monthIdx >= 0 && monthIdx < 12) {
+                  monthlyMap[monthIdx].emAnalise += val;
+                }
+              }
             }
           });
         }
@@ -78,37 +96,7 @@ export function Charts() {
 
       setCategories(formattedCategories);
       setTotal(totalValue);
-
-      // Fetch history for bar chart
-      const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-      const newMonthlyData = months.slice(0, 6).map(m => ({ month: m, empenhado: 0, pago: 0 }));
-
-
-
-      if (emendaIds.length > 0) {
-        const chunkSize = 200;
-        for (let i = 0; i < emendaIds.length; i += chunkSize) {
-          const chunk = emendaIds.slice(i, i + chunkSize);
-          const { data: histEmendas } = await supabase
-            .from('historico_emendas')
-            .select('status, data, valor')
-            .in('id_emenda', chunk)
-            .in('status', ['Empenho', 'Pagamento']);
-          
-          if (histEmendas) {
-            histEmendas.forEach(h => {
-              const date = new Date(h.data);
-              const monthIndex = date.getMonth();
-              if (monthIndex < 6) {
-                if (h.status === 'Empenho') newMonthlyData[monthIndex].empenhado += Number(h.valor);
-                if (h.status === 'Pagamento') newMonthlyData[monthIndex].pago += Number(h.valor);
-              }
-            });
-          }
-        }
-      }
-
-      setMonthlyData(newMonthlyData);
+      setMonthlyData(monthlyMap);
     }
 
     fetchChartData();
@@ -123,78 +111,66 @@ export function Charts() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  let currentOffset = 0;
   const circumference = 2 * Math.PI * 40;
-
-  // Calculate max value for bar chart scaling
-  const maxMonthlyValue = Math.max(
-    ...monthlyData.map(d => Math.max(d.empenhado, d.pago)),
-    1 // prevent division by zero
-  );
 
   return (
     <>
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col">
-          <div className="flex justify-between items-end mb-6 border-b border-slate-100 pb-4">
-            <div className="flex gap-6">
-              <h3 className="text-xl font-headline font-bold text-black dark:text-black">
-                Histórico de Execução
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-slate-100 pb-4 gap-2">
+            <div>
+              <h3 className="text-xl font-headline font-bold text-slate-900">
+                Evolução Mensal das Emendas
               </h3>
-            </div>
-            
-            <div className="flex gap-4 text-xs font-bold text-black dark:text-black">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-tertiary rounded-sm"></div>
-                <span>Empenhado</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-primary rounded-sm"></div>
-                <span>Pago</span>
-              </div>
+              <p className="text-xs text-slate-500 font-medium">Demonstrativo de emendas liberadas x em análise ao longo do ano</p>
             </div>
           </div>
           
-          <div className="flex-1 min-h-[300px]">
-            <div className="h-full flex items-end justify-between gap-4 px-2 pt-4">
-              {monthlyData.map((data, index) => {
-                const empenhadoPercent = (data.empenhado / maxMonthlyValue) * 100;
-                const pagoPercent = (data.pago / maxMonthlyValue) * 100;
-                
-                return (
-                  <div key={index} className="flex-1 flex flex-col justify-end gap-1 h-full">
-                    <div className="w-full h-full flex items-end justify-center relative group">
-                      {/* Empenhado Bar */}
-                      <div 
-                        className="absolute bottom-0 w-full bg-tertiary/40 rounded-t-sm transition-all"
-                        style={{ height: `${Math.max(empenhadoPercent, 2)}%` }}
-                        title={`Empenhado: ${formatCurrency(data.empenhado)}`}
-                      ></div>
-                      {/* Pago Bar */}
-                      <div 
-                        className="absolute bottom-0 w-full bg-primary rounded-t-sm transition-all"
-                        style={{ height: `${Math.max(pagoPercent, 1)}%` }}
-                        title={`Pago: ${formatCurrency(data.pago)}`}
-                      ></div>
-                    </div>
-                    <span className="text-[10px] text-center font-bold text-black dark:text-black">{data.month}</span>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="flex-1 w-full h-[320px] min-h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} 
+                  axisLine={{ stroke: '#e2e8f0' }}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tickFormatter={(val) => formatCurrency(val)} 
+                  tick={{ fontSize: 10, fontWeight: 600, fill: '#64748b' }} 
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip 
+                  formatter={(value: any, name: any) => [
+                    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value) || 0),
+                    name === 'liberadas' ? 'Liberadas' : 'Em Análise / Rascunho'
+                  ]}
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', borderColor: '#e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  labelStyle={{ fontWeight: 'bold', color: '#0f172a' }}
+                />
+                <Legend 
+                  verticalAlign="top"
+                  align="right"
+                  wrapperStyle={{ paddingBottom: '16px', fontSize: '12px', fontWeight: 700 }}
+                  formatter={(value) => value === 'liberadas' ? 'Emendas Liberadas' : 'Em Análise / Rascunho'}
+                />
+                <Bar dataKey="liberadas" name="liberadas" fill="#005baa" radius={[6, 6, 0, 0]} barSize={14} />
+                <Bar dataKey="emAnalise" name="emAnalise" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={14} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
         
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
-          <h4 className="text-xl font-headline font-bold text-black dark:text-black">Impacto Social</h4>
-          <p className="text-sm text-black dark:text-black self-start mb-8">Foco por Área Temática</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
+          <h4 className="text-xl font-headline font-bold text-slate-900 self-start">Impacto Social</h4>
+          <p className="text-xs text-slate-500 self-start mb-6 font-medium">Distribuição por Área Temática</p>
           
-          <div className="relative w-48 h-48 mb-8">
+          <div className="relative w-48 h-48 mb-6">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
               {categories.map((cat, i) => {
                 const percentage = total > 0 ? cat.value / total : 0;
-                
-                // Calculate offset based on previous categories
                 const previousPercentage = categories
                   .slice(0, i)
                   .reduce((sum, c) => sum + (total > 0 ? c.value / total : 0), 0);
@@ -215,21 +191,25 @@ export function Charts() {
               })}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-black font-headline">{formatCurrency(total)}</span>
-              <span className="text-[10px] font-bold text-on-surface-variant uppercase">Total</span>
+              <span className="text-xl font-black font-headline text-slate-900">{formatCurrency(total)}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Liberado</span>
             </div>
           </div>
           
-          <div className="w-full space-y-3">
-            {categories.map(cat => (
-              <div key={cat.name} className="flex justify-between items-center text-sm font-medium text-black dark:text-black">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }}></div>
-                  <span className="text-black dark:text-black">{cat.name}</span>
+          <div className="w-full space-y-2.5 max-h-[160px] overflow-y-auto pr-1">
+            {categories.length === 0 ? (
+              <p className="text-xs text-slate-400 text-center py-4">Nenhuma categoria registrada.</p>
+            ) : (
+              categories.map(cat => (
+                <div key={cat.name} className="flex justify-between items-center text-xs font-medium text-slate-700">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }}></div>
+                    <span className="truncate max-w-[140px] font-bold">{cat.name}</span>
+                  </div>
+                  <span className="font-extrabold text-slate-900">{total > 0 ? Math.round((cat.value / total) * 100) : 0}%</span>
                 </div>
-                <span className="font-bold text-black dark:text-black">{total > 0 ? Math.round((cat.value / total) * 100) : 0}%</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>

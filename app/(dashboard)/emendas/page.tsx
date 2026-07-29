@@ -21,7 +21,7 @@ export default function EmendasPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('orcamentos')
-      .select('*, areas_tematicas(nome), projetos(descricao)')
+      .select('*, areas_tematicas(nome), projetos(descricao), municipio(id, nome, unidade_federacao(sigla))')
       .eq('id_deputado', selectedDeputado.id)
       .order('data', { ascending: false });
     
@@ -52,11 +52,13 @@ export default function EmendasPage() {
   const filteredOrcamentos = orcamentos.filter(item => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
+    const munObj = Array.isArray(item.municipio) ? item.municipio[0] : item.municipio;
+    const munName = munObj?.nome || '';
     return (
       (item.objeto && item.objeto.toLowerCase().includes(term)) ||
       (item.autor && item.autor.toLowerCase().includes(term)) ||
       (item.beneficiario && item.beneficiario.toLowerCase().includes(term)) ||
-      (item.municipio && item.municipio.toLowerCase().includes(term)) ||
+      (munName && munName.toLowerCase().includes(term)) ||
       (item.numero_emenda && item.numero_emenda.toLowerCase().includes(term)) ||
       (item.areas_tematicas?.nome && item.areas_tematicas.nome.toLowerCase().includes(term)) ||
       (item.tipo && item.tipo.toLowerCase().includes(term)) ||
@@ -160,7 +162,12 @@ export default function EmendasPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-slate-700 whitespace-nowrap">
-                      {orcamento.municipio || '-'}
+                      {(() => {
+                        const munObj = Array.isArray(orcamento.municipio) ? orcamento.municipio[0] : orcamento.municipio;
+                        if (!munObj?.nome) return '-';
+                        const ufSigla = munObj.unidade_federacao ? (Array.isArray(munObj.unidade_federacao) ? munObj.unidade_federacao[0]?.sigla : munObj.unidade_federacao.sigla) : '';
+                        return `${munObj.nome}${ufSigla ? ` - ${ufSigla}` : ''}`;
+                      })()}
                     </td>
                     <td className="px-4 py-3 font-black text-slate-900 whitespace-nowrap">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(orcamento.valor)}

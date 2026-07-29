@@ -50,7 +50,7 @@ export function exportEmendasToExcel(orcamentos: any[], deputadoNome: string = '
       'Area Tematica': areaNome,
       'Beneficiário': item.beneficiario || '',
       'Tipo': item.tipo || 'Individuais (RP 6)',
-      'Município da Emenda': item.municipio || '',
+      'Município da Emenda': item.municipio?.nome ? `${item.municipio.nome}${item.municipio.unidade_federacao?.sigla ? ` - ${item.municipio.unidade_federacao.sigla}` : ''}` : (typeof item.municipio === 'string' ? item.municipio : ''),
       'Numero Emenda': item.numero_emenda || '',
       'Valor da Emenda (R$)': Number(item.valor || 0),
       'Etapa': item.etapa || 'Liberado'
@@ -423,13 +423,26 @@ export default function EmendasImportExportModal({
     setImporting(true);
 
     try {
-      // 1. Fetch existing areas_tematicas to resolve IDs or create new ones
+      // 1. Fetch existing areas_tematicas and municipios to resolve IDs
       const { data: existingAreas } = await supabase.from('areas_tematicas').select('id, nome');
       const areaMap = new Map<string, string>();
       
       if (existingAreas) {
         existingAreas.forEach(a => {
           areaMap.set(normalizeKey(a.nome), a.id);
+        });
+      }
+
+      const { data: existingMunicipios } = await supabase.from('municipio').select('id, nome, unidade_federacao(sigla)');
+      const municipioMap = new Map<string, string>();
+      if (existingMunicipios) {
+        existingMunicipios.forEach((m: any) => {
+          municipioMap.set(normalizeKey(m.nome), m.id);
+          const ufObj = Array.isArray(m.unidade_federacao) ? m.unidade_federacao[0] : m.unidade_federacao;
+          if (ufObj?.sigla) {
+            municipioMap.set(normalizeKey(`${m.nome}-${ufObj.sigla}`), m.id);
+            municipioMap.set(normalizeKey(`${m.nome} - ${ufObj.sigla}`), m.id);
+          }
         });
       }
 
@@ -463,6 +476,12 @@ export default function EmendasImportExportModal({
         const normArea = normalizeKey(r.area_tematica_nome);
         const areaId = areaMap.get(normArea) || null;
 
+        let munId: string | null = null;
+        if (r.municipio) {
+          const rawMunName = r.municipio.split('-')[0].trim();
+          munId = municipioMap.get(normalizeKey(r.municipio)) || municipioMap.get(normalizeKey(rawMunName)) || null;
+        }
+
         return {
           id_deputado: selectedDeputado.id,
           data: r.data,
@@ -471,7 +490,7 @@ export default function EmendasImportExportModal({
           valor: r.valor,
           beneficiario: r.beneficiario || null,
           autor: r.autor,
-          municipio: r.municipio || null,
+          id_municipio: munId,
           numero_emenda: r.numero_emenda || null,
           id_area_tematica: areaId,
           etapa: r.etapa
