@@ -276,7 +276,7 @@ export default function EmendasImportExportModal({
     ) return 'numero_emenda';
     if (norm.includes('objeto') || norm.includes('descricao')) return 'objeto';
     if (norm.includes('beneficiario') || norm.includes('favorecido')) return 'beneficiario';
-    if (norm.includes('municipio') || norm.includes('cidade')) return 'municipio';
+    if (norm.includes('municipio') || norm.includes('cidade') || norm.includes('localidade') || norm.includes('munic') || norm === 'mun') return 'municipio';
     if (norm.includes('areatematica') || (norm.includes('area') && !norm.includes('emenda')) || norm.includes('categoria')) return 'area_tematica';
     if (norm.includes('autor') || norm.includes('deputado')) return 'autor';
     if (norm.includes('tipo')) return 'tipo';
@@ -408,6 +408,88 @@ export default function EmendasImportExportModal({
     }
   };
 
+  const findMunicipioId = (rawMun: string, municipioMap: Map<string, string>, stateSigla: string = 'PR'): string | null => {
+    if (!rawMun || !rawMun.trim()) return null;
+    const str = rawMun.trim();
+
+    // 1. Direct full match
+    const normFull = normalizeKey(str);
+    if (municipioMap.has(normFull)) {
+      return municipioMap.get(normFull)!;
+    }
+
+    // 2. Try adding stateSigla if not present
+    if (stateSigla && !normFull.endsWith(normalizeKey(stateSigla))) {
+      const normWithState = normalizeKey(`${str}-${stateSigla}`);
+      if (municipioMap.has(normWithState)) {
+        return municipioMap.get(normWithState)!;
+      }
+    }
+
+    // 3. Remove IBGE numeric code if present (e.g. "4106902 - Curitiba" -> "Curitiba")
+    const withoutIbge = str.replace(/^\d+[\s\-\/]+/, '').trim();
+    if (withoutIbge && withoutIbge !== str) {
+      const normWithoutIbge = normalizeKey(withoutIbge);
+      if (municipioMap.has(normWithoutIbge)) {
+        return municipioMap.get(normWithoutIbge)!;
+      }
+      if (stateSigla) {
+        const normIbgeState = normalizeKey(`${withoutIbge}-${stateSigla}`);
+        if (municipioMap.has(normIbgeState)) {
+          return municipioMap.get(normIbgeState)!;
+        }
+      }
+    }
+
+    // 4. Split by common delimiters like '-', '/', '(', ',', '–'
+    const parts = (withoutIbge || str)
+      .split(/[\-\/\(\,\–]/)
+      .map(p => p.replace(/\)/g, '').trim())
+      .filter(Boolean);
+
+    for (const part of parts) {
+      const normPart = normalizeKey(part);
+      if (municipioMap.has(normPart)) {
+        return municipioMap.get(normPart)!;
+      }
+      if (stateSigla) {
+        const normPartState = normalizeKey(`${part}-${stateSigla}`);
+        if (municipioMap.has(normPartState)) {
+          return municipioMap.get(normPartState)!;
+        }
+      }
+    }
+
+    // 5. Strip common municipal prefixes ("Município de", "Prefeitura Municipal de", "Prefeitura de", "PM de", etc.)
+    const stripped = (withoutIbge || str)
+      .replace(/^(municipio\s+de|município\s+de|prefeitura\s+municipal\s+de|prefeitura\s+de|pm\s+de|pm\s+|governo\s+municipal\s+de)/i, '')
+      .trim();
+
+    if (stripped && stripped !== str) {
+      const normStripped = normalizeKey(stripped);
+      if (municipioMap.has(normStripped)) {
+        return municipioMap.get(normStripped)!;
+      }
+      if (stateSigla) {
+        const normStrippedState = normalizeKey(`${stripped}-${stateSigla}`);
+        if (municipioMap.has(normStrippedState)) {
+          return municipioMap.get(normStrippedState)!;
+        }
+      }
+
+      // Try parts of stripped
+      const strippedParts = stripped.split(/[\-\/\(\,\–]/).map(p => p.replace(/\)/g, '').trim()).filter(Boolean);
+      for (const sp of strippedParts) {
+        const normSp = normalizeKey(sp);
+        if (municipioMap.has(normSp)) {
+          return municipioMap.get(normSp)!;
+        }
+      }
+    }
+
+    return null;
+  };
+
   const handleConfirmImport = async () => {
     if (!selectedDeputado) {
       alert('Selecione um deputado primeiro.');
@@ -433,15 +515,31 @@ export default function EmendasImportExportModal({
         });
       }
 
-      const { data: existingMunicipios } = await supabase.from('municipio').select('id, nome, unidade_federacao(sigla)');
+      const deputadoState = selectedDeputado?.estado || 'PR';
+
+      // Fetch ALL municipios without default 1000 page limit
+      const { data: existingMunicipios } = await supabase
+        .from('municipio')
+        .select('id, nome, unidade_federacao(sigla)')
+        .range(0, 9999);
+
       const municipioMap = new Map<string, string>();
       if (existingMunicipios) {
         existingMunicipios.forEach((m: any) => {
-          municipioMap.set(normalizeKey(m.nome), m.id);
+          const normName = normalizeKey(m.nome);
           const ufObj = Array.isArray(m.unidade_federacao) ? m.unidade_federacao[0] : m.unidade_federacao;
-          if (ufObj?.sigla) {
-            municipioMap.set(normalizeKey(`${m.nome}-${ufObj.sigla}`), m.id);
-            municipioMap.set(normalizeKey(`${m.nome} - ${ufObj.sigla}`), m.id);
+          const ufSigla = ufObj?.sigla ? ufObj.sigla.toUpperCase() : '';
+
+          if (ufSigla) {
+            municipioMap.set(normalizeKey(`${m.nome}-${ufSigla}`), m.id);
+            municipioMap.set(normalizeKey(`${m.nome}/${ufSigla}`), m.id);
+            municipioMap.set(normalizeKey(`${m.nome} ${ufSigla}`), m.id);
+            municipioMap.set(normalizeKey(`${m.nome}(${ufSigla})`), m.id);
+          }
+
+          // Index by clean name (preferring deputado's state or first seen)
+          if (!municipioMap.has(normName) || (ufSigla && ufSigla === deputadoState.toUpperCase())) {
+            municipioMap.set(normName, m.id);
           }
         });
       }
@@ -478,8 +576,7 @@ export default function EmendasImportExportModal({
 
         let munId: string | null = null;
         if (r.municipio) {
-          const rawMunName = r.municipio.split('-')[0].trim();
-          munId = municipioMap.get(normalizeKey(r.municipio)) || municipioMap.get(normalizeKey(rawMunName)) || null;
+          munId = findMunicipioId(r.municipio, municipioMap, deputadoState);
         }
 
         return {
