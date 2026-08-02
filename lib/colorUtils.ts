@@ -39,6 +39,40 @@ export function getContrastRatio(hex1: string, hex2: string): number {
 }
 
 /**
+  * Checks if a hex background color is white or near-white
+  */
+export function isWhiteOrNearWhite(bgHex?: string): boolean {
+  if (!bgHex) return true;
+  const clean = bgHex.trim().toLowerCase();
+  if (
+    clean === '#fff' ||
+    clean === '#ffffff' ||
+    clean === 'white' ||
+    clean === '#f8fafc' ||
+    clean === '#f1f5f9' ||
+    clean === '#f0f0f0' ||
+    clean === '#fafafa' ||
+    clean === '#slate-50'
+  ) {
+    return true;
+  }
+  const rgb = parseHexColor(bgHex);
+  if (!rgb) return true;
+  return rgb.r >= 235 && rgb.g >= 235 && rgb.b >= 235;
+}
+
+/**
+  * Rule: Font color in Sidebar and Topbar MUST ALWAYS be Bold White (#ffffff),
+  * EXCEPT when the background of Sidebar and Topbar is White, in which case the font is Bold Black (#000000).
+  */
+export function getSidebarTopbarFontColor(bgHex?: string): '#000000' | '#ffffff' {
+  if (isWhiteOrNearWhite(bgHex)) {
+    return '#000000';
+  }
+  return '#ffffff';
+}
+
+/**
   * Returns pure black (#000000) or pure white (#ffffff) to guarantee maximum contrast
   */
 export function getContrastTextColor(bgColorHex: string): '#000000' | '#ffffff' {

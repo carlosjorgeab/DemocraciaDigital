@@ -6,7 +6,7 @@ import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { getContrastTextColor, getReadableOnLightText } from '@/lib/colorUtils';
+import { isWhiteOrNearWhite, getSidebarTopbarFontColor, getContrastTextColor } from '@/lib/colorUtils';
 
 export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIsOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
@@ -17,9 +17,17 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
   const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
 
-  const onPrimaryText = getContrastTextColor(partyPrimary);
-  const onSecondaryText = getContrastTextColor(partySecondary);
-  const readablePartyText = getReadableOnLightText(partyPrimary);
+  // Sidebar background uses partyPrimary by default
+  const sidebarBg = partyPrimary;
+  const isSidebarWhite = isWhiteOrNearWhite(sidebarBg);
+
+  // Font color rule:
+  // Font in Sidebar MUST be Bold White (#ffffff), EXCEPT when Sidebar background is White, in which case font is Bold Black (#000000).
+  const sidebarTextColor = getSidebarTopbarFontColor(sidebarBg);
+
+  // Active Item styling
+  const activeItemBg = isSidebarWhite ? partyPrimary : '#ffffff';
+  const activeItemTextColor = isSidebarWhite ? '#ffffff' : (isWhiteOrNearWhite(partyPrimary) ? '#000000' : partyPrimary);
 
   useEffect(() => {
     async function checkExpiringEditais() {
@@ -65,8 +73,26 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: false, id: '/relatorios' },
     { href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' },
     { href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' },
-    { href: '/emendas/nova', icon: Plus, label: 'Nova Emenda', disabled: false, id: '/emendas/nova', isButton: true, btnBg: partyPrimary, btnText: onPrimaryText },
-    { href: '/projetos/novo', icon: Plus, label: 'Novo Projeto', disabled: false, id: '/projetos/novo', isButton: true, btnBg: partySecondary, btnText: onSecondaryText },
+    { 
+      href: '/emendas/nova', 
+      icon: Plus, 
+      label: 'Nova Emenda', 
+      disabled: false, 
+      id: '/emendas/nova', 
+      isButton: true, 
+      btnBg: isSidebarWhite ? partyPrimary : '#ffffff', 
+      btnText: isSidebarWhite ? '#ffffff' : partyPrimary 
+    },
+    { 
+      href: '/projetos/novo', 
+      icon: Plus, 
+      label: 'Novo Projeto', 
+      disabled: false, 
+      id: '/projetos/novo', 
+      isButton: true, 
+      btnBg: isSidebarWhite ? partySecondary : 'rgba(255, 255, 255, 0.25)', 
+      btnText: '#ffffff' 
+    },
     { href: '/configuracoes', icon: Settings, label: 'Configurações', disabled: false, id: '/configuracoes' },
   ].filter(item => {
     if (item.id === '/perfis' || item.id === '/usuarios' || item.id === '/configuracoes') {
@@ -83,12 +109,17 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   };
 
   return (
-    <aside className={`h-screen w-64 fixed left-0 top-0 pt-16 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between py-6 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium transition-transform duration-300 overflow-y-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+    <aside 
+      style={{ 
+        backgroundColor: sidebarBg, 
+        color: sidebarTextColor 
+      }}
+      className={`h-screen w-64 fixed left-0 top-0 pt-16 z-50 flex flex-col justify-between py-6 border-r border-black/10 font-['Inter'] text-sm font-bold transition-transform duration-300 overflow-y-auto shadow-lg ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+    >
       <div className="px-4 space-y-2">
         <div className="mb-6 px-2 flex flex-col items-center gap-3 text-center">
           <div 
-            className="h-20 w-20 rounded-full overflow-hidden flex-shrink-0 shadow-md border-2"
-            style={{ borderColor: partyPrimary }}
+            className="h-20 w-20 rounded-full overflow-hidden flex-shrink-0 shadow-md border-2 border-white/60"
           >
             {selectedDeputado?.foto_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -98,22 +129,25 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
                 src={selectedDeputado.foto_url} 
               />
             ) : (
-              <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">
+              <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-500">
                 <UserCircle size={40} />
               </div>
             )}
           </div>
           <div className="overflow-hidden w-full">
-            <h2 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
+            <h2 
+              className="text-lg font-black leading-tight truncate"
+              style={{ color: sidebarTextColor }}
+            >
               {selectedDeputado ? selectedDeputado.nome : 'Gabinete Digital'}
             </h2>
             <div className="mt-1 flex justify-center">
               <span 
                 className="inline-block px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider truncate shadow-xs border"
                 style={{ 
-                  backgroundColor: partyPrimary, 
-                  color: onPrimaryText,
-                  borderColor: partyPrimary
+                  backgroundColor: isSidebarWhite ? partyPrimary : '#ffffff', 
+                  color: isSidebarWhite ? '#ffffff' : (isWhiteOrNearWhite(partyPrimary) ? '#000000' : partyPrimary),
+                  borderColor: 'rgba(255,255,255,0.4)'
                 }}
               >
                 {selectedDeputado ? `${selectedDeputado.partidos?.sigla || 'Partido'} • ${selectedDeputado.estado}` : 'Liderança'}
@@ -131,7 +165,8 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
               return (
                 <div 
                   key={item.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold opacity-40 cursor-not-allowed"
+                  style={{ color: sidebarTextColor }}
                   title="Em breve"
                 >
                   <Icon size={20} />
@@ -147,7 +182,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
                   href={item.href} 
                   onClick={() => setIsOpen && setIsOpen(false)}
                   style={{ backgroundColor: item.btnBg, color: item.btnText }}
-                  className="w-full py-3 font-black rounded-xl shadow-md hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 mt-2 border border-black/10"
+                  className="w-full py-3 font-black rounded-xl shadow-md hover:opacity-90 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 mt-2 border border-black/10"
                 >
                   <Plus size={16} />
                   <span>{item.label}</span>
@@ -163,22 +198,24 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
                 style={
                   isActive 
                     ? { 
-                        backgroundColor: partyPrimary, 
-                        color: onPrimaryText,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                        backgroundColor: activeItemBg, 
+                        color: activeItemTextColor,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)' 
                       } 
-                    : undefined
+                    : {
+                        color: sidebarTextColor
+                      }
                 }
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold cursor-pointer transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-black cursor-pointer transition-all ${
                   isActive 
                     ? 'scale-[1.02]' 
-                    : 'text-slate-900 dark:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:translate-x-1 duration-200'
+                    : 'hover:bg-white/10 hover:translate-x-1 duration-200'
                 }`}
               >
-                <Icon size={20} style={isActive ? { color: onPrimaryText } : undefined} />
-                <span className="flex-1">{item.label}</span>
+                <Icon size={20} style={{ color: isActive ? activeItemTextColor : sidebarTextColor }} />
+                <span className="flex-1 font-black">{item.label}</span>
                 {Boolean(item.badge && item.badge > 0) && (
-                  <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm flex items-center gap-1" title={`${item.badge} edital(is) a menos de 5 dias do encerramento`}>
+                  <span className="bg-amber-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm flex items-center gap-1" title={`${item.badge} edital(is) a menos de 5 dias do encerramento`}>
                     <AlertTriangle size={10} />
                     {item.badge}
                   </span>
@@ -191,7 +228,11 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
       
       {!isPublicRoute && (
         <div className="px-4 space-y-1 mt-6">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-900 dark:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-xl font-bold cursor-pointer transition-all">
+          <button 
+            onClick={handleLogout} 
+            style={{ color: sidebarTextColor }}
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-xl font-black cursor-pointer transition-all"
+          >
             <LogOut size={20} />
             <span>Sair</span>
           </button>
