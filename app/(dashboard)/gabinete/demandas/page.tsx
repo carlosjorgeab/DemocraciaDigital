@@ -2,12 +2,23 @@
 
 import { useState } from 'react';
 import { useGabinete } from '@/context/GabineteContext';
+import { AtendimentoDemanda } from '@/lib/gabineteStore';
 import {
   FolderKanban, Plus, Search, Filter, Printer, BarChart3,
   CheckCircle2, AlertTriangle, Clock, ArrowRight, UserCheck,
   Building, Shield, FileText, Trash2, Edit2, Download
 } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+
+const getTodayDateTimeString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 
 export default function DemandasPage() {
   const { demandas, addDemanda, updateDemanda, deleteDemanda, pessoas } = useGabinete();
@@ -18,11 +29,12 @@ export default function DemandasPage() {
   const [filterTipo, setFilterTipo] = useState<string>('TODOS');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDemandaId, setEditingDemandaId] = useState<string | null>(null);
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
 
-  // Form State
+  // Form State with Data e Horario defaulting to Current Date and Time (Today)
   const [formData, setFormData] = useState({
-    processo: `28${Math.floor(100 + Math.random() * 900)}/2023`,
+    processo: `28${Math.floor(100 + Math.random() * 900)}/${new Date().getFullYear()}`,
     interessado_nome: '',
     assunto: '',
     tipo_atendimento: 'Saúde',
@@ -31,7 +43,42 @@ export default function DemandasPage() {
     status: 'CADASTRADO' as any,
     valor_estimado: 0,
     assessor_responsavel: 'Marcelo Guaraldo',
+    data_abertura: getTodayDateTimeString(),
   });
+
+  const handleOpenNewModal = () => {
+    setEditingDemandaId(null);
+    setFormData({
+      processo: `28${Math.floor(100 + Math.random() * 900)}/${new Date().getFullYear()}`,
+      interessado_nome: '',
+      assunto: '',
+      tipo_atendimento: 'Saúde',
+      destinatario_orgao: 'Secretaria de Saúde',
+      prioridade: 'Normal',
+      status: 'CADASTRADO',
+      valor_estimado: 0,
+      assessor_responsavel: 'Marcelo Guaraldo',
+      data_abertura: getTodayDateTimeString(),
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (dem: AtendimentoDemanda) => {
+    setEditingDemandaId(dem.id);
+    setFormData({
+      processo: dem.processo,
+      interessado_nome: dem.interessado_nome,
+      assunto: dem.assunto,
+      tipo_atendimento: dem.tipo_atendimento,
+      destinatario_orgao: dem.destinatario_orgao || '',
+      prioridade: dem.prioridade,
+      status: dem.status,
+      valor_estimado: dem.valor_estimado || 0,
+      assessor_responsavel: dem.assessor_responsavel || 'Marcelo Guaraldo',
+      data_abertura: dem.data_abertura ? dem.data_abertura.substring(0, 16) : getTodayDateTimeString(),
+    });
+    setIsModalOpen(true);
+  };
 
   const filteredDemandas = demandas.filter((dem) => {
     if (filterStatus !== 'TODOS' && dem.status !== filterStatus) return false;
@@ -50,29 +97,34 @@ export default function DemandasPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addDemanda({
-      processo: formData.processo,
-      interessado_nome: formData.interessado_nome,
-      assunto: formData.assunto,
-      tipo_atendimento: formData.tipo_atendimento,
-      destinatario_orgao: formData.destinatario_orgao,
-      prioridade: formData.prioridade,
-      status: formData.status,
-      valor_estimado: Number(formData.valor_estimado) || 0,
-      assessor_responsavel: formData.assessor_responsavel,
-    });
+    if (editingDemandaId) {
+      updateDemanda(editingDemandaId, {
+        processo: formData.processo,
+        interessado_nome: formData.interessado_nome,
+        assunto: formData.assunto,
+        tipo_atendimento: formData.tipo_atendimento,
+        destinatario_orgao: formData.destinatario_orgao,
+        prioridade: formData.prioridade,
+        status: formData.status,
+        valor_estimado: Number(formData.valor_estimado) || 0,
+        assessor_responsavel: formData.assessor_responsavel,
+        data_abertura: new Date(formData.data_abertura).toISOString(),
+      });
+    } else {
+      addDemanda({
+        processo: formData.processo,
+        interessado_nome: formData.interessado_nome,
+        assunto: formData.assunto,
+        tipo_atendimento: formData.tipo_atendimento,
+        destinatario_orgao: formData.destinatario_orgao,
+        prioridade: formData.prioridade,
+        status: formData.status,
+        valor_estimado: Number(formData.valor_estimado) || 0,
+        assessor_responsavel: formData.assessor_responsavel,
+        data_abertura: new Date(formData.data_abertura).toISOString(),
+      });
+    }
     setIsModalOpen(false);
-    setFormData({
-      processo: `28${Math.floor(100 + Math.random() * 900)}/2023`,
-      interessado_nome: '',
-      assunto: '',
-      tipo_atendimento: 'Saúde',
-      destinatario_orgao: 'Secretaria de Saúde',
-      prioridade: 'Normal',
-      status: 'CADASTRADO',
-      valor_estimado: 0,
-      assessor_responsavel: 'Marcelo Guaraldo',
-    });
   };
 
   // Recharts Chart Data
@@ -110,7 +162,7 @@ export default function DemandasPage() {
             <BarChart3 size={16} /> Análise Gráfica
           </button>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenNewModal}
             className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/20 text-xs uppercase tracking-wider transition-all"
           >
             <Plus size={18} /> Cadastrar Nova Demanda
@@ -179,6 +231,7 @@ export default function DemandasPage() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-black uppercase text-slate-500 tracking-wider">
                 <th className="p-4 pl-6">Processo</th>
+                <th className="p-4">Data / Abertura</th>
                 <th className="p-4">Interessado</th>
                 <th className="p-4">Tipo / Área</th>
                 <th className="p-4">Prioridade</th>
@@ -195,6 +248,9 @@ export default function DemandasPage() {
                       <span className="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-[10px]">
                         {dem.processo}
                       </span>
+                    </td>
+                    <td className="p-4 text-slate-500 text-[11px] font-mono">
+                      {dem.data_abertura ? new Date(dem.data_abertura).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Dia Atual'}
                     </td>
                     <td className="p-4">
                       <div className="font-bold text-slate-900">{dem.interessado_nome}</div>
@@ -237,7 +293,14 @@ export default function DemandasPage() {
                       </span>
                     </td>
                     <td className="p-4 font-medium text-slate-600">{dem.assessor_responsavel}</td>
-                    <td className="p-4 pr-6 text-right space-x-2">
+                    <td className="p-4 pr-6 text-right space-x-1.5">
+                      <button
+                        onClick={() => handleOpenEditModal(dem)}
+                        className="p-2 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-xl transition-all"
+                        title="Editar Demanda"
+                      >
+                        <Edit2 size={15} />
+                      </button>
                       <button
                         onClick={() =>
                           updateDemanda(dem.id, {
@@ -247,21 +310,25 @@ export default function DemandasPage() {
                         className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-all font-bold text-[10px]"
                         title="Alternar Atendido"
                       >
-                        <CheckCircle2 size={16} />
+                        <CheckCircle2 size={15} />
                       </button>
                       <button
-                        onClick={() => deleteDemanda(dem.id)}
+                        onClick={() => {
+                          if (confirm('Tem certeza que deseja excluir este processo de demanda?')) {
+                            deleteDemanda(dem.id);
+                          }
+                        }}
                         className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl transition-all"
                         title="Excluir"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={15} />
                       </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                  <td colSpan={8} className="p-8 text-center text-slate-400">
                     Nenhuma demanda encontrada com estes critérios.
                   </td>
                 </tr>
@@ -271,13 +338,13 @@ export default function DemandasPage() {
         </div>
       </div>
 
-      {/* Modal: Cadastrar Demanda */}
+      {/* Modal: Cadastrar ou Editar Demanda */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-xl w-full rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 my-8 border border-slate-100">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                <FolderKanban className="text-amber-500" /> Cadastrar Atendimento / Demanda
+                <FolderKanban className="text-amber-500" /> {editingDemandaId ? 'Editar Atendimento / Demanda' : 'Cadastrar Atendimento / Demanda'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -290,12 +357,12 @@ export default function DemandasPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-bold text-slate-700">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1">Número do Processo / Protocolo *</label>
+                  <label className="block mb-1">Data e Horário do Atendimento * (Padrão: Hoje)</label>
                   <input
-                    type="text"
+                    type="datetime-local"
                     required
-                    value={formData.processo}
-                    onChange={(e) => setFormData({ ...formData, processo: e.target.value })}
+                    value={formData.data_abertura}
+                    onChange={(e) => setFormData({ ...formData, data_abertura: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   />
                 </div>
@@ -311,6 +378,17 @@ export default function DemandasPage() {
                     <option value="Urgente">Urgente</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block mb-1">Número do Processo / Protocolo *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.processo}
+                  onChange={(e) => setFormData({ ...formData, processo: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
               </div>
 
               <div>
@@ -377,6 +455,9 @@ export default function DemandasPage() {
                     <option value="CADASTRADO">Cadastrado</option>
                     <option value="EM_ANDAMENTO">Em Andamento</option>
                     <option value="ENCAMINHADO">Encaminhado</option>
+                    <option value="ATENDIDO">Atendido</option>
+                    <option value="ATENDIDO_PARCIALMENTE">Atendido Parcialmente</option>
+                    <option value="CANCELADO">Cancelado</option>
                   </select>
                 </div>
 
@@ -403,7 +484,7 @@ export default function DemandasPage() {
                   type="submit"
                   className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black uppercase text-xs tracking-wider shadow-lg shadow-amber-500/20"
                 >
-                  Salvar Demanda
+                  {editingDemandaId ? 'Salvar Alterações' : 'Salvar Demanda'}
                 </button>
               </div>
             </form>

@@ -2,15 +2,18 @@
 
 import { useState } from 'react';
 import { useGabinete } from '@/context/GabineteContext';
+import { SolicitacaoAudiencia } from '@/lib/gabineteStore';
 import {
   UserCheck, Plus, Search, Calendar, CheckCircle2, Clock,
-  Building2, MessageSquare, AlertCircle, ArrowRight
+  Building2, MessageSquare, AlertCircle, ArrowRight, Edit2, Trash2
 } from 'lucide-react';
 
 export default function AudienciasPage() {
-  const { audiencias, addAudiencia, updateAudiencia } = useGabinete();
+  const { audiencias, addAudiencia, updateAudiencia, deleteAudiencia } = useGabinete();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAudienciaId, setEditingAudienciaId] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     personalidade: '',
     pauta: '',
@@ -18,22 +21,47 @@ export default function AudienciasPage() {
     status: 'Solicitada',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addAudiencia({
-      personalidade: formData.personalidade,
-      pauta: formData.pauta,
-      assessor_responsavel: formData.assessor_responsavel,
-      status: formData.status,
-      cadastrado_por: formData.assessor_responsavel,
-    });
-    setIsModalOpen(false);
+  const handleOpenNewModal = () => {
+    setEditingAudienciaId(null);
     setFormData({
       personalidade: '',
       pauta: '',
       assessor_responsavel: 'Nathalia Carvalho',
       status: 'Solicitada',
     });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (aud: SolicitacaoAudiencia) => {
+    setEditingAudienciaId(aud.id);
+    setFormData({
+      personalidade: aud.personalidade,
+      pauta: aud.pauta,
+      assessor_responsavel: aud.assessor_responsavel || 'Nathalia Carvalho',
+      status: aud.status || 'Solicitada',
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingAudienciaId) {
+      updateAudiencia(editingAudienciaId, {
+        personalidade: formData.personalidade,
+        pauta: formData.pauta,
+        assessor_responsavel: formData.assessor_responsavel,
+        status: formData.status,
+      });
+    } else {
+      addAudiencia({
+        personalidade: formData.personalidade,
+        pauta: formData.pauta,
+        assessor_responsavel: formData.assessor_responsavel,
+        status: formData.status,
+        cadastrado_por: formData.assessor_responsavel,
+      });
+    }
+    setIsModalOpen(false);
   };
 
   return (
@@ -50,7 +78,7 @@ export default function AudienciasPage() {
         </div>
 
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenNewModal}
           className="bg-cyan-600 hover:bg-cyan-700 text-white font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 text-xs uppercase tracking-wider transition-all"
         >
           <Plus size={18} /> Solicitar Nova Audiência
@@ -65,19 +93,42 @@ export default function AudienciasPage() {
                 <span className="bg-cyan-100 text-cyan-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
                   {aud.status}
                 </span>
-                <span className="text-xs text-slate-400 font-medium">Assessor: {aud.assessor_responsavel}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-slate-400 font-medium mr-2">Assessor: {aud.assessor_responsavel}</span>
+                  <button
+                    onClick={() => handleOpenEditModal(aud)}
+                    className="p-1.5 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-lg transition-all"
+                    title="Editar Audiência"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Tem certeza que deseja excluir esta solicitação de audiência?')) {
+                        deleteAudiencia(aud.id);
+                      }
+                    }}
+                    className="p-1.5 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 rounded-lg transition-all"
+                    title="Excluir Audiência"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
+
               <h3 className="font-bold text-slate-900 text-base">{aud.personalidade}</h3>
               <p className="text-xs text-slate-600 leading-relaxed bg-white p-3 rounded-xl border border-slate-100">{aud.pauta}</p>
 
               <div className="flex items-center justify-between pt-2 text-xs">
                 <span className="text-slate-400">Solicitado em: {new Date(aud.data_solicitacao).toLocaleDateString('pt-BR')}</span>
-                <button
-                  onClick={() => updateAudiencia(aud.id, { status: 'Agendada' })}
-                  className="text-cyan-600 font-bold hover:underline"
-                >
-                  Agendar na Pauta
-                </button>
+                {aud.status !== 'Agendada' && (
+                  <button
+                    onClick={() => updateAudiencia(aud.id, { status: 'Agendada' })}
+                    className="text-cyan-600 font-bold hover:underline"
+                  >
+                    Agendar na Pauta
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -87,7 +138,9 @@ export default function AudienciasPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
           <div className="bg-white max-w-lg w-full rounded-3xl shadow-2xl p-6 space-y-6 border border-slate-100">
-            <h2 className="text-xl font-black text-slate-900">Solicitar Audiência</h2>
+            <h2 className="text-xl font-black text-slate-900">
+              {editingAudienciaId ? 'Editar Solicitação de Audiência' : 'Solicitar Audiência'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-bold text-slate-700">
               <div>
                 <label className="block mb-1">Personalidade / Órgão *</label>
@@ -113,7 +166,9 @@ export default function AudienciasPage() {
               </div>
               <div className="pt-4 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 bg-slate-100 font-bold rounded-xl">Cancelar</button>
-                <button type="submit" className="px-6 py-2.5 bg-cyan-600 text-white font-black rounded-xl uppercase text-xs">Salvar Solicitação</button>
+                <button type="submit" className="px-6 py-2.5 bg-cyan-600 text-white font-black rounded-xl uppercase text-xs">
+                  {editingAudienciaId ? 'Salvar Alterações' : 'Salvar Solicitação'}
+                </button>
               </div>
             </form>
           </div>

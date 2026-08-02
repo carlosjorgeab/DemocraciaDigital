@@ -2,21 +2,23 @@
 
 import { useState } from 'react';
 import { useGabinete } from '@/context/GabineteContext';
+import { Pessoa, Entidade } from '@/lib/gabineteStore';
 import {
   Users2, Plus, Search, Filter, Phone, Mail, MapPin, Building,
   CheckCircle2, AlertTriangle, Instagram, Facebook, Sparkles, UserCheck,
-  Award, Shield, FileText, ChevronRight
+  Award, Shield, FileText, ChevronRight, Edit2, Trash2
 } from 'lucide-react';
 
 export default function CadastrosPage() {
-  const { pessoas, entidades, addPessoa, addEntidade } = useGabinete();
+  const { pessoas, entidades, addPessoa, updatePessoa, deletePessoa, addEntidade, updateEntidade, deleteEntidade } = useGabinete();
 
   const [activeMainTab, setActiveMainTab] = useState<'pessoas' | 'liderancas' | 'entidades'>('pessoas');
   const [searchTerm, setSearchTerm] = useState('');
   const [isPessoaModalOpen, setIsPessoaModalOpen] = useState(false);
+  const [editingPessoaId, setEditingPessoaId] = useState<string | null>(null);
   const [formTab, setFormTab] = useState<'pessoal' | 'contato' | 'endereco' | 'politico'>('pessoal');
 
-  // Form State
+  // Form State for Pessoa
   const [pessoaForm, setPessoaForm] = useState({
     nome: '',
     apelido: '',
@@ -42,28 +44,8 @@ export default function CadastrosPage() {
     cadastrado_por: 'Marcelo Guaraldo',
   });
 
-  const filteredPessoas = pessoas.filter((p) => {
-    if (activeMainTab === 'liderancas' && p.categoria !== 'LIDERANCA' && p.categoria !== 'AUTORIDADE') {
-      return false;
-    }
-    if (
-      searchTerm &&
-      !p.nome.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !(p.bairro || '').toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !(p.cidade || '').toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
-    }
-    return true;
-  });
-
-  const handleSubmitPessoa = (e: React.FormEvent) => {
-    e.preventDefault();
-    addPessoa({
-      ...pessoaForm,
-      votos_estimados: Number(pessoaForm.votos_estimados) || 0,
-    });
-    setIsPessoaModalOpen(false);
+  const handleOpenNewPessoa = () => {
+    setEditingPessoaId(null);
     setPessoaForm({
       nome: '',
       apelido: '',
@@ -88,6 +70,69 @@ export default function CadastrosPage() {
       observacoes: '',
       cadastrado_por: 'Marcelo Guaraldo',
     });
+    setFormTab('pessoal');
+    setIsPessoaModalOpen(true);
+  };
+
+  const handleOpenEditPessoa = (p: Pessoa) => {
+    setEditingPessoaId(p.id);
+    setPessoaForm({
+      nome: p.nome,
+      apelido: p.apelido || '',
+      cpf: p.cpf || '',
+      rg: p.rg || '',
+      data_nascimento: p.data_nascimento || '',
+      profissao: p.profissao || '',
+      categoria: p.categoria || 'ELEITOR',
+      celular1: p.celular1 || '',
+      celular2: p.celular2 || '',
+      whatsapp: p.whatsapp ?? true,
+      email: p.email || '',
+      cep: p.cep || '',
+      logradouro: p.logradouro || '',
+      numero: p.numero || '',
+      bairro: p.bairro || '',
+      cidade: p.cidade || 'São Paulo',
+      uf: p.uf || 'SP',
+      votos_estimados: p.votos_estimados || 0,
+      instagram: p.instagram || '',
+      facebook: p.facebook || '',
+      observacoes: p.observacoes || '',
+      cadastrado_por: p.cadastrado_por || 'Marcelo Guaraldo',
+    });
+    setFormTab('pessoal');
+    setIsPessoaModalOpen(true);
+  };
+
+  const filteredPessoas = pessoas.filter((p) => {
+    if (activeMainTab === 'liderancas' && p.categoria !== 'LIDERANCA' && p.categoria !== 'AUTORIDADE') {
+      return false;
+    }
+    if (
+      searchTerm &&
+      !p.nome.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !(p.bairro || '').toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !(p.cidade || '').toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  const handleSubmitPessoa = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingPessoaId) {
+      updatePessoa(editingPessoaId, {
+        ...pessoaForm,
+        votos_estimados: Number(pessoaForm.votos_estimados) || 0,
+      });
+    } else {
+      addPessoa({
+        ...pessoaForm,
+        votos_estimados: Number(pessoaForm.votos_estimados) || 0,
+      });
+    }
+    setIsPessoaModalOpen(false);
   };
 
   // Metrics
@@ -109,7 +154,7 @@ export default function CadastrosPage() {
         </div>
 
         <button
-          onClick={() => setIsPessoaModalOpen(true)}
+          onClick={handleOpenNewPessoa}
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 text-xs uppercase tracking-wider transition-all"
         >
           <Plus size={18} /> Cadastrar Nova Pessoa
@@ -209,17 +254,37 @@ export default function CadastrosPage() {
                       {p.apelido && <p className="text-xs text-slate-500">"{p.apelido}"</p>}
                     </div>
                   </div>
-                  <span
-                    className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
-                      p.categoria === 'LIDERANCA'
-                        ? 'bg-amber-100 text-amber-900'
-                        : p.categoria === 'AUTORIDADE'
-                        ? 'bg-purple-100 text-purple-900'
-                        : 'bg-slate-200 text-slate-700'
-                    }`}
-                  >
-                    {p.categoria}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span
+                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                        p.categoria === 'LIDERANCA'
+                          ? 'bg-amber-100 text-amber-900'
+                          : p.categoria === 'AUTORIDADE'
+                          ? 'bg-purple-100 text-purple-900'
+                          : 'bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {p.categoria}
+                    </span>
+                    <button
+                      onClick={() => handleOpenEditPessoa(p)}
+                      className="p-1 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-md transition-all ml-1"
+                      title="Editar Pessoa"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Tem certeza que deseja excluir esta pessoa do cadastro?')) {
+                          deletePessoa(p.id);
+                        }
+                      }}
+                      className="p-1 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 rounded-md transition-all"
+                      title="Excluir Pessoa"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-1 text-xs text-slate-600 border-t border-slate-100 pt-2">
@@ -231,6 +296,11 @@ export default function CadastrosPage() {
                     <Phone size={12} className="text-emerald-600" />
                     <span>{p.celular1 || 'Telefone não informado'}</span>
                   </div>
+                  {p.data_nascimento && (
+                    <div className="flex items-center gap-1.5 text-purple-600 font-bold pt-0.5">
+                      🎂 Nascimento: {p.data_nascimento}
+                    </div>
+                  )}
                   {p.votos_estimados && p.votos_estimados > 0 && (
                     <div className="flex items-center gap-1.5 text-blue-600 font-bold pt-1">
                       <Award size={12} />
@@ -249,7 +319,20 @@ export default function CadastrosPage() {
                   <span className="bg-purple-100 text-purple-900 text-[10px] font-black px-2.5 py-0.5 rounded-md">
                     {ent.tipo}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">{ent.cnpj || 'Sem CNPJ'}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-slate-400 font-medium mr-2">{ent.cnpj || 'Sem CNPJ'}</span>
+                    <button
+                      onClick={() => {
+                        if (confirm('Tem certeza que deseja excluir esta entidade?')) {
+                          deleteEntidade(ent.id);
+                        }
+                      }}
+                      className="p-1 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 rounded-md transition-all"
+                      title="Excluir Entidade"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
                 <h3 className="font-black text-slate-900 text-base">{ent.razao_social}</h3>
                 <p className="text-xs text-slate-600">Responsável: <strong>{ent.responsavel || 'Não informado'}</strong></p>
@@ -263,13 +346,13 @@ export default function CadastrosPage() {
         )}
       </div>
 
-      {/* Modal: Cadastrar Pessoa */}
+      {/* Modal: Cadastrar ou Editar Pessoa */}
       {isPessoaModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-2xl w-full rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 my-8 border border-slate-100">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                <Users2 className="text-emerald-600" /> Cadastrar Pessoa / Liderança
+                <Users2 className="text-emerald-600" /> {editingPessoaId ? 'Editar Cadastro de Pessoa' : 'Cadastrar Pessoa / Liderança'}
               </h2>
               <button
                 onClick={() => setIsPessoaModalOpen(false)}
@@ -341,18 +424,28 @@ export default function CadastrosPage() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1">Categoria *</label>
-                      <select
-                        value={pessoaForm.categoria}
-                        onChange={(e) => setPessoaForm({ ...pessoaForm, categoria: e.target.value as any })}
+                      <label className="block mb-1">Data de Nascimento (Ex: 1985-05-10 ou MM-DD)</label>
+                      <input
+                        type="text"
+                        placeholder="AAAA-MM-DD"
+                        value={pessoaForm.data_nascimento}
+                        onChange={(e) => setPessoaForm({ ...pessoaForm, data_nascimento: e.target.value })}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      >
-                        <option value="ELEITOR">Eleitor</option>
-                        <option value="LIDERANCA">Liderança Comunitária</option>
-                        <option value="AUTORIDADE">Autoridade / Prefeito / Ver.</option>
-                        <option value="SERVIDOR">Servidor Público</option>
-                      </select>
+                      />
                     </div>
+                  </div>
+                  <div>
+                    <label className="block mb-1">Categoria *</label>
+                    <select
+                      value={pessoaForm.categoria}
+                      onChange={(e) => setPessoaForm({ ...pessoaForm, categoria: e.target.value as any })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    >
+                      <option value="ELEITOR">Eleitor</option>
+                      <option value="LIDERANCA">Liderança Comunitária</option>
+                      <option value="AUTORIDADE">Autoridade / Prefeito / Ver.</option>
+                      <option value="SERVIDOR">Servidor Público</option>
+                    </select>
                   </div>
                 </div>
               )}
@@ -436,7 +529,7 @@ export default function CadastrosPage() {
                   type="submit"
                   className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs tracking-wider shadow-lg shadow-emerald-600/20"
                 >
-                  Salvar Cadastro
+                  {editingPessoaId ? 'Salvar Alterações' : 'Salvar Cadastro'}
                 </button>
               </div>
             </form>
