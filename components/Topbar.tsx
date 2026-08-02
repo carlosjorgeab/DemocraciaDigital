@@ -6,6 +6,7 @@ import { Search, Bell, UserCircle, ChevronDown, Building2, Settings, Users } fro
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
+import { getContrastTextColor, getReadableOnLightText } from '@/lib/colorUtils';
 
 export function Topbar() {
   const { deputados, selectedDeputado, setSelectedDeputado } = useDeputado();
@@ -15,6 +16,9 @@ export function Topbar() {
   const pathname = usePathname();
   const isPublicRoute = pathname?.startsWith('/p/');
 
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const readablePartyText = getReadableOnLightText(partyPrimary);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -23,19 +27,29 @@ export function Topbar() {
   };
 
   return (
-    <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_12px_40px_rgba(0,156,59,0.05)]">
+    <header className="fixed top-0 w-full z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-xs border-b border-slate-200 dark:border-slate-800">
       <div className="flex items-center gap-2 md:gap-3 ml-10 md:ml-64">
-        <Logo className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
-        <h1 className="text-base md:text-xl font-black tracking-tighter text-secondary dark:text-primary uppercase font-headline truncate max-w-[120px] md:max-w-none">Democracia Digital</h1>
-        <span className="hidden md:block h-4 w-[1px] bg-slate-200"></span>
-        <span className="hidden md:block text-slate-500 font-medium text-sm">Painel do Parlamentar</span>
+        <Logo className="w-8 h-8 md:w-9 md:h-9 shrink-0" />
+        <div className="flex flex-col md:flex-row md:items-center md:gap-3">
+          <h1 className="text-base md:text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase font-headline truncate max-w-[140px] md:max-w-none">
+            Democracia Digital
+          </h1>
+          <span className="hidden md:block h-4 w-[1px] bg-slate-300 dark:bg-slate-700"></span>
+          <span className="hidden md:block text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">
+            Painel do Parlamentar
+          </span>
+        </div>
       </div>
+
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Deputado Selector - Only show if there are multiple deputies and not public route */}
+        {/* Deputado Selector */}
         {!isPublicRoute && deputados.length > 1 && (
-          <div className="relative flex items-center bg-white rounded-lg px-2 md:px-3 py-1.5 border border-slate-200 shadow-sm max-w-[120px] md:max-w-none">
+          <div 
+            className="relative flex items-center bg-slate-50 dark:bg-slate-900 rounded-xl px-2.5 md:px-3.5 py-1.5 border-2 shadow-xs transition-all max-w-[140px] md:max-w-none"
+            style={{ borderColor: partyPrimary }}
+          >
             <select 
-              className="bg-transparent border-none focus:ring-0 text-xs md:text-sm font-bold text-on-surface outline-none cursor-pointer appearance-none pr-6 w-full truncate"
+              className="bg-transparent border-none focus:ring-0 text-xs md:text-sm font-black text-slate-900 dark:text-white outline-none cursor-pointer appearance-none pr-6 w-full truncate"
               value={selectedDeputado?.id || ''}
               onChange={(e) => {
                 const dep = deputados.find(d => d.id === e.target.value);
@@ -49,58 +63,58 @@ export function Topbar() {
                 </option>
               ))}
             </select>
-            <ChevronDown size={14} className="absolute right-2 text-slate-400 pointer-events-none" />
+            <ChevronDown size={14} className="absolute right-2 text-slate-700 dark:text-slate-300 pointer-events-none" />
           </div>
         )}
 
         {!isPublicRoute && (
           <>
-            <form onSubmit={handleSearch} className="hidden lg:flex relative items-center bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-1.5 w-64 border border-slate-200 dark:border-slate-800">
-              <Search className="text-slate-400" size={16} />
+            <form onSubmit={handleSearch} className="hidden lg:flex relative items-center bg-slate-100 dark:bg-slate-900 rounded-xl px-4 py-1.5 w-64 border border-slate-200 dark:border-slate-800">
+              <Search className="text-slate-500" size={16} />
               <input 
-                className="bg-transparent border-none focus:ring-0 text-sm w-full font-body placeholder:text-slate-400 ml-2 outline-none" 
+                className="bg-transparent border-none focus:ring-0 text-xs font-bold text-slate-900 dark:text-slate-100 w-full placeholder:text-slate-400 ml-2 outline-none" 
                 placeholder="Buscar emendas e projetos..." 
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </form>
+
             <div className="relative group">
-              <button className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-100 dark:border-slate-800 hover:border-primary transition-all overflow-hidden bg-white dark:bg-slate-900 shadow-sm active:scale-95">
-                <svg viewBox="0 0 24 24" className="w-full h-full">
-                   <circle cx="12" cy="12" r="12" fill="#009C3B" />
-                   <circle cx="12" cy="10" r="4" fill="#002776" />
-                   <path d="M5 20C5 17 8 15 12 15C16 15 19 17 19 20" fill="#002776" />
-                </svg>
+              <button 
+                className="flex items-center justify-center w-10 h-10 rounded-full border-2 overflow-hidden bg-white dark:bg-slate-900 shadow-xs active:scale-95 transition-all"
+                style={{ borderColor: partyPrimary }}
+              >
+                <UserCircle size={26} className="text-slate-800 dark:text-slate-100" />
               </button>
               
               {/* Profile Dropdown */}
               {!isPublicRoute && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                  <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 mb-2">
-                    <p className="text-xs text-slate-400 uppercase font-black tracking-widest mb-1">Logado como</p>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.email || 'Parlamentar'}</p>
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 mb-2">
+                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Logado como</p>
+                    <p className="text-xs font-black text-slate-900 dark:text-white truncate">{user?.email || 'Parlamentar'}</p>
                   </div>
                   
                   {user?.is_admin && (
                     <>
                       <Link 
                         href="/perfis" 
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                        className="flex items-center gap-3 px-4 py-2 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
                       >
                         <UserCircle size={16} />
                         <span>Perfil</span>
                       </Link>
                       <Link 
                         href="/usuarios" 
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                        className="flex items-center gap-3 px-4 py-2 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
                       >
                         <Users size={16} />
                         <span>Usuário</span>
                       </Link>
                       <Link 
                         href="/configuracoes" 
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary transition-colors"
+                        className="flex items-center gap-3 px-4 py-2 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
                       >
                         <Settings size={16} />
                         <span>Configurações</span>
@@ -110,7 +124,7 @@ export function Topbar() {
                   
                   <button 
                     onClick={() => logout()}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-slate-50 dark:border-slate-700 mt-2"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-slate-100 dark:border-slate-700 mt-2"
                   >
                     <Settings size={16} className="rotate-45" /> 
                     <span>Sair</span>
@@ -124,3 +138,4 @@ export function Topbar() {
     </header>
   );
 }
+

@@ -6,12 +6,20 @@ import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { getContrastTextColor, getReadableOnLightText } from '@/lib/colorUtils';
 
 export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIsOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const { selectedDeputado } = useDeputado();
   const { logout, hasPermission, user } = useAuth();
   const [expiringEditaisCount, setExpiringEditaisCount] = useState<number>(0);
+
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
+
+  const onPrimaryText = getContrastTextColor(partyPrimary);
+  const onSecondaryText = getContrastTextColor(partySecondary);
+  const readablePartyText = getReadableOnLightText(partyPrimary);
 
   useEffect(() => {
     async function checkExpiringEditais() {
@@ -57,8 +65,8 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: `${basePath}/relatorios`, icon: BarChart3, label: 'Relatórios', disabled: false, id: '/relatorios' },
     { href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' },
     { href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' },
-    { href: '/emendas/nova', icon: Plus, label: 'Nova Emenda', disabled: false, id: '/emendas/nova', isButton: true, color: 'bg-primary' },
-    { href: '/projetos/novo', icon: Plus, label: 'Novo Projeto', disabled: false, id: '/projetos/novo', isButton: true, color: 'bg-secondary' },
+    { href: '/emendas/nova', icon: Plus, label: 'Nova Emenda', disabled: false, id: '/emendas/nova', isButton: true, btnBg: partyPrimary, btnText: onPrimaryText },
+    { href: '/projetos/novo', icon: Plus, label: 'Novo Projeto', disabled: false, id: '/projetos/novo', isButton: true, btnBg: partySecondary, btnText: onSecondaryText },
     { href: '/configuracoes', icon: Settings, label: 'Configurações', disabled: false, id: '/configuracoes' },
   ].filter(item => {
     if (item.id === '/perfis' || item.id === '/usuarios' || item.id === '/configuracoes') {
@@ -77,8 +85,11 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
   return (
     <aside className={`h-screen w-64 fixed left-0 top-0 pt-16 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between py-6 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium transition-transform duration-300 overflow-y-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="px-4 space-y-2">
-        <div className="mb-8 px-2 flex flex-col items-center gap-3 text-center">
-          <div className="h-20 w-20 rounded-full overflow-hidden bg-surface-container border-2 border-primary/20 flex-shrink-0 shadow-md">
+        <div className="mb-6 px-2 flex flex-col items-center gap-3 text-center">
+          <div 
+            className="h-20 w-20 rounded-full overflow-hidden flex-shrink-0 shadow-md border-2"
+            style={{ borderColor: partyPrimary }}
+          >
             {selectedDeputado?.foto_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img 
@@ -96,9 +107,18 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
             <h2 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
               {selectedDeputado ? selectedDeputado.nome : 'Gabinete Digital'}
             </h2>
-            <p className="text-xs text-primary dark:text-red-500 font-bold uppercase tracking-wider truncate mt-1">
-              {selectedDeputado ? `${selectedDeputado.partidos?.sigla} - ${selectedDeputado.estado}` : 'Liderança'}
-            </p>
+            <div className="mt-1 flex justify-center">
+              <span 
+                className="inline-block px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider truncate shadow-xs border"
+                style={{ 
+                  backgroundColor: partyPrimary, 
+                  color: onPrimaryText,
+                  borderColor: partyPrimary
+                }}
+              >
+                {selectedDeputado ? `${selectedDeputado.partidos?.sigla || 'Partido'} • ${selectedDeputado.estado}` : 'Liderança'}
+              </span>
+            </div>
           </div>
         </div>
         
@@ -111,7 +131,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
               return (
                 <div 
                   key={item.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 dark:text-slate-600 cursor-not-allowed"
                   title="Em breve"
                 >
                   <Icon size={20} />
@@ -126,7 +146,8 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
                   key={item.href}
                   href={item.href} 
                   onClick={() => setIsOpen && setIsOpen(false)}
-                  className={`w-full py-3 ${item.color} text-white font-bold rounded-lg shadow-lg hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 mt-2`}
+                  style={{ backgroundColor: item.btnBg, color: item.btnText }}
+                  className="w-full py-3 font-black rounded-xl shadow-md hover:opacity-95 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 mt-2 border border-black/10"
                 >
                   <Plus size={16} />
                   <span>{item.label}</span>
@@ -139,13 +160,22 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
                 key={item.href}
                 href={item.href} 
                 onClick={() => setIsOpen && setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-semibold cursor-pointer transition-all ${
+                style={
                   isActive 
-                    ? 'bg-red-50 dark:bg-red-950/30 text-primary dark:text-red-400 active:scale-98' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:translate-x-1 duration-200'
+                    ? { 
+                        backgroundColor: partyPrimary, 
+                        color: onPrimaryText,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                      } 
+                    : undefined
+                }
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold cursor-pointer transition-all ${
+                  isActive 
+                    ? 'scale-[1.02]' 
+                    : 'text-slate-900 dark:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:translate-x-1 duration-200'
                 }`}
               >
-                <Icon size={20} />
+                <Icon size={20} style={isActive ? { color: onPrimaryText } : undefined} />
                 <span className="flex-1">{item.label}</span>
                 {Boolean(item.badge && item.badge > 0) && (
                   <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm flex items-center gap-1" title={`${item.badge} edital(is) a menos de 5 dias do encerramento`}>
@@ -161,7 +191,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
       
       {!isPublicRoute && (
         <div className="px-4 space-y-1 mt-6">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-900 dark:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-xl font-bold cursor-pointer transition-all">
             <LogOut size={20} />
             <span>Sair</span>
           </button>
@@ -170,3 +200,4 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     </aside>
   );
 }
+
