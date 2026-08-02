@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
+@layer base {
+  body, html {
+    color: #000000 !important;
+  }
+  
+  /* Ensure text headings, paragraphs, labels, spans, inputs and tables default to black */
+  h1, h2, h3, h4, h5, h6, p, span, label, input, select, textarea, button, td, th, li, a {
+    color: #000000;
+  }
+
+  /* Override muted slate/gray text classes to maintain clear black contrast across modules */
+  .text-slate-400,
+  .text-slate-500,
+  .text-slate-600,
+  .text-slate-700,
+  .text-slate-800,
+  .text-slate-900,
+  .text-gray-400,
+  .text-gray-500,
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-800,
+  .text-gray-900 {
+    color: #000000 !important;
+  }
+}
+
 @theme {
   --color-outline-variant: #FFDF00;
   --color-tertiary-container: #FFDF00;
