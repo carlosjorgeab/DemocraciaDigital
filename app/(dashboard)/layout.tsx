@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDeputado } from '@/context/DeputadoContext';
+import { GabineteProvider } from '@/context/GabineteContext';
 import { ShieldAlert } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -72,7 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <>
+    <GabineteProvider>
       {/* Mobile Menu Toggle */}
       <button 
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -94,6 +95,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="md:ml-64 pt-16 min-h-screen transition-all duration-300">
         {children}
       </main>
-    </>
+    </GabineteProvider>
   );
 }

@@ -1,0 +1,465 @@
+'use client';
+
+import { useState } from 'react';
+import { useGabinete } from '@/context/GabineteContext';
+import {
+  FolderKanban, Plus, Search, Filter, Printer, BarChart3,
+  CheckCircle2, AlertTriangle, Clock, ArrowRight, UserCheck,
+  Building, Shield, FileText, Trash2, Edit2, Download
+} from 'lucide-react';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+
+export default function DemandasPage() {
+  const { demandas, addDemanda, updateDemanda, deleteDemanda, pessoas } = useGabinete();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('TODOS');
+  const [filterPrioridade, setFilterPrioridade] = useState<string>('TODOS');
+  const [filterTipo, setFilterTipo] = useState<string>('TODOS');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isChartModalOpen, setIsChartModalOpen] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    processo: `28${Math.floor(100 + Math.random() * 900)}/2023`,
+    interessado_nome: '',
+    assunto: '',
+    tipo_atendimento: 'Saúde',
+    destinatario_orgao: 'Secretaria de Saúde',
+    prioridade: 'Normal',
+    status: 'CADASTRADO' as any,
+    valor_estimado: 0,
+    assessor_responsavel: 'Marcelo Guaraldo',
+  });
+
+  const filteredDemandas = demandas.filter((dem) => {
+    if (filterStatus !== 'TODOS' && dem.status !== filterStatus) return false;
+    if (filterPrioridade !== 'TODOS' && dem.prioridade !== filterPrioridade) return false;
+    if (filterTipo !== 'TODOS' && dem.tipo_atendimento !== filterTipo) return false;
+    if (
+      searchTerm &&
+      !dem.processo.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !dem.interessado_nome.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !dem.assunto.toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addDemanda({
+      processo: formData.processo,
+      interessado_nome: formData.interessado_nome,
+      assunto: formData.assunto,
+      tipo_atendimento: formData.tipo_atendimento,
+      destinatario_orgao: formData.destinatario_orgao,
+      prioridade: formData.prioridade,
+      status: formData.status,
+      valor_estimado: Number(formData.valor_estimado) || 0,
+      assessor_responsavel: formData.assessor_responsavel,
+    });
+    setIsModalOpen(false);
+    setFormData({
+      processo: `28${Math.floor(100 + Math.random() * 900)}/2023`,
+      interessado_nome: '',
+      assunto: '',
+      tipo_atendimento: 'Saúde',
+      destinatario_orgao: 'Secretaria de Saúde',
+      prioridade: 'Normal',
+      status: 'CADASTRADO',
+      valor_estimado: 0,
+      assessor_responsavel: 'Marcelo Guaraldo',
+    });
+  };
+
+  // Recharts Chart Data
+  const statusCounts = demandas.reduce((acc: any, curr) => {
+    acc[curr.status] = (acc[curr.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const pieData = Object.keys(statusCounts).map((key) => ({
+    name: key.replace('_', ' '),
+    value: statusCounts[key],
+  }));
+
+  const COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ef4444', '#8b5cf6'];
+
+  return (
+    <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen font-['Inter']">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
+        <div>
+          <div className="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-wider">
+            <FolderKanban size={16} /> e-Gabinete • Atendimentos
+          </div>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">Gestão de Demandas & Pleitos</h1>
+          <p className="text-slate-500 text-sm mt-0.5">
+            Acompanhamento de processos, requerimentos de cidadãos, entidades e lideranças comunitárias.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => setIsChartModalOpen(true)}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-4 py-3 rounded-2xl flex items-center gap-2 text-xs uppercase tracking-wider transition-all"
+          >
+            <BarChart3 size={16} /> Análise Gráfica
+          </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/20 text-xs uppercase tracking-wider transition-all"
+          >
+            <Plus size={18} /> Cadastrar Nova Demanda
+          </button>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2 relative">
+            <Search size={18} className="absolute left-4 top-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar por Processo, Interessado ou Assunto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+
+          <div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="TODOS">Todos os Status</option>
+              <option value="CADASTRADO">Cadastrado</option>
+              <option value="EM_ANDAMENTO">Em Andamento</option>
+              <option value="ENCAMINHADO">Encaminhado</option>
+              <option value="ATENDIDO">Atendido</option>
+              <option value="ATENDIDO_PARCIALMENTE">Atendido Parcialmente</option>
+              <option value="CANCELADO">Cancelado</option>
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={filterPrioridade}
+              onChange={(e) => setFilterPrioridade(e.target.value)}
+              className="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="TODOS">Todas Prioridades</option>
+              <option value="Normal">Normal</option>
+              <option value="Alta">Alta</option>
+              <option value="Urgente">Urgente</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Demandas Table */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h2 className="font-black text-slate-900 text-lg flex items-center gap-2">
+            <FolderKanban className="text-amber-500" /> Tabela de Processos ({filteredDemandas.length})
+          </h2>
+          <span className="text-xs text-slate-500 font-medium">
+            Exibindo {filteredDemandas.length} de {demandas.length} demandas
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-black uppercase text-slate-500 tracking-wider">
+                <th className="p-4 pl-6">Processo</th>
+                <th className="p-4">Interessado</th>
+                <th className="p-4">Tipo / Área</th>
+                <th className="p-4">Prioridade</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Responsável</th>
+                <th className="p-4 pr-6 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
+              {filteredDemandas.length > 0 ? (
+                filteredDemandas.map((dem) => (
+                  <tr key={dem.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-4 pl-6 font-black text-slate-900">
+                      <span className="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-[10px]">
+                        {dem.processo}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="font-bold text-slate-900">{dem.interessado_nome}</div>
+                      <div className="text-[11px] text-slate-500 line-clamp-1">{dem.assunto}</div>
+                    </td>
+                    <td className="p-4">
+                      <span className="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-md text-[10px]">
+                        {dem.tipo_atendimento}
+                      </span>
+                      {dem.destinatario_orgao && (
+                        <span className="block text-[10px] text-slate-400 mt-0.5">{dem.destinatario_orgao}</span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`font-black px-2.5 py-1 rounded-md text-[10px] ${
+                          dem.prioridade === 'Urgente'
+                            ? 'bg-red-500 text-white animate-pulse'
+                            : dem.prioridade === 'Alta'
+                            ? 'bg-amber-500 text-slate-950'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {dem.prioridade}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`font-black px-2.5 py-1 rounded-full text-[10px] uppercase ${
+                          dem.status === 'ATENDIDO'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : dem.status === 'EM_ANDAMENTO'
+                            ? 'bg-blue-100 text-blue-800'
+                            : dem.status === 'ENCAMINHADO'
+                            ? 'bg-indigo-100 text-indigo-800'
+                            : 'bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {dem.status.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="p-4 font-medium text-slate-600">{dem.assessor_responsavel}</td>
+                    <td className="p-4 pr-6 text-right space-x-2">
+                      <button
+                        onClick={() =>
+                          updateDemanda(dem.id, {
+                            status: dem.status === 'ATENDIDO' ? 'EM_ANDAMENTO' : 'ATENDIDO',
+                          })
+                        }
+                        className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-all font-bold text-[10px]"
+                        title="Alternar Atendido"
+                      >
+                        <CheckCircle2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => deleteDemanda(dem.id)}
+                        className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl transition-all"
+                        title="Excluir"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    Nenhuma demanda encontrada com estes critérios.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal: Cadastrar Demanda */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white max-w-xl w-full rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 my-8 border border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <FolderKanban className="text-amber-500" /> Cadastrar Atendimento / Demanda
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 font-black text-lg p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs font-bold text-slate-700">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1">Número do Processo / Protocolo *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.processo}
+                    onChange={(e) => setFormData({ ...formData, processo: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1">Prioridade</label>
+                  <select
+                    value={formData.prioridade}
+                    onChange={(e) => setFormData({ ...formData, prioridade: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="Normal">Normal</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Urgente">Urgente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block mb-1">Nome do Interessado / Solicitante *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Associação de Moradores do Bairro X ou Marcelo Silva"
+                  value={formData.interessado_nome}
+                  onChange={(e) => setFormData({ ...formData, interessado_nome: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1">Assunto / Descritivo do Pleito *</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Detalhamento da solicitação do cidadão ou entidade..."
+                  value={formData.assunto}
+                  onChange={(e) => setFormData({ ...formData, assunto: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1">Tipo de Atendimento / Área *</label>
+                  <select
+                    value={formData.tipo_atendimento}
+                    onChange={(e) => setFormData({ ...formData, tipo_atendimento: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="Saúde">Saúde / Consultas</option>
+                    <option value="Asfaltamento / Obras">Asfaltamento / Obras</option>
+                    <option value="Educação">Educação</option>
+                    <option value="Segurança">Segurança Pública</option>
+                    <option value="Habitação">Habitação</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-1">Órgão / Secretaria Destino</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Secretaria de Saúde - SP"
+                    value={formData.destinatario_orgao}
+                    onChange={(e) => setFormData({ ...formData, destinatario_orgao: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1">Status Inicial</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="CADASTRADO">Cadastrado</option>
+                    <option value="EM_ANDAMENTO">Em Andamento</option>
+                    <option value="ENCAMINHADO">Encaminhado</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-1">Assessor Responsável</label>
+                  <input
+                    type="text"
+                    value={formData.assessor_responsavel}
+                    onChange={(e) => setFormData({ ...formData, assessor_responsavel: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black uppercase text-xs tracking-wider shadow-lg shadow-amber-500/20"
+                >
+                  Salvar Demanda
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Análise Gráfica */}
+      {isChartModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
+          <div className="bg-white max-w-lg w-full rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 border border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <BarChart3 className="text-amber-500" /> Distribuição de Atendimentos por Status
+              </h2>
+              <button
+                onClick={() => setIsChartModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 font-black text-lg p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="text-center pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setIsChartModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs uppercase"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList, Shield, Users, Building2, FileSignature, Plus, Flag, IdCard, Tags, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Receipt, FileText, MapPin, BarChart3, Settings, LogOut, UserCircle, ClipboardList, Shield, Users, Building2, FileSignature, Plus, Flag, IdCard, Tags, AlertTriangle, Home, Calendar, Users2, PhoneCall, FolderKanban, Mail, UserCheck, MessageSquare } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -60,6 +60,17 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
 
   const navItems = [
     { href: basePath || '/', icon: LayoutDashboard, label: 'Visão Geral', disabled: false, id: '/' },
+    
+    // e-Gabinete Parlamentar
+    { href: `${basePath}/gabinete`, icon: Home, label: 'Sua Página (Gabinete)', disabled: false, id: '/gabinete' },
+    { href: `${basePath}/gabinete/agenda`, icon: Calendar, label: 'Agenda & Compromissos', disabled: false, id: '/gabinete/agenda' },
+    { href: `${basePath}/gabinete/demandas`, icon: FolderKanban, label: 'Atendimentos / Demandas', disabled: false, id: '/gabinete/demandas' },
+    { href: `${basePath}/gabinete/cadastros`, icon: Users2, label: 'Pessoas & Entidades', disabled: false, id: '/gabinete/cadastros' },
+    { href: `${basePath}/gabinete/audiencias`, icon: UserCheck, label: 'Solicit. Audiência', disabled: false, id: '/gabinete/audiencias' },
+    { href: `${basePath}/gabinete/oficios`, icon: Mail, label: 'Ofícios & Memos', disabled: false, id: '/gabinete/oficios' },
+    { href: `${basePath}/gabinete/visitas`, icon: UserCircle, label: 'Registro de Visitas', disabled: false, id: '/gabinete/visitas' },
+    { href: `${basePath}/gabinete/ligacoes`, icon: PhoneCall, label: 'Ligações & Telemarketing', disabled: false, id: '/gabinete/ligacoes' },
+
     { href: `${basePath}/mapa`, icon: MapPin, label: 'Visão Mapa', disabled: false, id: '/mapa' },
     { href: `${basePath}/base-eleitoral`, icon: MapPin, label: 'Base Eleitoral', disabled: false, id: '/base-eleitoral' },
     { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Adesão Edital', disabled: false, id: '/formularios' },

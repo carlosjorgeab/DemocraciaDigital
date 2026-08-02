@@ -12,17 +12,66 @@ type Perfil = {
 };
 
 const MENU_OPTIONS = [
-  { id: '/ministerios', label: 'Cadastro de Ministérios' },
-  { id: '/partidos', label: 'Cadastro de Partidos' },
-  { id: '/deputados', label: 'Cadastro de Deputados' },
-  { id: '/areas-tematicas', label: 'Cadastro de Áreas Temáticas' },
-  { id: '/emendas', label: 'Emendas' },
-  { id: '/editais', label: 'Cadastro de Editais' },
-  { id: '/projetos', label: 'Projetos' },
-  { id: '/relatorios', label: 'Relatórios' },
-  { id: '/perfis', label: 'Cadastro de Perfis' },
-  { id: '/usuarios', label: 'Cadastro de Usuários' },
-  { id: '/configuracoes', label: 'Configurações' },
+  // e-Gabinete Parlamentar
+  { id: '/gabinete', label: 'Gabinete - Painel Geral', category: 'Gabinete' },
+  { id: '/gabinete/agenda', label: 'Gabinete - Agenda & Compromissos', category: 'Gabinete' },
+  { id: '/gabinete/demandas', label: 'Gabinete - Atendimentos & Demandas', category: 'Gabinete' },
+  { id: '/gabinete/cadastros', label: 'Gabinete - Pessoas, Lideranças & Entidades', category: 'Gabinete' },
+  { id: '/gabinete/audiencias', label: 'Gabinete - Solicitações de Audiência', category: 'Gabinete' },
+  { id: '/gabinete/oficios', label: 'Gabinete - Ofícios & Memos', category: 'Gabinete' },
+  { id: '/gabinete/visitas', label: 'Gabinete - Registro de Visitas', category: 'Gabinete' },
+  { id: '/gabinete/ligacoes', label: 'Gabinete - Ligações & Telemarketing', category: 'Gabinete' },
+
+  // Gestão Parlamentar & Orçamento
+  { id: '/emendas', label: 'Emendas Impositivas', category: 'Parlamentar' },
+  { id: '/projetos', label: 'Projetos de Lei / Propostas', category: 'Parlamentar' },
+  { id: '/editais', label: 'Editais e Chamadas Públicas', category: 'Parlamentar' },
+  { id: '/ministerios', label: 'Ministérios & Órgãos', category: 'Parlamentar' },
+  { id: '/base-eleitoral', label: 'Base Eleitoral', category: 'Parlamentar' },
+  { id: '/relatorios', label: 'Relatórios & Inteligência', category: 'Parlamentar' },
+
+  // Tabelas Gerais & Sistema
+  { id: '/partidos', label: 'Partidos Políticos', category: 'Administrativo' },
+  { id: '/deputados', label: 'Cadastro de Deputados', category: 'Administrativo' },
+  { id: '/areas-tematicas', label: 'Áreas Temáticas', category: 'Administrativo' },
+  { id: '/perfis', label: 'Cadastro de Perfis', category: 'Administrativo' },
+  { id: '/usuarios', label: 'Cadastro de Usuários', category: 'Administrativo' },
+  { id: '/configuracoes', label: 'Configurações do Sistema', category: 'Administrativo' },
+];
+
+const PROFILE_PRESETS = [
+  {
+    nome: 'Chefe de Gabinete',
+    description: 'Acesso completo a todas as ferramentas do e-Gabinete Parlamentar, relatórios e demandas',
+    permissoes: [
+      '/gabinete', '/gabinete/agenda', '/gabinete/demandas', '/gabinete/cadastros',
+      '/gabinete/audiencias', '/gabinete/oficios', '/gabinete/visitas', '/gabinete/ligacoes',
+      '/emendas', '/projetos', '/editais', '/relatorios', '/ministerios'
+    ]
+  },
+  {
+    nome: 'Assessor Parlamentar / Político',
+    description: 'Foco em agenda, conciliação de demandas, ofícios, audiências e base eleitoral',
+    permissoes: [
+      '/gabinete', '/gabinete/agenda', '/gabinete/demandas', '/gabinete/cadastros',
+      '/gabinete/audiencias', '/gabinete/oficios', '/base-eleitoral'
+    ]
+  },
+  {
+    nome: 'Atendente / Recepcionista',
+    description: 'Gestão de recepção presencial, atendimento telefônico, recados e abertura de demandas',
+    permissoes: [
+      '/gabinete', '/gabinete/agenda', '/gabinete/demandas', '/gabinete/cadastros',
+      '/gabinete/visitas', '/gabinete/ligacoes'
+    ]
+  },
+  {
+    nome: 'Gestor de Emendas & Editais',
+    description: 'Foco técnico em orçamento parlamentar, indicação de recursos e monitoramento de editais',
+    permissoes: [
+      '/gabinete', '/emendas', '/editais', '/projetos', '/ministerios', '/relatorios'
+    ]
+  }
 ];
 
 export default function PerfisPage() {
@@ -129,39 +178,118 @@ export default function PerfisPage() {
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nome do Perfil</label>
               <input 
                 type="text" 
-                value={currentPerfil.nome} 
+                value={currentPerfil.nome || ''} 
                 onChange={(e) => setCurrentPerfil({...currentPerfil, nome: e.target.value})}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
-                placeholder="Ex: Assessor"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-primary outline-none"
+                placeholder="Ex: Chefe de Gabinete, Assessor Parlamentar"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Permissões de Acesso</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 opacity-70">
-                  <input type="checkbox" checked disabled className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Visão Geral (Sempre liberado)</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 opacity-70">
-                  <input type="checkbox" checked disabled className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Visão Mapa (Sempre liberado)</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 opacity-70">
-                  <input type="checkbox" checked disabled className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Adesão Edital (Sempre liberado)</span>
-                </div>
-                {MENU_OPTIONS.map(menu => (
-                  <label key={menu.id} className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
-                    <input 
-                      type="checkbox" 
-                      checked={(currentPerfil.permissoes || []).includes(menu.id)}
-                      onChange={() => togglePermission(menu.id)}
-                      className="w-4 h-4 text-primary rounded focus:ring-primary" 
-                    />
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{menu.label}</span>
-                  </label>
+            {/* Presets / Modelos Rápidos */}
+            <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+              <span className="text-xs font-black text-slate-500 uppercase tracking-wider block">
+                Modelos de Perfis Pré-Configurados (Clique para carregar)
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {PROFILE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.nome}
+                    type="button"
+                    onClick={() => {
+                      setCurrentPerfil({
+                        ...currentPerfil,
+                        nome: preset.nome,
+                        permissoes: preset.permissoes
+                      });
+                    }}
+                    className="p-3 text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:shadow-xs transition-all group"
+                  >
+                    <div className="font-black text-xs text-slate-900 dark:text-white group-hover:text-emerald-600">
+                      {preset.nome}
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                      {preset.description}
+                    </div>
+                  </button>
                 ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Permissões de Acesso do Perfil</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPerfil({ ...currentPerfil, permissoes: MENU_OPTIONS.map(m => m.id) })}
+                    className="text-[11px] font-bold text-emerald-600 hover:underline"
+                  >
+                    Marcar Todos
+                  </button>
+                  <span className="text-slate-300">|</span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPerfil({ ...currentPerfil, permissoes: [] })}
+                    className="text-[11px] font-bold text-slate-500 hover:underline"
+                  >
+                    Desmarcar Todos
+                  </button>
+                </div>
+              </div>
+
+              {/* Fixed default permissions */}
+              <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-xs font-bold">
+                  <input type="checkbox" checked disabled className="w-4 h-4 text-emerald-600 rounded" />
+                  <span>Visão Geral (Sempre liberado)</span>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-xs font-bold">
+                  <input type="checkbox" checked disabled className="w-4 h-4 text-emerald-600 rounded" />
+                  <span>Visão Mapa (Sempre liberado)</span>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-xs font-bold">
+                  <input type="checkbox" checked disabled className="w-4 h-4 text-emerald-600 rounded" />
+                  <span>Adesão Edital (Sempre liberado)</span>
+                </div>
+              </div>
+
+              {/* Categorized Options */}
+              <div className="space-y-6">
+                {['Gabinete', 'Parlamentar', 'Administrativo'].map((cat) => {
+                  const items = MENU_OPTIONS.filter(m => m.category === cat);
+                  if (items.length === 0) return null;
+
+                  return (
+                    <div key={cat} className="space-y-2">
+                      <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        {cat === 'Gabinete' && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                        {cat === 'Parlamentar' && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                        {cat === 'Administrativo' && <span className="w-2 h-2 rounded-full bg-purple-500"></span>}
+                        Módulo {cat}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {items.map((menu) => (
+                          <label 
+                            key={menu.id} 
+                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                              (currentPerfil.permissoes || []).includes(menu.id)
+                                ? 'border-emerald-500/80 bg-emerald-50/50 dark:bg-emerald-950/20 text-slate-900 font-bold'
+                                : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-600'
+                            }`}
+                          >
+                            <input 
+                              type="checkbox" 
+                              checked={(currentPerfil.permissoes || []).includes(menu.id)}
+                              onChange={() => togglePermission(menu.id)}
+                              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" 
+                            />
+                            <span className="text-xs font-bold">{menu.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
