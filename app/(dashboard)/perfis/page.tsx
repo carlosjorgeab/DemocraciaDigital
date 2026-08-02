@@ -150,11 +150,11 @@ export default function PerfisPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
             <Shield className="text-primary" />
             Cadastro de Perfis
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Gerencie os perfis de acesso e suas permissões</p>
+          <p className="text-slate-500 mt-1">Gerencie os perfis de acesso e suas permissões</p>
         </div>
         {!isEditing && (
           <button 
@@ -168,25 +168,25 @@ export default function PerfisPage() {
       </div>
 
       {isEditing ? (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
           <h2 className="text-lg font-bold mb-4">{currentPerfil.id ? 'Editar Perfil' : 'Novo Perfil'}</h2>
           
           {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nome do Perfil</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Nome do Perfil</label>
               <input 
                 type="text" 
                 value={currentPerfil.nome || ''} 
                 onChange={(e) => setCurrentPerfil({...currentPerfil, nome: e.target.value})}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-primary outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold focus:ring-2 focus:ring-primary outline-none"
                 placeholder="Ex: Chefe de Gabinete, Assessor Parlamentar"
               />
             </div>
 
             {/* Presets / Modelos Rápidos */}
-            <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
               <span className="text-xs font-black text-slate-500 uppercase tracking-wider block">
                 Modelos de Perfis Pré-Configurados (Clique para carregar)
               </span>
@@ -202,9 +202,9 @@ export default function PerfisPage() {
                         permissoes: preset.permissoes
                       });
                     }}
-                    className="p-3 text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:shadow-xs transition-all group"
+                    className="p-3 text-left bg-white rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-xs transition-all group"
                   >
-                    <div className="font-black text-xs text-slate-900 dark:text-white group-hover:text-emerald-600">
+                    <div className="font-black text-xs text-slate-900 group-hover:text-emerald-600">
                       {preset.nome}
                     </div>
                     <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
@@ -217,7 +217,7 @@ export default function PerfisPage() {
 
             <div>
               <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Permissões de Acesso do Perfil</label>
+                <label className="block text-sm font-bold text-slate-700">Permissões de Acesso do Perfil</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -273,8 +273,8 @@ export default function PerfisPage() {
                             key={menu.id} 
                             className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
                               (currentPerfil.permissoes || []).includes(menu.id)
-                                ? 'border-emerald-500/80 bg-emerald-50/50 dark:bg-emerald-950/20 text-slate-900 font-bold'
-                                : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-600'
+                                ? 'border-emerald-500/80 bg-emerald-50/50 text-slate-900 font-bold'
+                                : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                             }`}
                           >
                             <input 
@@ -293,7 +293,7 @@ export default function PerfisPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
               <button 
                 onClick={() => setIsEditing(false)}
                 className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-colors"
@@ -311,7 +311,7 @@ export default function PerfisPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-slate-500">Carregando...</div>
           ) : perfis.length === 0 ? (
@@ -319,21 +319,21 @@ export default function PerfisPage() {
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Nome do Perfil</th>
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Permissões</th>
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm text-right">Ações</th>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="p-4 font-bold text-slate-600 text-sm">Nome do Perfil</th>
+                  <th className="p-4 font-bold text-slate-600 text-sm">Permissões</th>
+                  <th className="p-4 font-bold text-slate-600 text-sm text-right">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {perfis.map(perfil => (
-                  <tr key={perfil.id} className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <td className="p-4 font-bold text-slate-900 dark:text-white">{perfil.nome}</td>
+                  <tr key={perfil.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                    <td className="p-4 font-bold text-slate-900">{perfil.nome}</td>
                     <td className="p-4">
                       <div className="flex flex-wrap gap-1">
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Visão Geral</span>
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Visão Mapa</span>
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">Adesão Edital</span>
+                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">Visão Geral</span>
+                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">Visão Mapa</span>
+                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">Adesão Edital</span>
                         {perfil.permissoes.map(p => {
                           const menu = MENU_OPTIONS.find(m => m.id === p);
                           return menu ? (
@@ -348,13 +348,13 @@ export default function PerfisPage() {
                       <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => { setCurrentPerfil(perfil); setIsEditing(true); }}
-                          className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-100"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button 
                           onClick={() => handleDelete(perfil.id)}
-                          className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-100"
                         >
                           <Trash2 size={18} />
                         </button>

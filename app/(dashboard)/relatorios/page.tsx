@@ -317,7 +317,7 @@ export default function RelatoriosPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Prestação de Contas</p>
-          <h2 className="text-3xl font-black font-headline text-slate-900 dark:text-white">Relatórios & Exportação PDF</h2>
+          <h2 className="text-3xl font-black font-headline text-slate-900">Relatórios & Exportação PDF</h2>
           <p className="text-slate-500 text-sm">Gere relatórios executivos customizados de emendas e projetos</p>
         </div>
 
@@ -332,10 +332,10 @@ export default function RelatoriosPage() {
       </div>
 
       {/* Filter Panel */}
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-6">
-        <div className="flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-700">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+        <div className="flex items-center gap-2 pb-4 border-b border-slate-100">
           <Filter size={18} className="text-primary" />
-          <h3 className="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-wider">Filtros do Relatório</h3>
+          <h3 className="font-bold text-slate-900 uppercase text-xs tracking-wider">Filtros do Relatório</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -344,7 +344,7 @@ export default function RelatoriosPage() {
             <select
               value={selectedTipo}
               onChange={(e: any) => setSelectedTipo(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-primary"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-primary"
             >
               <option value="todos">Todos (Emendas e Projetos)</option>
               <option value="emendas_liberadas">Apenas Emendas Liberadas</option>
@@ -358,7 +358,7 @@ export default function RelatoriosPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-primary"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-primary"
             >
               <option value="todos">Todos os Anos</option>
               <option value="2026">2026</option>
@@ -373,7 +373,7 @@ export default function RelatoriosPage() {
             <select
               value={selectedArea}
               onChange={(e) => setSelectedArea(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-primary"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-primary"
             >
               <option value="todas">Todas as Áreas</option>
               {areas.map(a => (
@@ -387,7 +387,7 @@ export default function RelatoriosPage() {
             <select
               value={selectedMunicipio}
               onChange={(e) => setSelectedMunicipio(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-primary"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-primary"
             >
               <option value="todos">Todos os Municípios</option>
               {municipios.map(m => (
@@ -404,53 +404,53 @@ export default function RelatoriosPage() {
             placeholder="Buscar por palavra-chave (objeto, beneficiário, ementa...)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none focus:border-primary"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-700 outline-none focus:border-primary"
           />
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <Receipt size={24} />
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Valor Liberado</p>
-            <h4 className="text-xl font-black text-slate-900 dark:text-white leading-tight mt-0.5">{formatCurrency(totalValorLiberado)}</h4>
+            <h4 className="text-xl font-black text-slate-900 leading-tight mt-0.5">{formatCurrency(totalValorLiberado)}</h4>
             <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{filteredEmendas.filter(e => e.etapa === 'Liberado').length} emendas liberadas</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
             <RefreshCw size={24} />
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Valor em Análise</p>
-            <h4 className="text-xl font-black text-slate-900 dark:text-white leading-tight mt-0.5">{formatCurrency(totalValorRascunho)}</h4>
+            <h4 className="text-xl font-black text-slate-900 leading-tight mt-0.5">{formatCurrency(totalValorRascunho)}</h4>
             <p className="text-[10px] text-amber-600 font-bold mt-0.5">{filteredEmendas.filter(e => e.etapa !== 'Liberado').length} em rascunho</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shrink-0">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
             <FileText size={24} />
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total de Projetos</p>
-            <h4 className="text-2xl font-black text-slate-900 dark:text-white leading-tight mt-0.5">{totalProjetosCount}</h4>
+            <h4 className="text-2xl font-black text-slate-900 leading-tight mt-0.5">{totalProjetosCount}</h4>
             <p className="text-[10px] text-slate-400 font-bold mt-0.5">Iniciativas mapeadas</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
             <MapPin size={24} />
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Municípios Atendidos</p>
-            <h4 className="text-2xl font-black text-slate-900 dark:text-white leading-tight mt-0.5">{munsReachedSet.size}</h4>
+            <h4 className="text-2xl font-black text-slate-900 leading-tight mt-0.5">{munsReachedSet.size}</h4>
             <p className="text-[10px] text-slate-400 font-bold mt-0.5">Cidades contempladas</p>
           </div>
         </div>
@@ -460,10 +460,10 @@ export default function RelatoriosPage() {
       <div className="space-y-6">
         {/* Emendas Table */}
         {selectedTipo !== 'projetos' && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
               <div>
-                <h3 className="font-black text-slate-900 dark:text-white uppercase text-sm tracking-tight">Emendas Selecionadas</h3>
+                <h3 className="font-black text-slate-900 uppercase text-sm tracking-tight">Emendas Selecionadas</h3>
                 <p className="text-xs text-slate-400">{filteredEmendas.length} registro(s) listados</p>
               </div>
             </div>
@@ -471,7 +471,7 @@ export default function RelatoriosPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-900/50 text-[10px] uppercase font-black text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-700">
+                  <tr className="bg-slate-50 text-[10px] uppercase font-black text-slate-500 tracking-wider border-b border-slate-100">
                     <th className="px-6 py-3">Nº Emenda</th>
                     <th className="px-6 py-3">Data</th>
                     <th className="px-6 py-3">Objeto / Beneficiário</th>
@@ -481,7 +481,7 @@ export default function RelatoriosPage() {
                     <th className="px-6 py-3">Etapa</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 text-xs font-medium text-slate-700 dark:text-slate-300">
+                <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                   {loading ? (
                     <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-400">Carregando dados...</td></tr>
                   ) : filteredEmendas.length === 0 ? (
@@ -491,13 +491,13 @@ export default function RelatoriosPage() {
                       const munObj = Array.isArray(e.municipio) ? e.municipio[0] : e.municipio;
                       const munName = munObj?.nome ? `${munObj.nome}${munObj.unidade_federacao?.sigla ? ` - ${munObj.unidade_federacao.sigla}` : ''}` : 'Estadual';
                       return (
-                        <tr key={e.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/30">
-                          <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">{e.numero_emenda || '-'}</td>
+                        <tr key={e.id} className="hover:bg-slate-50/50">
+                          <td className="px-6 py-3.5 font-bold text-slate-900">{e.numero_emenda || '-'}</td>
                           <td className="px-6 py-3.5 whitespace-nowrap">{e.data ? new Date(e.data + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</td>
                           <td className="px-6 py-3.5 max-w-xs truncate" title={e.objeto || e.beneficiario}>{e.objeto || e.beneficiario || '-'}</td>
                           <td className="px-6 py-3.5">{munName}</td>
                           <td className="px-6 py-3.5">{e.areas_tematicas?.nome || '-'}</td>
-                          <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white whitespace-nowrap">{formatCurrency(Number(e.valor) || 0)}</td>
+                          <td className="px-6 py-3.5 font-bold text-slate-900 whitespace-nowrap">{formatCurrency(Number(e.valor) || 0)}</td>
                           <td className="px-6 py-3.5">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${e.etapa === 'Liberado' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                               {e.etapa || 'Liberado'}
@@ -515,10 +515,10 @@ export default function RelatoriosPage() {
 
         {/* Projetos Table */}
         {(selectedTipo === 'todos' || selectedTipo === 'projetos') && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
               <div>
-                <h3 className="font-black text-slate-900 dark:text-white uppercase text-sm tracking-tight">Projetos de Lei & Iniciativas</h3>
+                <h3 className="font-black text-slate-900 uppercase text-sm tracking-tight">Projetos de Lei & Iniciativas</h3>
                 <p className="text-xs text-slate-400">{filteredProjetos.length} registro(s) listados</p>
               </div>
             </div>
@@ -526,7 +526,7 @@ export default function RelatoriosPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-900/50 text-[10px] uppercase font-black text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-700">
+                  <tr className="bg-slate-50 text-[10px] uppercase font-black text-slate-500 tracking-wider border-b border-slate-100">
                     <th className="px-6 py-3">Iniciativa / Título</th>
                     <th className="px-6 py-3">Ementa</th>
                     <th className="px-6 py-3">Área Temática</th>
@@ -534,15 +534,15 @@ export default function RelatoriosPage() {
                     <th className="px-6 py-3">Tramitação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 text-xs font-medium text-slate-700 dark:text-slate-300">
+                <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                   {loading ? (
                     <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400">Carregando dados...</td></tr>
                   ) : filteredProjetos.length === 0 ? (
                     <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400">Nenhum projeto corresponde aos filtros aplicados.</td></tr>
                   ) : (
                     filteredProjetos.map((p: any) => (
-                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/30">
-                        <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">{p.descricao || '-'}</td>
+                      <tr key={p.id} className="hover:bg-slate-50/50">
+                        <td className="px-6 py-3.5 font-bold text-slate-900">{p.descricao || '-'}</td>
                         <td className="px-6 py-3.5 max-w-sm truncate" title={p.ementa}>{p.ementa || '-'}</td>
                         <td className="px-6 py-3.5">{p.area_nome || '-'}</td>
                         <td className="px-6 py-3.5">{p.autor || '-'}</td>

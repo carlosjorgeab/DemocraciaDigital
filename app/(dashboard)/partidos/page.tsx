@@ -99,10 +99,10 @@ export default function PartidosPage() {
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black font-headline text-slate-900 dark:text-white uppercase tracking-tight">
+          <h2 className="text-3xl font-black font-headline text-slate-900 uppercase tracking-tight">
             Partidos Políticos
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Gerencie o cadastro de partidos e suas cores de identidade visual.</p>
+          <p className="text-slate-500 mt-1 font-medium">Gerencie o cadastro de partidos e suas cores de identidade visual.</p>
         </div>
         <button 
           onClick={() => {
@@ -117,12 +117,12 @@ export default function PartidosPage() {
         </button>
       </div>
 
-      <div className="flex items-center bg-white dark:bg-slate-800 rounded-2xl px-4 py-3 shadow-sm border border-slate-200 dark:border-slate-700 max-w-md">
+      <div className="flex items-center bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-200 max-w-md">
         <Search className="text-slate-400" size={20} />
         <input 
           type="text" 
           placeholder="Buscar partido..." 
-          className="bg-transparent border-none focus:ring-0 w-full ml-2 text-slate-700 dark:text-slate-200"
+          className="bg-transparent border-none focus:ring-0 w-full ml-2 text-slate-700"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -132,12 +132,12 @@ export default function PartidosPage() {
         {loading ? (
           <div className="col-span-full py-20 text-center text-slate-500 italic">Carregando partidos...</div>
         ) : filteredPartidos.length === 0 ? (
-          <div className="col-span-full py-20 text-center text-slate-500 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 uppercase font-black text-xs tracking-widest">
+          <div className="col-span-full py-20 text-center text-slate-500 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 uppercase font-black text-xs tracking-widest">
             Nenhum partido cadastrado.
           </div>
         ) : (
           filteredPartidos.map(partido => (
-            <div key={partido.id} className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div key={partido.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all group flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-4">
@@ -145,7 +145,7 @@ export default function PartidosPage() {
                       {partido.sigla[0]}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">{partido.sigla}</h3>
+                      <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight">{partido.sigla}</h3>
                       <p className="text-xs text-slate-500 line-clamp-1">{partido.nome}</p>
                     </div>
                   </div>
@@ -162,20 +162,20 @@ export default function PartidosPage() {
                         });
                         setShowModal(true);
                       }}
-                      className="p-2 text-slate-400 hover:text-primary hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                      className="p-2 text-slate-400 hover:text-primary hover:bg-red-50 rounded-lg transition-all"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button 
                       onClick={() => deletePartido(partido.id)}
-                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-4 border-t border-slate-50 dark:border-slate-700/50">
+                <div className="space-y-3 pt-4 border-t border-slate-50">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: partido.cor_primaria || 'transparent' }} />
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Primária: {partido.cor_primaria}</span>
@@ -197,28 +197,28 @@ export default function PartidosPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-             <div className="p-8 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                <h3 className="text-2xl font-black font-headline text-slate-900 dark:text-white uppercase tracking-tight">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+             <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+                <h3 className="text-2xl font-black font-headline text-slate-900 uppercase tracking-tight">
                   {editingPartido ? 'Editar Partido' : 'Novo Partido'}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Defina a identidade do partido político.</p>
+                <p className="text-sm text-slate-500 mt-1">Defina a identidade do partido político.</p>
              </div>
              <form onSubmit={handleSubmit} className="p-8 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Sigla</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sigla</label>
                         <input 
                             type="text" required
                             maxLength={20}
-                            className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold uppercase text-slate-900 dark:text-white"
+                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-bold uppercase text-slate-900"
                             placeholder="Ex: PT"
                             value={formData.sigla}
                             onChange={e => setFormData({ ...formData, sigla: e.target.value.toUpperCase() })}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Cores da Identidade</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cores da Identidade</label>
                         <div className="flex gap-3">
                             <input 
                                 type="color"
@@ -243,11 +243,11 @@ export default function PartidosPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nome Completo (Mínimo 20 caracteres sugeridos)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo (Mínimo 20 caracteres sugeridos)</label>
                     <input 
                         type="text" required
                         maxLength={100}
-                        className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium text-slate-900 dark:text-white"
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 focus:border-primary transition-all outline-none font-medium text-slate-900"
                         placeholder="Partido dos Trabalhadores"
                         value={formData.nome}
                         onChange={e => setFormData({ ...formData, nome: e.target.value })}
@@ -258,7 +258,7 @@ export default function PartidosPage() {
                     <button 
                         type="button"
                         onClick={() => setShowModal(false)}
-                        className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-200 transition-all uppercase text-xs tracking-widest"
+                        className="flex-1 px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all uppercase text-xs tracking-widest"
                     >
                         Cancelar
                     </button>

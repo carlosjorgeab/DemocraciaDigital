@@ -213,11 +213,11 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
                     className={`flex items-center gap-2 p-3 border-2 rounded-2xl transition-all text-left ${
                       isSelected
                         ? 'border-primary bg-primary/5 text-primary scale-[1.02] shadow-sm'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400 hover:text-slate-800'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-800'
                     }`}
                   >
                     <div 
-                      className="w-8 h-8 rounded-xl flex items-center justify-center p-1.5 transition-transform duration-300 bg-slate-50 dark:bg-slate-800 border shadow-sm shrink-0"
+                      className="w-8 h-8 rounded-xl flex items-center justify-center p-1.5 transition-transform duration-300 bg-slate-50 border shadow-sm shrink-0"
                       style={{ 
                         borderColor: isSelected ? area.cor : '#e2e8f0',
                         color: area.cor || '#005baa'

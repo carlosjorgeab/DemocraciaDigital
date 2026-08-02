@@ -129,17 +129,17 @@ export default function ProjetosPublicPage() {
             <LayoutGrid size={24} />
           </div>
           <div>
-            <h1 className="text-2xl font-black uppercase text-slate-900 dark:text-white tracking-tight">Projetos por Áreas Temáticas</h1>
+            <h1 className="text-2xl font-black uppercase text-slate-900 tracking-tight">Projetos por Áreas Temáticas</h1>
             <p className="text-sm font-medium text-slate-500 mt-1">Selecione uma área temática para visualizar os projetos relacionados do Deputado {selectedDeputado?.nome}.</p>
           </div>
         </div>
 
         {areas.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
-            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+          <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-sm">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
               <Folder size={32} />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Nenhuma área temática encontrada</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Nenhuma área temática encontrada</h3>
             <p className="text-slate-500 max-w-md mx-auto">Este deputado ainda não possui áreas temáticas com projetos liberados.</p>
           </div>
         ) : (
@@ -148,7 +148,7 @@ export default function ProjetosPublicPage() {
               <button
                 key={area.id}
                 onClick={() => router.push(`/p/${selectedDeputado?.slug || selectedDeputado?.id}/projetos/${area.id}`)}
-                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl transition-all duration-300 hover:shadow-xl hover:scale-105 group relative overflow-hidden"
+                className="flex flex-col items-center justify-center p-6 bg-white border border-slate-200 rounded-3xl transition-all duration-300 hover:shadow-xl hover:scale-105 group relative overflow-hidden"
                 title={area.nome}
               >
                 <div 
@@ -157,7 +157,7 @@ export default function ProjetosPublicPage() {
                 />
                 
                 <div 
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center p-3 transition-transform duration-300 group-hover:scale-110 mb-4 bg-slate-50 dark:bg-slate-800 shadow-sm"
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center p-3 transition-transform duration-300 group-hover:scale-110 mb-4 bg-slate-50 shadow-sm"
                   style={{ 
                     borderColor: (area.cor || 'var(--color-primary)') + '33', 
                     borderWidth: '2px', 
@@ -180,7 +180,7 @@ export default function ProjetosPublicPage() {
                   )}
                 </div>
                 
-                <h3 className="text-sm font-bold text-center text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors line-clamp-2">
+                <h3 className="text-sm font-bold text-center text-slate-800 group-hover:text-primary transition-colors line-clamp-2">
                   {area.nome}
                 </h3>
               </button>
@@ -190,14 +190,14 @@ export default function ProjetosPublicPage() {
       </section>
 
       {/* 2. Listagem Geral de Projetos */}
-      <section className="pt-8 border-t border-slate-200 dark:border-slate-800">
+      <section className="pt-8 border-t border-slate-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm" style={{ color: 'var(--color-primary)' }}>
               <BookOpen size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-black uppercase text-slate-900 dark:text-white tracking-tight">Todos os Projetos ({projetos.length})</h2>
+              <h2 className="text-2xl font-black uppercase text-slate-900 tracking-tight">Todos os Projetos ({projetos.length})</h2>
               <p className="text-sm font-medium text-slate-500 mt-0.5">Lista completa de proposições legislativas do Deputado {selectedDeputado?.nome}</p>
             </div>
           </div>
@@ -209,17 +209,17 @@ export default function ProjetosPublicPage() {
               placeholder="Buscar por título, número, ementa..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none focus:border-primary shadow-xs transition-colors"
+              className="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-primary shadow-xs transition-colors"
             />
           </div>
         </div>
 
         {filteredProjetos.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+          <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-sm">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
               <FileText size={28} />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+            <h3 className="text-base font-bold text-slate-900 mb-1">
               {searchTerm ? 'Nenhum projeto encontrado para a busca' : 'Nenhum projeto cadastrado'}
             </h3>
             <p className="text-xs text-slate-500">
@@ -235,7 +235,7 @@ export default function ProjetosPublicPage() {
               return (
                 <div 
                   key={projeto.id} 
-                  className="bg-white dark:bg-slate-900 rounded-3xl p-6 border-l-4 shadow-sm hover:shadow-md transition-all border-y border-r border-y-slate-200 border-r-slate-200 dark:border-y-slate-800 dark:border-r-slate-800 relative overflow-hidden flex flex-col justify-between" 
+                  className="bg-white rounded-3xl p-6 border-l-4 shadow-sm hover:shadow-md transition-all border-y border-r border-y-slate-200 border-r-slate-200 relative overflow-hidden flex flex-col justify-between" 
                   style={{ borderLeftColor: accentColor }}
                 >
                   <div>
@@ -246,31 +246,31 @@ export default function ProjetosPublicPage() {
                             href={projeto.url_legislativo} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-xs"
+                            className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-200 transition-colors shadow-xs"
                             style={{ color: accentColor }}
                           >
                             Nº {projeto.numero_proposicao}
                             <ExternalLink size={13} className="opacity-70" />
                           </a>
                         ) : (
-                          <div className="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-slate-200 dark:border-slate-700">
+                          <div className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-600 px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-slate-200">
                             Nº {projeto.numero_proposicao}
                           </div>
                         )
                       ) : (
-                        <div className="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-slate-100 dark:border-slate-800">
+                        <div className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-400 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-slate-100">
                           Sem Proposição
                         </div>
                       )}
 
                       {projeto.tipo && (
-                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg tracking-wider">
+                        <span className="bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg tracking-wider">
                           {projeto.tipo}
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-3">
+                    <h3 className="text-lg font-bold text-slate-900 leading-snug mb-3">
                       {projeto.descricao}
                     </h3>
 
@@ -280,7 +280,7 @@ export default function ProjetosPublicPage() {
                         {projeto.all_areas.map((a: any) => (
                           <div 
                             key={a.id}
-                            className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-50 dark:bg-slate-800 border rounded-full text-[11px] font-bold"
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-50 border rounded-full text-[11px] font-bold"
                             style={{ borderColor: (a.cor || accentColor) + '44', color: a.cor || accentColor }}
                           >
                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: a.cor || accentColor }} />
@@ -291,19 +291,19 @@ export default function ProjetosPublicPage() {
                     )}
 
                     {projeto.ementa && (
-                      <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 mb-4 border border-slate-100 dark:border-slate-800/80 relative">
+                      <div className="bg-slate-50 rounded-2xl p-4 mb-4 border border-slate-100 relative">
                         <FileText size={14} className="absolute top-4 left-4 text-slate-400" />
-                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pl-6 line-clamp-4">
+                        <p className="text-xs text-slate-600 leading-relaxed pl-6 line-clamp-4">
                           {projeto.ementa}
                         </p>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
+                  <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider pt-3 border-t border-slate-100 mt-2">
                     {projeto.autor ? (
                       <span className="truncate max-w-[200px]" title={projeto.autor}>
-                        Autor: <strong className="text-slate-700 dark:text-slate-300">{projeto.autor}</strong>
+                        Autor: <strong className="text-slate-700">{projeto.autor}</strong>
                       </span>
                     ) : <span />}
 

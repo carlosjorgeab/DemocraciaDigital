@@ -57,7 +57,7 @@ export default function PublicHome() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Custom Header for Public View */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
              <Logo className="w-8 h-8 text-primary" />
@@ -67,13 +67,13 @@ export default function PublicHome() {
              </div>
           </div>
 
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl shadow-inner">
+          <div className="flex items-center bg-slate-100 p-1.5 rounded-2xl shadow-inner">
             <button 
               onClick={() => handleTabChange('geral')}
               className={`flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${
                 activeTab === 'geral' 
-                ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-primary/10 scale-105' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'
+                ? 'bg-white text-primary shadow-lg shadow-primary/10 scale-105' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
               }`}
             >
               <LayoutDashboard size={18} className={activeTab === 'geral' ? 'text-primary' : 'text-slate-400'} />
@@ -83,8 +83,8 @@ export default function PublicHome() {
               onClick={() => handleTabChange('mapa')}
               className={`flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${
                 activeTab === 'mapa' 
-                ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-primary/10 scale-105' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'
+                ? 'bg-white text-primary shadow-lg shadow-primary/10 scale-105' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
               }`}
             >
               <MapPin size={18} className={activeTab === 'mapa' ? 'text-primary' : 'text-slate-400'} />
@@ -94,8 +94,8 @@ export default function PublicHome() {
               onClick={() => handleTabChange('base-eleitoral')}
               className={`flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${
                 activeTab === 'base-eleitoral' 
-                ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-primary/10 scale-105' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'
+                ? 'bg-white text-primary shadow-lg shadow-primary/10 scale-105' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
               }`}
             >
               <Compass size={18} className={activeTab === 'base-eleitoral' ? 'text-primary' : 'text-slate-400'} />
@@ -107,7 +107,7 @@ export default function PublicHome() {
                   router.push(`/p/${selectedDeputado.slug || selectedDeputado.id}/projetos`);
                 }
               }}
-              className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50"
+              className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 text-slate-500 hover:text-slate-700 hover:bg-white/50"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
               <span className="hidden md:inline">Projetos</span>
@@ -122,7 +122,7 @@ export default function PublicHome() {
         </div>
       </header>
 
-      <main className="flex-1 bg-slate-50 dark:bg-slate-950">
+      <main className="flex-1 bg-slate-50">
         {activeTab === 'geral' ? (
           <div className="animate-in fade-in duration-500">
             <Home />
@@ -138,7 +138,7 @@ export default function PublicHome() {
         )}
       </main>
       
-      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 text-center">
+      <footer className="bg-white border-t border-slate-200 py-6 text-center">
          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Democracia Digital &copy; {new Date().getFullYear()} - Todos os direitos reservados
          </p>

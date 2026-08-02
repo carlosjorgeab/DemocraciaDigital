@@ -26,21 +26,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
         <div className="p-8">
           <div className="flex flex-col items-center justify-center mb-8">
             <Logo className="w-16 h-16 mb-4" />
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight text-center">
+            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight text-center">
               Democracia Digital
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 text-center">
+            <p className="text-slate-500 text-sm mt-2 text-center">
               Acesso ao Painel do Parlamentar
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm font-bold text-center">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-bold text-center">
               {error}
             </div>
           )}
@@ -54,7 +54,7 @@ export default function LoginPage() {
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:border-secondary transition-all outline-none font-bold"
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-900 focus:border-secondary transition-all outline-none font-bold"
                 placeholder="admin ou seu@email.com"
                 disabled={loading}
               />
@@ -68,7 +68,7 @@ export default function LoginPage() {
                 type="password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:border-secondary transition-all outline-none font-bold"
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-900 focus:border-secondary transition-all outline-none font-bold"
                 placeholder="••••••••"
                 disabled={loading}
               />

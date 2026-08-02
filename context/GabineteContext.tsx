@@ -49,47 +49,37 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   const { selectedDeputado } = useDeputado();
   const deputadoId = selectedDeputado?.id || 'default';
 
-  const [demandas, setDemandas] = useState<AtendimentoDemanda[]>(initialDemandas);
-  const [audiencias, setAudiencias] = useState<SolicitacaoAudiencia[]>(initialAudiencias);
-  const [agendas, setAgendas] = useState<AgendaCompromisso[]>(initialAgendas);
-  const [visitas, setVisitas] = useState<RegistroVisita[]>(initialVisitas);
-  const [ligacoes, setLigacoes] = useState<LigacaoRecebida[]>(initialLigacoes);
-  const [oficios, setOficios] = useState<Oficio[]>(initialOficios);
-  const [pessoas, setPessoas] = useState<Pessoa[]>(initialPessoas);
-  const [entidades, setEntidades] = useState<Entidade[]>(initialEntidades);
-  const [recados, setRecados] = useState<Recado[]>([
-    {
-      id: 'rec-1',
-      id_deputado: deputadoId,
-      data_recado: new Date().toISOString(),
-      de_quem: 'Secretaria do Partido',
-      para_quem: 'Deputado',
-      mensagem: 'Lembrar de assinar a nota da reunião de bancada sobre o projeto de reestruturação hospitalar.',
-      lido: false,
-      prioridade: 'Alta'
-    },
-    {
-      id: 'rec-2',
-      id_deputado: deputadoId,
-      data_recado: new Date().toISOString(),
-      de_quem: 'Prefeito de Assis',
-      para_quem: 'Assessor Marcelo',
-      mensagem: 'Agradece o apoio na aprovação do recurso e solicita reunião na próxima semana.',
-      lido: true,
-      prioridade: 'Normal'
-    }
-  ]);
+  const [demandas, setDemandas] = useState<AtendimentoDemanda[]>([]);
+  const [audiencias, setAudiencias] = useState<SolicitacaoAudiencia[]>([]);
+  const [agendas, setAgendas] = useState<AgendaCompromisso[]>([]);
+  const [visitas, setVisitas] = useState<RegistroVisita[]>([]);
+  const [ligacoes, setLigacoes] = useState<LigacaoRecebida[]>([]);
+  const [oficios, setOficios] = useState<Oficio[]>([]);
+  const [pessoas, setPessoas] = useState<Pessoa[]>([]);
+  const [entidades, setEntidades] = useState<Entidade[]>([]);
+  const [recados, setRecados] = useState<Recado[]>([]);
   
   const [loading, setLoading] = useState(false);
 
-  // Fetch real data from Supabase if table exists, otherwise keep initial store state
+  // Fetch real data from Supabase database
   useEffect(() => {
     async function fetchGabineteData() {
-      if (!selectedDeputado?.id) return;
+      if (!selectedDeputado?.id) {
+        setDemandas([]);
+        setAudiencias([]);
+        setAgendas([]);
+        setVisitas([]);
+        setLigacoes([]);
+        setOficios([]);
+        setPessoas([]);
+        setEntidades([]);
+        setRecados([]);
+        return;
+      }
       setLoading(true);
       
       try {
-        const [resDemandas, resAgendas, resAudiencias, resPessoas, resEntidades, resOficios, resVisitas, resLigacoes] = await Promise.all([
+        const [resDemandas, resAgendas, resAudiencias, resPessoas, resEntidades, resOficios, resVisitas, resLigacoes, resRecados] = await Promise.all([
           supabase.from('gabinete_demandas').select('*').eq('id_deputado', selectedDeputado.id),
           supabase.from('gabinete_agendas').select('*').eq('id_deputado', selectedDeputado.id),
           supabase.from('gabinete_audiencias').select('*').eq('id_deputado', selectedDeputado.id),
@@ -98,18 +88,20 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
           supabase.from('gabinete_oficios').select('*').eq('id_deputado', selectedDeputado.id),
           supabase.from('gabinete_visitas').select('*').eq('id_deputado', selectedDeputado.id),
           supabase.from('gabinete_ligacoes').select('*').eq('id_deputado', selectedDeputado.id),
+          supabase.from('gabinete_recados').select('*').eq('id_deputado', selectedDeputado.id),
         ]);
 
-        if (resDemandas.data && resDemandas.data.length > 0) setDemandas(resDemandas.data);
-        if (resAgendas.data && resAgendas.data.length > 0) setAgendas(resAgendas.data);
-        if (resAudiencias.data && resAudiencias.data.length > 0) setAudiencias(resAudiencias.data);
-        if (resPessoas.data && resPessoas.data.length > 0) setPessoas(resPessoas.data);
-        if (resEntidades.data && resEntidades.data.length > 0) setEntidades(resEntidades.data);
-        if (resOficios.data && resOficios.data.length > 0) setOficios(resOficios.data);
-        if (resVisitas.data && resVisitas.data.length > 0) setVisitas(resVisitas.data);
-        if (resLigacoes.data && resLigacoes.data.length > 0) setLigacoes(resLigacoes.data);
+        setDemandas(resDemandas.data || []);
+        setAgendas(resAgendas.data || []);
+        setAudiencias(resAudiencias.data || []);
+        setPessoas(resPessoas.data || []);
+        setEntidades(resEntidades.data || []);
+        setOficios(resOficios.data || []);
+        setVisitas(resVisitas.data || []);
+        setLigacoes(resLigacoes.data || []);
+        setRecados(resRecados.data || []);
       } catch (e) {
-        console.log('Using local cabinet store state as fallback');
+        console.error('Erro ao carregar dados do gabinete do banco:', e);
       } finally {
         setLoading(false);
       }

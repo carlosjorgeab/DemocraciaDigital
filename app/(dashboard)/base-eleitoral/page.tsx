@@ -10,7 +10,7 @@ import { MapPin, Building2, Receipt, Users, Award, ShieldCheck } from 'lucide-re
 const ParanaMap = dynamic(() => import('@/components/ParanaMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[600px] bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse flex flex-col items-center justify-center text-slate-400 gap-2">
+    <div className="w-full h-[600px] bg-slate-100 rounded-3xl animate-pulse flex flex-col items-center justify-center text-slate-400 gap-2">
       <MapPin size={32} className="animate-bounce" />
       <span className="text-xs font-bold uppercase tracking-wider">Carregando Mapa Interativo do Paraná...</span>
     </div>
@@ -108,23 +108,23 @@ export default function BaseEleitoralPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Mapeamento Territorial</p>
-          <h2 className="text-3xl font-black font-headline text-slate-900 dark:text-white">Base Eleitoral - {stateName} ({deputadoState})</h2>
+          <h2 className="text-3xl font-black font-headline text-slate-900">Base Eleitoral - {stateName} ({deputadoState})</h2>
           <p className="text-slate-500 text-sm">Visualização geoespacial das emendas e recursos alocados pelo parlamentar em {stateName}</p>
         </div>
 
         <div className="flex gap-3">
-          <div className="bg-white dark:bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
               <Building2 size={20} />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase text-slate-400">Municípios Atendidos</p>
-              <p className="text-lg font-black text-slate-900 dark:text-white leading-tight">{municipiosMapData.length}</p>
+              <p className="text-lg font-black text-slate-900 leading-tight">{municipiosMapData.length}</p>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center font-bold">
+          <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
               <Receipt size={20} />
             </div>
             <div>
@@ -137,7 +137,7 @@ export default function BaseEleitoralPage() {
 
       {/* Interactive Leaflet Map Component */}
       {loading ? (
-        <div className="w-full h-[600px] bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 gap-2">
+        <div className="w-full h-[600px] bg-white rounded-3xl border border-slate-100 flex flex-col items-center justify-center text-slate-400 gap-2">
           <MapPin size={32} className="animate-bounce text-primary" />
           <span className="text-xs font-bold uppercase tracking-wider">Carregando dados cartográficos de {stateName}...</span>
         </div>

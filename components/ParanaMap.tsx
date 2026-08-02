@@ -218,13 +218,13 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
       {/* Map Container */}
-      <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-[650px] relative">
+      <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[650px] relative">
         {/* Top bar overlay */}
-        <div className="p-4 bg-white/95 dark:bg-slate-800/95 backdrop-blur border-b border-slate-100 dark:border-slate-700 flex justify-between items-center z-10">
+        <div className="p-4 bg-white/95 backdrop-blur border-b border-slate-100 flex justify-between items-center z-10">
           <div className="flex items-center gap-2">
             <MapPin size={20} className="text-primary shrink-0" />
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+              <h3 className="font-bold text-slate-900 text-sm">
                 Mapa da Base Eleitoral - {stateName} ({currentUF})
               </h3>
               <p className="text-[10px] text-slate-600 font-medium">Clique nos marcadores para visualizar a lista completa de emendas do município</p>
@@ -316,11 +316,11 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
           </MapContainer>
 
           {/* Interactive Gradient Legend Overlay on Map */}
-          <div className="absolute bottom-4 left-4 right-4 md:right-auto md:max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 z-[1000] space-y-2.5">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+          <div className="absolute bottom-4 left-4 right-4 md:right-auto md:max-w-sm bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-200 z-[1000] space-y-2.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-1.5">
                 <Filter size={14} className="text-primary" />
-                <h4 className="font-black text-slate-900 dark:text-white text-xs uppercase tracking-wider">Legenda de Investimento</h4>
+                <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider">Legenda de Investimento</h4>
               </div>
               {activeRange !== 'all' && (
                 <button
@@ -335,7 +335,7 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
             {/* Continuous Color Gradient Bar */}
             <div className="space-y-1">
               <div className="h-2.5 w-full rounded-full bg-gradient-to-r from-[#7dd3fc] via-[#38bdf8] via-[#0284c7] to-[#005baa] shadow-inner" />
-              <div className="flex justify-between text-[9px] font-bold text-slate-600 dark:text-slate-400">
+              <div className="flex justify-between text-[9px] font-bold text-slate-600">
                 <span>R$ 0</span>
                 <span>R$ 200k</span>
                 <span>R$ 500k</span>
@@ -356,7 +356,7 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                     className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1 border ${
                       isSelected
                         ? 'bg-slate-900 text-white border-slate-900 shadow-sm scale-105'
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                        : 'bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: range.color }} />
@@ -371,9 +371,9 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
       </div>
 
       {/* Sidebar List & Search */}
-      <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col h-[650px] space-y-4">
+      <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col h-[650px] space-y-4">
         <div>
-          <h3 className="font-headline font-black text-lg text-slate-900 dark:text-white">Municípios e Recursos</h3>
+          <h3 className="font-headline font-black text-lg text-slate-900">Municípios e Recursos</h3>
           <p className="text-xs text-slate-600 font-medium">Selecione para focar no mapa ou abrir os detalhes das emendas</p>
         </div>
 
@@ -384,7 +384,7 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
             placeholder={`Buscar município em ${stateName}...`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:border-primary"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-900 outline-none focus:border-primary"
           />
         </div>
 
@@ -406,12 +406,12 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                       setSelectedMunicipioModal(m);
                       setModalSearchTerm('');
                     }}
-                    className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-700 cursor-pointer transition-all flex items-center justify-between group"
+                    className="p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-100 cursor-pointer transition-all flex items-center justify-between group"
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <MapPin size={14} className="text-primary group-hover:scale-110 transition-transform" />
-                        <h4 className="font-black text-xs text-slate-900 dark:text-white">{m.nome}</h4>
+                        <h4 className="font-black text-xs text-slate-900">{m.nome}</h4>
                       </div>
                       <p className="text-[11px] text-slate-700 font-semibold pl-5">{m.emendasCount} emenda(s)</p>
                     </div>
@@ -432,9 +432,9 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
       {/* POP-UP / MODAL: DETALHES DE EMENDAS DO MUNICÍPIO */}
       {selectedMunicipioModal && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="p-6 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start gap-4">
+            <div className="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-start gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="px-2.5 py-0.5 bg-primary/10 text-primary font-black text-[10px] uppercase rounded-full">
@@ -442,7 +442,7 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                   </span>
                   <span className="text-xs text-slate-600 font-bold uppercase">Município Atendido</span>
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white">{selectedMunicipioModal.nome}</h3>
+                <h3 className="text-2xl font-black text-slate-900">{selectedMunicipioModal.nome}</h3>
                 <p className="text-xs text-slate-600 font-semibold mt-0.5">
                   Detalhamento de emendas e investimentos alocados no município
                 </p>
@@ -450,15 +450,15 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
 
               <button
                 onClick={() => setSelectedMunicipioModal(null)}
-                className="p-2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors shrink-0"
+                className="p-2 rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors shrink-0"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Modal Highlights / Stats Bar */}
-            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-100/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
-              <div className="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-100/60 border-b border-slate-100">
+              <div className="bg-white p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                   <DollarSign size={20} />
                 </div>
@@ -468,19 +468,19 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+              <div className="bg-white p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                   <Receipt size={20} />
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-slate-600">Total de Emendas</p>
-                  <p className="text-lg font-black text-slate-900 dark:text-white">{selectedMunicipioModal.emendasCount} emendas</p>
+                  <p className="text-lg font-black text-slate-900">{selectedMunicipioModal.emendasCount} emendas</p>
                 </div>
               </div>
             </div>
 
             {/* Modal Search Bar */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <div className="p-4 border-b border-slate-100 bg-white">
               <div className="relative">
                 <Search size={16} className="absolute left-3.5 top-3 text-slate-400" />
                 <input
@@ -488,13 +488,13 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                   placeholder="Pesquisar por objeto, número, ano ou status da emenda..."
                   value={modalSearchTerm}
                   onChange={(e) => setModalSearchTerm(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:border-primary"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-900 outline-none focus:border-primary"
                 />
               </div>
             </div>
 
             {/* Modal Content - Emendas List */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-3 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="p-6 overflow-y-auto flex-1 space-y-3 bg-slate-50/50">
               {modalEmendas.length === 0 ? (
                 <div className="text-center py-12 text-slate-600 text-xs font-semibold">
                   Nenhuma emenda encontrada com o termo informado.
@@ -507,11 +507,11 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                   return (
                     <div
                       key={emenda.id || idx}
-                      className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs hover:border-primary transition-all space-y-2"
+                      className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs hover:border-primary transition-all space-y-2"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
                         <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-lg uppercase">
+                          <span className="px-2.5 py-1 bg-slate-100 text-slate-900 text-[11px] font-black rounded-lg uppercase">
                             Nº {emenda.numero_emenda || emenda.numero || 'Sem Nº'}
                           </span>
                           {emenda.etapa && (
@@ -534,7 +534,7 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                       </div>
 
                       <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
+                        <p className="text-xs font-bold text-slate-900 leading-relaxed">
                           {emenda.objeto || emenda.descricao || 'Emenda Parlamentar'}
                         </p>
                       </div>
@@ -542,10 +542,10 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
                       {(emenda.beneficiario || emenda.autor || emenda.area_tematica) && (
                         <div className="flex flex-wrap gap-2 pt-1 text-[10px] font-semibold text-slate-600">
                           {emenda.beneficiario && (
-                            <span>Beneficiário: <strong className="text-slate-800 dark:text-slate-200">{emenda.beneficiario}</strong></span>
+                            <span>Beneficiário: <strong className="text-slate-800">{emenda.beneficiario}</strong></span>
                           )}
                           {emenda.area_tematica && (
-                            <span>Área: <strong className="text-slate-800 dark:text-slate-200">{emenda.area_tematica}</strong></span>
+                            <span>Área: <strong className="text-slate-800">{emenda.area_tematica}</strong></span>
                           )}
                         </div>
                       )}
@@ -556,10 +556,10 @@ export default function ParanaMap({ municipios, uf = 'PR' }: { municipios: Munic
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+            <div className="p-4 bg-white border-t border-slate-100 flex justify-end">
               <button
                 onClick={() => setSelectedMunicipioModal(null)}
-                className="px-5 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xs uppercase tracking-wider rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                className="px-5 py-2.5 bg-slate-200 text-slate-900 font-black text-xs uppercase tracking-wider rounded-xl hover:bg-slate-300 transition-colors"
               >
                 Fechar
               </button>

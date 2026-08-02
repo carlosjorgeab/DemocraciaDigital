@@ -217,11 +217,11 @@ export default function AreasTematicasPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
             <Tags className="text-primary" />
             Cadastro de Áreas Temáticas
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Gerencie as áreas de impacto das emendas e projetos</p>
+          <p className="text-slate-500 mt-1">Gerencie as áreas de impacto das emendas e projetos</p>
         </div>
         {!isEditing && (
           <button 
@@ -235,46 +235,46 @@ export default function AreasTematicasPage() {
       </div>
 
       {isEditing ? (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
           <h2 className="text-lg font-bold mb-4">{currentArea.id ? 'Editar Área' : 'Nova Área'}</h2>
           
           {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nome da Área</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Nome da Área</label>
               <input 
                 type="text" 
                 value={currentArea.nome} 
                 onChange={(e) => setCurrentArea({...currentArea, nome: e.target.value})}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-primary outline-none"
                 placeholder="Ex: Saúde, Educação..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Cor de Destaque (Gráficos)</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Cor de Destaque (Gráficos)</label>
               <div className="flex gap-3">
                 <input 
                   type="color" 
                   value={currentArea.cor} 
                   onChange={(e) => setCurrentArea({...currentArea, cor: e.target.value})}
-                  className="h-10 w-20 p-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 cursor-pointer"
+                  className="h-10 w-20 p-1 rounded-lg border border-slate-300 bg-white cursor-pointer"
                 />
                 <input 
                   type="text" 
                   value={currentArea.cor} 
                   onChange={(e) => setCurrentArea({...currentArea, cor: e.target.value})}
-                  className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none font-mono"
+                  className="flex-1 px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-primary outline-none font-mono"
                   placeholder="#000000"
                 />
               </div>
             </div>
           </div>
 
-          <div className="mt-8 border-t border-slate-100 dark:border-slate-750 pt-6 space-y-4">
+          <div className="mt-8 border-t border-slate-100 pt-6 space-y-4">
             <div>
-              <label className="block text-sm font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">
+              <label className="block text-sm font-black uppercase text-slate-700 tracking-wider">
                 Ícone / Imagem da Área Temática (Somente com as bordas)
               </label>
               <p className="text-xs text-slate-500 mt-1">
@@ -290,20 +290,20 @@ export default function AreasTematicasPage() {
                   placeholder="Pesquisar ícone por nome..."
                   value={iconSearch}
                   onChange={(e) => setIconSearch(e.target.value)}
-                  className="w-full max-w-md px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full max-w-md px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 {iconSearch && (
                   <button 
                     type="button"
                     onClick={() => setIconSearch('')}
-                    className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 dark:hover:text-slate-350 tracking-wider transition-colors"
+                    className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 tracking-wider transition-colors"
                   >
                     Limpar
                   </button>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-64 overflow-y-auto p-2.5 border border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30">
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-64 overflow-y-auto p-2.5 border border-slate-200 rounded-2xl bg-slate-50/50">
                 {PRESET_ICONS.filter(preset => preset.nome.toLowerCase().includes(iconSearch.toLowerCase())).length === 0 ? (
                   <p className="col-span-full py-8 text-center text-xs font-bold text-slate-400">Nenhum ícone encontrado para "{iconSearch}"</p>
                 ) : (
@@ -315,7 +315,7 @@ export default function AreasTematicasPage() {
                       className={`p-3.5 flex flex-col items-center justify-center border-2 rounded-2xl transition-all ${
                         currentArea.icone_url === preset.svg
                           ? 'border-primary bg-primary/5 text-primary scale-102 shadow-sm'
-                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-500 hover:text-slate-700'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700'
                       }`}
                       title={preset.nome}
                     >
@@ -328,9 +328,9 @@ export default function AreasTematicasPage() {
             </div>
 
             {/* Custom file uploader */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-5 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30">
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
               <div 
-                className="w-20 h-20 rounded-2xl flex items-center justify-center bg-white dark:bg-slate-950 shrink-0 overflow-hidden relative shadow-sm"
+                className="w-20 h-20 rounded-2xl flex items-center justify-center bg-white shrink-0 overflow-hidden relative shadow-sm"
                 style={{ borderColor: currentArea.cor + 'dd', borderWidth: '2px', borderStyle: 'solid' }}
               >
                 {currentArea.icone_url ? (
@@ -354,10 +354,10 @@ export default function AreasTematicasPage() {
               </div>
 
               <div className="flex-1 space-y-2 text-center sm:text-left">
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Carregar Imagem Personalizada</p>
+                <p className="text-xs font-bold text-slate-700">Carregar Imagem Personalizada</p>
                 <p className="text-[10px] text-slate-500">FORMATOS RECOMENDADOS: SVG, PNG ou JPG. Para melhor integração visual, envie imagens com fundo transparente e foco em contornos/linhas.</p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-                  <label className="flex items-center gap-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors text-xs font-bold shadow-sm">
+                  <label className="flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 cursor-pointer transition-colors text-xs font-bold shadow-sm">
                     <Upload size={14} />
                     Selecionar Arquivo
                     <input 
@@ -380,7 +380,7 @@ export default function AreasTematicasPage() {
                     <button
                       type="button"
                       onClick={() => setCurrentArea({ ...currentArea, icone_url: '' })}
-                      className="text-xs font-bold text-red-500 hover:text-red-700 px-3.5 py-2 border border-red-200 dark:border-red-900 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20"
+                      className="text-xs font-bold text-red-500 hover:text-red-700 px-3.5 py-2 border border-red-200 rounded-xl hover:bg-red-50"
                     >
                       Remover Ícone
                     </button>
@@ -390,7 +390,7 @@ export default function AreasTematicasPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100 dark:border-slate-700">
+          <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
             <button 
               onClick={() => setIsEditing(false)}
               className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-colors"
@@ -407,7 +407,7 @@ export default function AreasTematicasPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-slate-500">Carregando...</div>
           ) : areas.length === 0 ? (
@@ -415,16 +415,16 @@ export default function AreasTematicasPage() {
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Ícone / Borda</th>
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Cor</th>
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm">Nome da Área</th>
-                  <th className="p-4 font-bold text-slate-600 dark:text-slate-400 text-sm text-right">Ações</th>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="p-4 font-bold text-slate-600 text-sm">Ícone / Borda</th>
+                  <th className="p-4 font-bold text-slate-600 text-sm">Cor</th>
+                  <th className="p-4 font-bold text-slate-600 text-sm">Nome da Área</th>
+                  <th className="p-4 font-bold text-slate-600 text-sm text-right">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {areas.map(area => (
-                  <tr key={area.id} className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <tr key={area.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                     <td className="p-4">
                       <div 
                         className="w-12 h-12 rounded-2xl flex items-center justify-center p-2 transition-all shadow-sm" 
@@ -444,22 +444,22 @@ export default function AreasTematicasPage() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm" style={{ backgroundColor: area.cor }} />
-                        <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">{area.cor}</span>
+                        <div className="w-5 h-5 rounded-full border border-slate-200 shadow-sm" style={{ backgroundColor: area.cor }} />
+                        <span className="text-xs font-mono font-bold text-slate-500">{area.cor}</span>
                       </div>
                     </td>
-                    <td className="p-4 font-bold text-slate-900 dark:text-white">{area.nome}</td>
+                    <td className="p-4 font-bold text-slate-900">{area.nome}</td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => { setCurrentArea(area); setIsEditing(true); }}
-                          className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-100"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button 
                           onClick={() => handleDelete(area.id)}
-                          className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-100"
                         >
                           <Trash2 size={18} />
                         </button>
