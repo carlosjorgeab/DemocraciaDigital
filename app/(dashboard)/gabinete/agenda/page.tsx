@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useGabinete } from '@/context/GabineteContext';
 import { AgendaCompromisso } from '@/lib/gabineteStore';
 import {
-  Calendar as CalendarIcon, Plus, MapPin, Clock, Shield, AlertCircle,
+  Calendar, Calendar as CalendarIcon, Plus, MapPin, Clock, Shield, AlertCircle,
   CheckCircle2, XCircle, Search, Filter, Share2, ExternalLink, MessageSquare,
   Users, Trash2, Edit2, AlertTriangle, Send, Cake, Globe, Building, Flag, UserCheck, RefreshCw
 } from 'lucide-react';
@@ -267,17 +267,19 @@ export default function AgendaPage() {
     setIsModalOpen(true);
   };
 
-  const filteredAgendas = agendas.filter((ag) => {
-    if (filterVisibilidade !== 'TODOS' && ag.visibilidade !== filterVisibilidade) return false;
-    if (filterAssessor !== 'TODOS' && ag.assessor_responsavel !== filterAssessor) return false;
+  const filteredAgendas = agendas
+    .filter((ag) => {
+      if (filterVisibilidade !== 'TODOS' && ag.visibilidade !== filterVisibilidade) return false;
+      if (filterAssessor !== 'TODOS' && ag.assessor_responsavel !== filterAssessor) return false;
 
-    const agDateStr = ag.data_inicio.includes('T') ? ag.data_inicio.split('T')[0] : ag.data_inicio.split(' ')[0];
+      const agDateStr = ag.data_inicio.includes('T') ? ag.data_inicio.split('T')[0] : ag.data_inicio.split(' ')[0];
 
-    if (startDate && agDateStr < startDate) return false;
-    if (endDate && agDateStr > endDate) return false;
+      if (startDate && agDateStr < startDate) return false;
+      if (endDate && agDateStr > endDate) return false;
 
-    return true;
-  });
+      return true;
+    })
+    .sort((a, b) => new Date(a.data_inicio).getTime() - new Date(b.data_inicio).getTime());
 
   // Handle Form Submission with Recurrence calculation
   const handleSubmit = (e: React.FormEvent) => {
@@ -681,6 +683,11 @@ export default function AgendaPage() {
             {filteredAgendas.length > 0 ? (
               <div className="space-y-4">
                 {filteredAgendas.map((ag) => {
+                  const dataInicioObj = new Date(ag.data_inicio.includes('T') ? ag.data_inicio : ag.data_inicio.replace(' ', 'T'));
+                  const dataFormatada = !isNaN(dataInicioObj.getTime())
+                    ? dataInicioObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : (ag.data_inicio.split('T')[0] || ag.data_inicio.split(' ')[0]);
+
                   const horaInicio = ag.data_inicio.includes('T') ? ag.data_inicio.split('T')[1].substring(0, 5) : '09:00';
                   const horaFim = ag.data_fim.includes('T') ? ag.data_fim.split('T')[1].substring(0, 5) : '10:00';
 
@@ -692,8 +699,14 @@ export default function AgendaPage() {
                     >
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-3 flex-wrap">
-                          <span className="bg-slate-900 text-white font-black text-xs px-3 py-1 rounded-lg flex items-center gap-1.5">
-                            <Clock size={12} /> {horaInicio} - {horaFim}
+                          <span className="bg-slate-900 text-white font-black text-xs px-3 py-1.5 rounded-xl flex items-center gap-2 flex-wrap">
+                            <span className="flex items-center gap-1 text-blue-300 font-bold">
+                              <Calendar size={13} /> {dataFormatada}
+                            </span>
+                            <span className="text-slate-500">•</span>
+                            <span className="flex items-center gap-1">
+                              <Clock size={13} /> {horaInicio} - {horaFim}
+                            </span>
                           </span>
 
                           <span

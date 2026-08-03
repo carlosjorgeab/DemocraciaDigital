@@ -12,9 +12,139 @@ import {
 
 export default function GabineteDashboard() {
   const { selectedDeputado } = useDeputado();
-  const { demandas, agendas, pessoas, recados, ligacoes } = useGabinete();
+  const { demandas, agendas, pessoas, recados, ligacoes, eventos } = useGabinete();
 
   const [activeTab, setActiveTab] = useState<'demandas' | 'emendas'>('demandas');
+
+  // Helper for type labels
+  const getTipoBadgeLabel = (tipo: string) => {
+    switch (tipo) {
+      case 'CIDADE':
+        return '🏛️ Cidade';
+      case 'EVENTO_ESTADUAL':
+        return '🏛️ Estadual';
+      case 'EVENTO_NACIONAL':
+        return '🇧🇷 Nacional';
+      case 'INTERNACIONAL':
+        return '🌐 Internacional';
+      case 'PERSONALIDADE':
+        return '⭐ Personalidade';
+      case 'PESSOA':
+        return '🎉 Aniversário';
+      default:
+        return '📅 Evento';
+    }
+  };
+
+  // Compute upcoming events and birthdays for the next 30 days
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const proximosEventos = (() => {
+    const combined: Array<{
+      id: string;
+      tipo: string;
+      titulo: string;
+      dataStrFormatada: string;
+      diasRestantes: number;
+      descricao?: string;
+      local_ou_estado?: string;
+      celular?: string;
+      nome_pessoa?: string;
+    }> = [];
+
+    // 1. Process Eventos Comemorativos
+    (eventos || []).forEach((ev) => {
+      if (!ev.data) return;
+      const parts = ev.data.includes('-') ? ev.data.split('-') : [];
+      let month = 0;
+      let day = 0;
+
+      if (parts.length === 2) {
+        month = parseInt(parts[0], 10);
+        day = parseInt(parts[1], 10);
+      } else if (parts.length === 3) {
+        month = parseInt(parts[1], 10);
+        day = parseInt(parts[2], 10);
+      }
+
+      if (!month || !day || isNaN(month) || isNaN(day)) return;
+
+      const currentYear = today.getFullYear();
+      let targetDate = new Date(currentYear, month - 1, day);
+      targetDate.setHours(0, 0, 0, 0);
+
+      if (targetDate < today) {
+        targetDate = new Date(currentYear + 1, month - 1, day);
+        targetDate.setHours(0, 0, 0, 0);
+      }
+
+      const diffTime = targetDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0 && diffDays <= 30) {
+        combined.push({
+          id: ev.id,
+          tipo: ev.tipo,
+          titulo: ev.titulo,
+          dataStrFormatada: `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}`,
+          diasRestantes: diffDays,
+          descricao: ev.descricao,
+          local_ou_estado: ev.local_ou_estado,
+          celular: ev.celular,
+          nome_pessoa: ev.nome_pessoa,
+        });
+      }
+    });
+
+    // 2. Process Birthdays from Pessoas
+    (pessoas || []).forEach((p) => {
+      if (!p.data_nascimento) return;
+      const parts = p.data_nascimento.includes('-') ? p.data_nascimento.split('-') : [];
+      let month = 0;
+      let day = 0;
+
+      if (parts.length === 3) {
+        month = parseInt(parts[1], 10);
+        day = parseInt(parts[2], 10);
+      } else if (parts.length === 2) {
+        month = parseInt(parts[0], 10);
+        day = parseInt(parts[1], 10);
+      }
+
+      if (!month || !day || isNaN(month) || isNaN(day)) return;
+
+      const currentYear = today.getFullYear();
+      let targetDate = new Date(currentYear, month - 1, day);
+      targetDate.setHours(0, 0, 0, 0);
+
+      if (targetDate < today) {
+        targetDate = new Date(currentYear + 1, month - 1, day);
+        targetDate.setHours(0, 0, 0, 0);
+      }
+
+      const diffTime = targetDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0 && diffDays <= 30) {
+        combined.push({
+          id: `p-${p.id}`,
+          tipo: 'PESSOA',
+          titulo: `Aniversário de ${p.nome}`,
+          dataStrFormatada: `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}`,
+          diasRestantes: diffDays,
+          descricao: p.profissao
+            ? `${p.profissao} • ${p.cidade || ''} - ${p.uf || 'PR'}`
+            : `${p.categoria || 'Liderança'} • ${p.cidade || ''} - ${p.uf || 'PR'}`,
+          local_ou_estado: `${p.cidade || ''} - ${p.uf || 'PR'}`,
+          celular: p.celular1,
+          nome_pessoa: p.nome,
+        });
+      }
+    });
+
+    return combined.sort((a, b) => a.diasRestantes - b.diasRestantes);
+  })();
 
   // Filter today's agendas
   const todayStr = new Date().toISOString().split('T')[0];
@@ -142,7 +272,7 @@ export default function GabineteDashboard() {
 
       {/* Top Banners Alert Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Banner 1: Aniversários Especiais do Dia */}
+        {/* Banner 1: Aniversários & Datas Comemorativas (Próximos 30 dias) */}
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-6 relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -150,54 +280,63 @@ export default function GabineteDashboard() {
                 <Cake size={20} />
               </div>
               <div>
-                <h3 className="font-black text-slate-900 text-lg">Aniversários Especiais</h3>
-                <p className="text-xs text-slate-600 font-medium">Lideranças da Base & Municípios</p>
+                <h3 className="font-black text-slate-900 text-lg">Aniversários & Datas Comemorativas</h3>
+                <p className="text-xs text-slate-600 font-medium">Próximos 30 dias ({proximosEventos.length} eventos)</p>
               </div>
             </div>
-            <span className="bg-amber-200 text-amber-900 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
-              Lembrete do Gabinete
-            </span>
+            <Link
+              href="/gabinete/agenda"
+              className="text-xs font-bold text-amber-900 hover:underline flex items-center gap-1 bg-amber-200/80 px-3 py-1 rounded-full transition-all"
+            >
+              Ver na Agenda <ArrowRight size={12} />
+            </Link>
           </div>
 
-          <div className="space-y-3">
-            <div className="bg-white p-3.5 rounded-2xl border border-amber-200/60 shadow-xs flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-black text-sm">
-                  AS
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Ada Maria Silva</h4>
-                  <p className="text-xs text-slate-500">Liderança Comunitária • Jardim Santa Margarida</p>
-                </div>
-              </div>
-              <a
-                href="https://wa.me/5511997037674?text=Parabéns%20pelo%20seu%20aniversário!"
-                target="_blank"
-                rel="noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-xs"
-              >
-                <PhoneCall size={12} />
-                WhatsApp
-              </a>
-            </div>
+          <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+            {proximosEventos.length > 0 ? (
+              proximosEventos.map((ev) => (
+                <div
+                  key={ev.id}
+                  className="bg-white p-3.5 rounded-2xl border border-amber-200/60 shadow-xs flex items-center justify-between gap-3 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="px-3 py-1.5 bg-amber-100 text-amber-900 rounded-xl text-center flex-shrink-0">
+                      <span className="text-xs font-black block">{ev.dataStrFormatada}</span>
+                      <span className="text-[9px] font-extrabold uppercase text-amber-700 block">
+                        {ev.diasRestantes === 0 ? 'Hoje!' : ev.diasRestantes === 1 ? 'Amanhã' : `em ${ev.diasRestantes}d`}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-bold text-slate-900 text-sm truncate">{ev.titulo}</h4>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+                          {getTipoBadgeLabel(ev.tipo)}
+                        </span>
+                      </div>
+                      {ev.descricao && <p className="text-xs text-slate-500 truncate mt-0.5">{ev.descricao}</p>}
+                    </div>
+                  </div>
 
-            <div className="bg-white p-3.5 rounded-2xl border border-amber-200/60 shadow-xs flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                  <Building size={20} />
+                  {ev.celular && (
+                    <a
+                      href={`https://wa.me/55${ev.celular.replace(/\D/g, '')}?text=${encodeURIComponent(
+                        `Olá, ${ev.nome_pessoa || 'amigo(a)'}! O Deputado e toda a equipe do Gabinete lhe desejam um Feliz Aniversário! 🎉🎂`
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-xs flex-shrink-0"
+                    >
+                      <PhoneCall size={12} />
+                      WhatsApp
+                    </a>
+                  )}
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Aniversário do Município de Assis (SP)</h4>
-                  <p className="text-xs text-slate-500">Fundação IBGE • 118 anos de Emancipação</p>
-                </div>
-              </div>
-              <Link
-                href="/gabinete/oficios"
-                className="bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl"
-              >
-                Enviar Nota
-              </Link>
-            </div>
+              ))
+            ) : (
+              <p className="text-xs text-slate-500 italic p-4 text-center bg-white rounded-2xl">
+                Nenhum aniversário ou data comemorativa cadastrada nos próximos 30 dias.
+              </p>
+            )}
           </div>
         </div>
 
