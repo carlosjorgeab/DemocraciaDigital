@@ -98,58 +98,38 @@ const getEventDay = (dataStr: string) => {
 };
 
 // Important Commemorative Events & Birthdays list
-interface EventoComemorativo {
+interface EventoDisplay {
   id: string;
-  tipo: 'CIDADE' | 'ESTADUAL_FEDERAL' | 'INTERNACIONAL' | 'PERSONALIDADE' | 'PESSOA';
+  tipo: 'CIDADE' | 'EVENTO_ESTADUAL' | 'EVENTO_NACIONAL' | 'ESTADUAL_FEDERAL' | 'INTERNACIONAL' | 'PERSONALIDADE' | 'PESSOA';
   titulo: string;
   data: string; // MM-DD or YYYY-MM-DD
   descricao: string;
   localOuEstado?: string;
   celular?: string;
   nomePessoa?: string;
+  isCustom?: boolean;
 }
 
-const EVENTOS_COMEMORATIVOS_PADRAO: EventoComemorativo[] = [
-  // Cidades do Paraná & Principais Capitais
-  { id: 'ev-curitiba', tipo: 'CIDADE', titulo: 'Aniversário de Curitiba', data: '03-29', descricao: 'Aniversário de Fundação da Capital do Estado do Paraná', localOuEstado: 'Curitiba - PR' },
-  { id: 'ev-londrina', tipo: 'CIDADE', titulo: 'Aniversário de Londrina', data: '12-10', descricao: 'Emancipação Política do Município de Londrina', localOuEstado: 'Londrina - PR' },
-  { id: 'ev-maringa', tipo: 'CIDADE', titulo: 'Aniversário de Maringá', data: '05-10', descricao: 'Aniversário da Cidade Canção', localOuEstado: 'Maringá - PR' },
-  { id: 'ev-cascavel', tipo: 'CIDADE', titulo: 'Aniversário de Cascavel', data: '11-14', descricao: 'Fundação do Município de Cascavel', localOuEstado: 'Cascavel - PR' },
-  { id: 'ev-pontagrossa', tipo: 'CIDADE', titulo: 'Aniversário de Ponta Grossa', data: '09-15', descricao: 'Aniversário dos Campos Gerais', localOuEstado: 'Ponta Grossa - PR' },
-  { id: 'ev-foz', tipo: 'CIDADE', titulo: 'Aniversário de Foz do Iguaçu', data: '06-10', descricao: 'Emancipação de Foz do Iguaçu', localOuEstado: 'Foz do Iguaçu - PR' },
-  { id: 'ev-sjp', tipo: 'CIDADE', titulo: 'Aniversário de São José dos Pinhais', data: '01-08', descricao: 'Aniversário de Emancipação', localOuEstado: 'São José dos Pinhais - PR' },
-  { id: 'ev-paranagua', tipo: 'CIDADE', titulo: 'Aniversário de Paranaguá', data: '07-29', descricao: 'Aniversário da Cidade Mãe do Paraná', localOuEstado: 'Paranaguá - PR' },
-
-  // Nível Estadual e Federal
-  { id: 'ev-pr-emancipacao', tipo: 'ESTADUAL_FEDERAL', titulo: 'Emancipação Política do Paraná', data: '12-19', descricao: 'Criação da Província do Paraná em 1853', localOuEstado: 'Paraná' },
-  { id: 'ev-tiradentes', tipo: 'ESTADUAL_FEDERAL', titulo: 'Dia de Tiradentes', data: '04-21', descricao: 'Homenagem ao Patrono da Nação Brasileira', localOuEstado: 'Nacional' },
-  { id: 'ev-trabalhador', tipo: 'ESTADUAL_FEDERAL', titulo: 'Dia do Trabalhador', data: '05-01', descricao: 'Dia Internacional do Trabalho', localOuEstado: 'Nacional' },
-  { id: 'ev-independencia', tipo: 'ESTADUAL_FEDERAL', titulo: 'Independência do Brasil', data: '09-07', descricao: 'Dia da Pátria e Desfile de 7 de Setembro', localOuEstado: 'Nacional' },
-  { id: 'ev-proclamacao', tipo: 'ESTADUAL_FEDERAL', titulo: 'Proclamação da República', data: '11-15', descricao: 'Proclamação da República Brasileira', localOuEstado: 'Nacional' },
-  { id: 'ev-consciencia', tipo: 'ESTADUAL_FEDERAL', titulo: 'Dia da Consciência Negra', data: '11-20', descricao: 'Homenagem a Zumbi dos Palmares', localOuEstado: 'Nacional' },
-  { id: 'ev-bandeira', tipo: 'ESTADUAL_FEDERAL', titulo: 'Dia da Bandeira Nacional', data: '11-19', descricao: 'Comemoração da Bandeira do Brasil', localOuEstado: 'Nacional' },
-
-  // Nível Internacional
-  { id: 'ev-mulher', tipo: 'INTERNACIONAL', titulo: 'Dia Internacional da Mulher', data: '03-08', descricao: 'Celebração Internacional das Conquistas das Mulheres', localOuEstado: 'Global' },
-  { id: 'ev-saude', tipo: 'INTERNACIONAL', titulo: 'Dia Mundial da Saúde', data: '04-07', descricao: 'Promovido pela Organização Mundial da Saúde (OMS)', localOuEstado: 'Global' },
-  { id: 'ev-meioambiente', tipo: 'INTERNACIONAL', titulo: 'Dia Mundial do Meio Ambiente', data: '06-05', descricao: 'Preservação Ambiental e Sustentabilidade Global', localOuEstado: 'Global' },
-  { id: 'ev-paz', tipo: 'INTERNACIONAL', titulo: 'Dia Internacional da Paz', data: '09-21', descricao: 'Promovido pelas Nações Unidas (ONU)', localOuEstado: 'Global' },
-  { id: 'ev-direitoshumanos', tipo: 'INTERNACIONAL', titulo: 'Dia Universal dos Direitos Humanos', data: '12-10', descricao: 'Declaração Universal dos Direitos Humanos', localOuEstado: 'Global' },
-
-  // Personalidades Destacadas
-  { id: 'ev-santosdumont', tipo: 'PERSONALIDADE', titulo: 'Nascimento de Santos Dumont', data: '07-20', descricao: 'Pai da Aviação e Patrono da Aeronáutica', localOuEstado: 'Brasil' },
-  { id: 'ev-senna', tipo: 'PERSONALIDADE', titulo: 'Nascimento de Ayrton Senna', data: '03-21', descricao: 'Tricampeão Mundial de Fórmula 1 e Ídolo Nacional', localOuEstado: 'Brasil' },
-  { id: 'ev-machado', tipo: 'PERSONALIDADE', titulo: 'Nascimento de Machado de Assis', data: '06-21', descricao: 'Maior Escritor da Literatura Brasileira', localOuEstado: 'Brasil' },
-  { id: 'ev-freire', tipo: 'PERSONALIDADE', titulo: 'Nascimento de Paulo Freire', data: '09-19', descricao: 'Patrono da Educação Brasileira', localOuEstado: 'Brasil' },
-];
-
 export default function AgendaPage() {
-  const { agendas, addAgenda, updateAgenda, deleteAgenda, pessoas } = useGabinete();
+  const { agendas, addAgenda, updateAgenda, deleteAgenda, pessoas, eventos, addEvento, updateEvento, deleteEvento } = useGabinete();
   const searchParams = useSearchParams();
   const urlDate = searchParams ? searchParams.get('data') : null;
 
   // Active Main View Tab: 'compromissos' | 'aniversarios_eventos'
   const [activeTab, setActiveTab] = useState<'compromissos' | 'aniversarios_eventos'>('compromissos');
+
+  // Event Modal States
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [eventFormData, setEventFormData] = useState({
+    titulo: '',
+    tipo: 'CIDADE' as any,
+    data: '01-01',
+    descricao: '',
+    local_ou_estado: '',
+    celular: '',
+    nome_pessoa: '',
+  });
 
   // Filter States - Date Interval & Quick Options
   const [tipoFiltroData, setTipoFiltroData] = useState<TipoFiltroData>('HOJE');
@@ -401,9 +381,80 @@ export default function AgendaPage() {
     setIsModalOpen(false);
   };
 
-  // Combine default commemorative events with birthdays from Gabinete Pessoas
-  const combinedEventos: EventoComemorativo[] = [
-    ...EVENTOS_COMEMORATIVOS_PADRAO,
+  // Event modal handlers
+  const handleOpenNewEventModal = () => {
+    setEditingEventId(null);
+    setEventFormData({
+      titulo: '',
+      tipo: 'CIDADE',
+      data: '01-01',
+      descricao: '',
+      local_ou_estado: 'Paraná - PR',
+      celular: '',
+      nome_pessoa: '',
+    });
+    setIsEventModalOpen(true);
+  };
+
+  const handleOpenEditEventModal = (ev: EventoDisplay) => {
+    setEditingEventId(ev.id);
+    setEventFormData({
+      titulo: ev.titulo,
+      tipo: ev.tipo as any,
+      data: ev.data,
+      descricao: ev.descricao || '',
+      local_ou_estado: ev.localOuEstado || '',
+      celular: ev.celular || '',
+      nome_pessoa: ev.nomePessoa || '',
+    });
+    setIsEventModalOpen(true);
+  };
+
+  const handleDeleteEvent = (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta data/evento?')) {
+      deleteEvento(id);
+    }
+  };
+
+  const handleEventSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingEventId) {
+      updateEvento(editingEventId, {
+        titulo: eventFormData.titulo,
+        tipo: eventFormData.tipo,
+        data: eventFormData.data,
+        descricao: eventFormData.descricao,
+        local_ou_estado: eventFormData.local_ou_estado,
+        celular: eventFormData.celular,
+        nome_pessoa: eventFormData.nome_pessoa,
+      });
+    } else {
+      addEvento({
+        titulo: eventFormData.titulo,
+        tipo: eventFormData.tipo,
+        data: eventFormData.data,
+        descricao: eventFormData.descricao,
+        local_ou_estado: eventFormData.local_ou_estado,
+        celular: eventFormData.celular,
+        nome_pessoa: eventFormData.nome_pessoa,
+      });
+    }
+    setIsEventModalOpen(false);
+  };
+
+  // Combine events from Supabase gabinete_eventos table with birthdays from Gabinete Pessoas
+  const combinedEventos: EventoDisplay[] = [
+    ...eventos.map((ev) => ({
+      id: ev.id,
+      tipo: ev.tipo as any,
+      titulo: ev.titulo,
+      data: ev.data,
+      descricao: ev.descricao || '',
+      localOuEstado: ev.local_ou_estado,
+      celular: ev.celular,
+      nomePessoa: ev.nome_pessoa,
+      isCustom: true,
+    })),
     ...pessoas
       .filter((p) => p.data_nascimento)
       .map((p) => ({
@@ -415,6 +466,7 @@ export default function AgendaPage() {
         localOuEstado: `${p.cidade || 'Paraná'} - ${p.uf || 'PR'}`,
         celular: p.celular1,
         nomePessoa: p.nome,
+        isCustom: false,
       })),
   ];
 
@@ -754,8 +806,15 @@ export default function AgendaPage() {
               </p>
             </div>
 
-            {/* Quick Month Filter Pills */}
+            {/* Quick Month Filter Pills & New Event Button */}
             <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handleOpenNewEventModal}
+                className="px-4 py-2 rounded-xl text-xs font-black bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5"
+              >
+                <Plus size={15} /> Cadastrar Novo Evento / Data
+              </button>
+
               <button
                 onClick={() => setFilterMes('MES_ATUAL')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border ${
@@ -908,19 +967,41 @@ export default function AgendaPage() {
                         </div>
                       )}
 
-                      {/* WhatsApp Action Button for Person Celebrants */}
-                      {ev.tipo === 'PESSOA' && ev.celular && (
-                        <a
-                          href={`https://wa.me/55${ev.celular.replace(/\D/g, '')}?text=${encodeURIComponent(
-                            `Olá, ${ev.nomePessoa || 'amigo(a)'}! O Deputado e toda a equipe do Gabinete lhe desejam um Feliz Aniversário! Muita saúde, paz e muitas conquistas neste novo ano de vida! 🎂🎉`
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs ml-auto"
-                        >
-                          <MessageSquare size={13} /> Enviar Parabéns
-                        </a>
-                      )}
+                      <div className="flex items-center gap-2 ml-auto">
+                        {/* Edit & Delete for events stored in database */}
+                        {ev.isCustom && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleOpenEditEventModal(ev)}
+                              title="Editar Evento"
+                              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEvent(ev.id)}
+                              title="Excluir Evento"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* WhatsApp Action Button for Person Celebrants */}
+                        {ev.tipo === 'PESSOA' && ev.celular && (
+                          <a
+                            href={`https://wa.me/55${ev.celular.replace(/\D/g, '')}?text=${encodeURIComponent(
+                              `Olá, ${ev.nomePessoa || 'amigo(a)'}! O Deputado e toda a equipe do Gabinete lhe desejam um Feliz Aniversário! Muita saúde, paz e muitas conquistas neste novo ano de vida! 🎂🎉`
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs"
+                          >
+                            <MessageSquare size={13} /> Enviar Parabéns
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -1112,6 +1193,120 @@ export default function AgendaPage() {
                   className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs tracking-wider shadow-lg shadow-blue-600/20"
                 >
                   {editingAgendaId ? 'Salvar Alterações' : 'Salvar Compromisso'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Cadastrar ou Editar Evento Comemorativo / Data Especial */}
+      {isEventModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white max-w-lg w-full rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 my-8 border border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <Cake className="text-purple-600" /> {editingEventId ? 'Editar Evento / Data Especial' : 'Cadastrar Novo Evento / Data Especial'}
+              </h2>
+              <button
+                onClick={() => setIsEventModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 font-black text-lg p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleEventSubmit} className="space-y-4 text-xs font-bold text-slate-700">
+              <div>
+                <label className="block mb-1">Título do Evento / Efeméride *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Aniversário de Curitiba, Emancipação de Cascavel, Dia do Colono"
+                  value={eventFormData.titulo}
+                  onChange={(e) => setEventFormData({ ...eventFormData, titulo: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1">Tipo de Evento *</label>
+                  <select
+                    value={eventFormData.tipo}
+                    onChange={(e) => setEventFormData({ ...eventFormData, tipo: e.target.value as any })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  >
+                    <option value="CIDADE">🏛️ Aniversário de Cidade / Município</option>
+                    <option value="EVENTO_ESTADUAL">🏛️ Evento / Data Estadual</option>
+                    <option value="EVENTO_NACIONAL">🇧🇷 Evento / Data Nacional</option>
+                    <option value="INTERNACIONAL">🌐 Evento Internacional</option>
+                    <option value="PERSONALIDADE">⭐ Personalidade de Destaque</option>
+                    <option value="PESSOA">🎉 Pessoa / Liderança da Base</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-1">Data (MM-DD ou YYYY-MM-DD) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: 03-29 ou 1980-03-29"
+                    value={eventFormData.data}
+                    onChange={(e) => setEventFormData({ ...eventFormData, data: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block mb-1">Descrição / Detalhes</label>
+                <textarea
+                  rows={3}
+                  placeholder="Ex: Aniversário de emancipação política do município de Curitiba..."
+                  value={eventFormData.descricao}
+                  onChange={(e) => setEventFormData({ ...eventFormData, descricao: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1">Local / Estado</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Curitiba - PR, Paraná, Brasil"
+                    value={eventFormData.local_ou_estado}
+                    onChange={(e) => setEventFormData({ ...eventFormData, local_ou_estado: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1">Celular / WhatsApp (Opcional)</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: 41 99999-8888"
+                    value={eventFormData.celular}
+                    onChange={(e) => setEventFormData({ ...eventFormData, celular: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEventModalOpen(false)}
+                  className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black uppercase text-xs tracking-wider shadow-lg shadow-purple-600/20"
+                >
+                  {editingEventId ? 'Salvar Alterações' : 'Salvar Evento'}
                 </button>
               </div>
             </form>

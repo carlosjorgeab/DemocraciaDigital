@@ -2,9 +2,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
   Pessoa, Entidade, AgendaCompromisso, SolicitacaoAudiencia, AtendimentoDemanda,
-  Oficio, LigacaoRecebida, RegistroVisita, Recado,
+  Oficio, LigacaoRecebida, RegistroVisita, Recado, EventoComemorativo,
   initialDemandas, initialAudiencias, initialAgendas, initialVisitas,
-  initialLigacoes, initialOficios, initialPessoas, initialEntidades
+  initialLigacoes, initialOficios, initialPessoas, initialEntidades, initialEventos
 } from '@/lib/gabineteStore';
 import { useDeputado } from '@/context/DeputadoContext';
 import { supabase } from '@/lib/supabase';
@@ -27,6 +27,7 @@ type GabineteContextType = {
   pessoas: Pessoa[];
   entidades: Entidade[];
   recados: Recado[];
+  eventos: EventoComemorativo[];
   
   // Actions
   addDemanda: (demanda: Omit<AtendimentoDemanda, 'id' | 'id_deputado'> & { id?: string; data_abertura?: string }) => void;
@@ -64,6 +65,10 @@ type GabineteContextType = {
   addRecado: (recado: Omit<Recado, 'id' | 'id_deputado'> & { id?: string }) => void;
   updateRecado: (id: string, recado: Partial<Recado>) => void;
   deleteRecado: (id: string) => void;
+
+  addEvento: (evento: Omit<EventoComemorativo, 'id' | 'id_deputado'> & { id?: string }) => void;
+  updateEvento: (id: string, evento: Partial<EventoComemorativo>) => void;
+  deleteEvento: (id: string) => void;
   
   loading: boolean;
 };
@@ -84,6 +89,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [entidades, setEntidades] = useState<Entidade[]>([]);
   const [recados, setRecados] = useState<Recado[]>([]);
+  const [eventos, setEventos] = useState<EventoComemorativo[]>([]);
   
   const [loading, setLoading] = useState(false);
 
@@ -93,7 +99,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       
       try {
-        const [resDemandas, resAgendas, resAudiencias, resPessoas, resEntidades, resOficios, resVisitas, resLigacoes, resRecados] = await Promise.all([
+        const [resDemandas, resAgendas, resAudiencias, resPessoas, resEntidades, resOficios, resVisitas, resLigacoes, resRecados, resEventos] = await Promise.all([
           supabase.from('gabinete_demandas').select('*').eq('id_deputado', deputadoId),
           supabase.from('gabinete_agendas').select('*').eq('id_deputado', deputadoId),
           supabase.from('gabinete_audiencias').select('*').eq('id_deputado', deputadoId),
@@ -103,6 +109,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
           supabase.from('gabinete_visitas').select('*').eq('id_deputado', deputadoId),
           supabase.from('gabinete_ligacoes').select('*').eq('id_deputado', deputadoId),
           supabase.from('gabinete_recados').select('*').eq('id_deputado', deputadoId),
+          supabase.from('gabinete_eventos').select('*').eq('id_deputado', deputadoId),
         ]);
 
         // Fallback to sample data if table is empty so UI is initialised cleanly
@@ -115,6 +122,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         setVisitas(resVisitas.data && resVisitas.data.length > 0 ? resVisitas.data : initialVisitas);
         setLigacoes(resLigacoes.data && resLigacoes.data.length > 0 ? resLigacoes.data : initialLigacoes);
         setRecados(resRecados.data || []);
+        setEventos(resEventos.data && resEventos.data.length > 0 ? resEventos.data : initialEventos);
       } catch (e) {
         console.error('Erro ao carregar dados do gabinete do banco:', e);
       } finally {
@@ -430,6 +438,39 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addEvento = (evento: Omit<EventoComemorativo, 'id' | 'id_deputado'> & { id?: string }) => {
+    const newId = evento.id && isUuid(evento.id) ? evento.id : crypto.randomUUID();
+    const newEv: EventoComemorativo = {
+      ...evento,
+      id: newId,
+      id_deputado: deputadoId,
+    };
+    setEventos((prev) => [newEv, ...prev]);
+    supabase.from('gabinete_eventos').insert(newEv).then(({ error }) => {
+      if (error) console.error('Error inserting gabinete_evento:', error);
+    });
+  };
+
+  const updateEvento = (id: string, updatedFields: Partial<EventoComemorativo>) => {
+    setEventos((prev) =>
+      prev.map((ev) => (ev.id === id ? { ...ev, ...updatedFields } : ev))
+    );
+    if (isUuid(id)) {
+      supabase.from('gabinete_eventos').update(updatedFields).eq('id', id).then(({ error }) => {
+        if (error) console.error('Error updating gabinete_evento:', error);
+      });
+    }
+  };
+
+  const deleteEvento = (id: string) => {
+    setEventos((prev) => prev.filter((ev) => ev.id !== id));
+    if (isUuid(id)) {
+      supabase.from('gabinete_eventos').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Error deleting gabinete_evento:', error);
+      });
+    }
+  };
+
   return (
     <GabineteContext.Provider
       value={{
@@ -442,6 +483,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         pessoas,
         entidades,
         recados,
+        eventos,
         addDemanda,
         updateDemanda,
         deleteDemanda,
@@ -469,6 +511,9 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         addRecado,
         updateRecado,
         deleteRecado,
+        addEvento,
+        updateEvento,
+        deleteEvento,
         loading,
       }}
     >
