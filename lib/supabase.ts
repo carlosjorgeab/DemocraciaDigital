@@ -14,5 +14,8 @@ try {
 
 const supabaseKey = process.env.SUPABASE_KEY_SERVICE_ROLE || '';
 
+console.log(supabaseKey);
+console.log(supabaseUrl);
+
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
