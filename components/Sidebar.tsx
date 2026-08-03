@@ -7,6 +7,7 @@ import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { isWhiteOrNearWhite, getSidebarTopbarFontColor, getContrastTextColor } from '@/lib/colorUtils';
+import { SidebarCalendar } from './SidebarCalendar';
 
 export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIsOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
@@ -166,6 +167,11 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
             </div>
           </div>
         </div>
+
+        {/* Top Sidebar Monthly Calendar */}
+        {(user?.is_admin || user?.exibir_calendario !== false) && (
+          <SidebarCalendar isSidebarWhite={isSidebarWhite} />
+        )}
         
         <nav className="space-y-1">
           {navItems.map((item) => {

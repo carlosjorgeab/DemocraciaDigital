@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useGabinete } from '@/context/GabineteContext';
 import { AgendaCompromisso } from '@/lib/gabineteStore';
 import {
@@ -28,6 +29,24 @@ const getTodayDateTimeString = (hoursToAdd = 0) => {
   const minutes = '00';
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
+
+const formatDateYYYYMMDD = (d: Date) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const addDaysToDate = (startDateStr: string, days: number) => {
+  if (!startDateStr) return '';
+  const [y, m, d] = startDateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + days);
+  return formatDateYYYYMMDD(dt);
+};
+
+// Types of Date Filter
+type TipoFiltroData = 'HOJE' | 'SEMANAL' | 'QUINZENAL' | 'MENSAL' | 'BIMESTRAL' | 'SEMESTRAL' | 'ANUAL' | 'PERSONALIZADO' | 'TODOS';
 
 // Types of Recurrence
 type TipoRecorrencia = 'NENHUMA' | 'DIARIA' | 'SEMANAL' | 'QUINZENAL' | 'MENSAL' | 'BIMESTRAL' | 'SEMESTRAL' | 'ANUAL';
@@ -126,12 +145,16 @@ const EVENTOS_COMEMORATIVOS_PADRAO: EventoComemorativo[] = [
 
 export default function AgendaPage() {
   const { agendas, addAgenda, updateAgenda, deleteAgenda, pessoas } = useGabinete();
+  const searchParams = useSearchParams();
+  const urlDate = searchParams ? searchParams.get('data') : null;
 
   // Active Main View Tab: 'compromissos' | 'aniversarios_eventos'
   const [activeTab, setActiveTab] = useState<'compromissos' | 'aniversarios_eventos'>('compromissos');
 
-  // Filter States - Defaulting to TODAY
-  const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+  // Filter States - Date Interval & Quick Options
+  const [tipoFiltroData, setTipoFiltroData] = useState<TipoFiltroData>('HOJE');
+  const [startDate, setStartDate] = useState<string>(getTodayDateString());
+  const [endDate, setEndDate] = useState<string>(getTodayDateString());
   const [filterVisibilidade, setFilterVisibilidade] = useState<string>('TODOS');
   const [filterAssessor, setFilterAssessor] = useState<string>('TODOS');
   const [filterEventoTipo, setFilterEventoTipo] = useState<string>('TODOS');
@@ -140,6 +163,63 @@ export default function AgendaPage() {
 
   const currentMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
   const currentMonthName = MESES_NOME.find((m) => m.valor === currentMonthStr)?.nome || 'Mês Atual';
+
+  // Handle URL query parameter ?data=YYYY-MM-DD from calendar sidebar
+  useEffect(() => {
+    if (urlDate) {
+      setStartDate(urlDate);
+      setEndDate(urlDate);
+      if (urlDate === getTodayDateString()) {
+        setTipoFiltroData('HOJE');
+      } else {
+        setTipoFiltroData('PERSONALIZADO');
+      }
+    }
+  }, [urlDate]);
+
+  // Handle Quick Date Period selection
+  const handlePeriodChange = (tipo: TipoFiltroData) => {
+    setTipoFiltroData(tipo);
+    const today = getTodayDateString();
+
+    switch (tipo) {
+      case 'HOJE':
+        setStartDate(today);
+        setEndDate(today);
+        break;
+      case 'SEMANAL':
+        setStartDate(today);
+        setEndDate(addDaysToDate(today, 7));
+        break;
+      case 'QUINZENAL':
+        setStartDate(today);
+        setEndDate(addDaysToDate(today, 15));
+        break;
+      case 'MENSAL':
+        setStartDate(today);
+        setEndDate(addDaysToDate(today, 30));
+        break;
+      case 'BIMESTRAL':
+        setStartDate(today);
+        setEndDate(addDaysToDate(today, 60));
+        break;
+      case 'SEMESTRAL':
+        setStartDate(today);
+        setEndDate(addDaysToDate(today, 180));
+        break;
+      case 'ANUAL':
+        setStartDate(today);
+        setEndDate(addDaysToDate(today, 365));
+        break;
+      case 'TODOS':
+        setStartDate('');
+        setEndDate('');
+        break;
+      case 'PERSONALIZADO':
+        // Maintains custom startDate & endDate
+        break;
+    }
+  };
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -210,7 +290,12 @@ export default function AgendaPage() {
   const filteredAgendas = agendas.filter((ag) => {
     if (filterVisibilidade !== 'TODOS' && ag.visibilidade !== filterVisibilidade) return false;
     if (filterAssessor !== 'TODOS' && ag.assessor_responsavel !== filterAssessor) return false;
-    if (selectedDate && !ag.data_inicio.startsWith(selectedDate)) return false;
+
+    const agDateStr = ag.data_inicio.includes('T') ? ag.data_inicio.split('T')[0] : ag.data_inicio.split(' ')[0];
+
+    if (startDate && agDateStr < startDate) return false;
+    if (endDate && agDateStr > endDate) return false;
+
     return true;
   });
 
@@ -406,62 +491,135 @@ export default function AgendaPage() {
       {activeTab === 'compromissos' ? (
         <>
           {/* Filter & Date Selection Bar */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Data do Compromisso (Padrão: Hoje)</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                  <Filter size={12} className="text-blue-600" /> Período do Filtro
+                </label>
+                <select
+                  value={tipoFiltroData}
+                  onChange={(e) => handlePeriodChange(e.target.value as TipoFiltroData)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="HOJE">📍 Hoje</option>
+                  <option value="SEMANAL">📅 Semanal (Próximos 7 dias)</option>
+                  <option value="QUINZENAL">🗓️ Quinzenal (Próximos 15 dias)</option>
+                  <option value="MENSAL">📆 Mensal (Próximos 30 dias)</option>
+                  <option value="BIMESTRAL">📊 Bimestral (Próximos 60 dias)</option>
+                  <option value="SEMESTRAL">🏛️ Semestral (Próximos 180 dias)</option>
+                  <option value="ANUAL">🎆 Anual (Próximos 365 dias)</option>
+                  <option value="PERSONALIZADO">✏️ Personalizado (Intervalo)</option>
+                  <option value="TODOS">🌐 Todos os Períodos</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Data Inicial (De)</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setTipoFiltroData('PERSONALIZADO');
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Data Final (Até)</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setTipoFiltroData('PERSONALIZADO');
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Visibilidade</label>
+                <select
+                  value={filterVisibilidade}
+                  onChange={(e) => setFilterVisibilidade(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="TODOS">Todas (Públicas & Reservadas)</option>
+                  <option value="PUBLICO">Públicas</option>
+                  <option value="RESERVADO">Reservadas (Gabinete)</option>
+                  <option value="PESSOAL">Pessoal</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Assessor Responsável</label>
+                <select
+                  value={filterAssessor}
+                  onChange={(e) => setFilterAssessor(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="TODOS">Todos os Assessores</option>
+                  <option value="Marcelo Guaraldo">Marcelo Guaraldo</option>
+                  <option value="Nathalia Carvalho">Nathalia Carvalho</option>
+                  <option value="Saulo Vieira">Saulo Vieira</option>
+                </select>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Visibilidade</label>
-              <select
-                value={filterVisibilidade}
-                onChange={(e) => setFilterVisibilidade(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* Quick Filter Pill Buttons Bar */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-slate-400 font-bold text-[11px] mr-1">Filtros Rápidos:</span>
+                {[
+                  { id: 'HOJE', label: 'Hoje' },
+                  { id: 'SEMANAL', label: 'Semanal' },
+                  { id: 'QUINZENAL', label: 'Quinzenal' },
+                  { id: 'MENSAL', label: 'Mensal' },
+                  { id: 'BIMESTRAL', label: 'Bimestral' },
+                  { id: 'SEMESTRAL', label: 'Semestral' },
+                  { id: 'ANUAL', label: 'Anual' },
+                  { id: 'TODOS', label: 'Todos' },
+                ].map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handlePeriodChange(p.id as TipoFiltroData)}
+                    className={`px-3 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer ${
+                      tipoFiltroData === p.id
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  handlePeriodChange('HOJE');
+                  setFilterVisibilidade('TODOS');
+                  setFilterAssessor('TODOS');
+                }}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1 ml-auto cursor-pointer"
               >
-                <option value="TODOS">Todas (Públicas & Reservadas)</option>
-                <option value="PUBLICO">Públicas</option>
-                <option value="RESERVADO">Reservadas (Gabinete)</option>
-                <option value="PESSOAL">Pessoal</option>
-              </select>
+                <RefreshCw size={12} /> Redefinir para Hoje
+              </button>
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Assessor Responsável</label>
-              <select
-                value={filterAssessor}
-                onChange={(e) => setFilterAssessor(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="TODOS">Todos os Assessores</option>
-                <option value="Marcelo Guaraldo">Marcelo Guaraldo</option>
-                <option value="Nathalia Carvalho">Nathalia Carvalho</option>
-                <option value="Saulo Vieira">Saulo Vieira</option>
-              </select>
-            </div>
-
-            <button
-              onClick={() => {
-                setSelectedDate(getTodayDateString());
-                setFilterVisibilidade('TODOS');
-                setFilterAssessor('TODOS');
-              }}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
-            >
-              <RefreshCw size={14} /> Trazer Data Atual (Hoje)
-            </button>
           </div>
 
           {/* Agenda Timeline List */}
           <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-xs space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <h2 className="font-black text-slate-900 text-xl flex items-center gap-2">
-                <Clock className="text-blue-600" /> Agenda • {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Exibindo todos os eventos'}
+                <Clock className="text-blue-600" /> Agenda •{' '}
+                {startDate
+                  ? startDate === endDate
+                    ? new Date(startDate + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : `${new Date(startDate + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} até ${new Date(endDate + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                  : 'Exibindo todos os eventos'}
               </h2>
               <span className="bg-blue-50 text-blue-800 text-xs font-black px-3 py-1 rounded-full">
                 {filteredAgendas.length} compromisso(s)
@@ -574,7 +732,9 @@ export default function AgendaPage() {
             ) : (
               <div className="text-center py-12 text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                 <CalendarIcon size={40} className="mx-auto text-slate-300 mb-2" />
-                <p className="font-bold text-sm text-slate-600">Nenhum compromisso para a data selecionada ({selectedDate}).</p>
+                <p className="font-bold text-sm text-slate-600">
+                  Nenhum compromisso para o período selecionado ({startDate ? (startDate === endDate ? startDate : `${startDate} até ${endDate}`) : 'todos'}).
+                </p>
                 <p className="text-xs text-slate-400 mt-1">Clique em "Novo Compromisso" para adicionar à pauta.</p>
               </div>
             )}

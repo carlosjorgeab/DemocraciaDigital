@@ -12,12 +12,13 @@ type Usuario = {
   id_perfil: string | null;
   id_deputado: string | null;
   is_admin: boolean;
+  exibir_calendario?: boolean;
   perfil?: { nome: string };
   deputado?: { nome: string };
 };
 
 export default function UsuariosPage() {
-  const { user } = useAuth();
+  const { user, updateUserPreference } = useAuth();
   const { deputados } = useDeputado();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [perfis, setPerfis] = useState<{id: string, nome: string}[]>([]);
@@ -28,7 +29,8 @@ export default function UsuariosPage() {
     senha: '', 
     id_perfil: '', 
     id_deputado: '',
-    is_admin: false
+    is_admin: false,
+    exibir_calendario: true
   });
   const [error, setError] = useState('');
 
@@ -82,7 +84,8 @@ export default function UsuariosPage() {
       email: currentUser.email,
       id_perfil: currentUser.is_admin ? null : currentUser.id_perfil,
       id_deputado: currentUser.is_admin ? null : currentUser.id_deputado,
-      is_admin: currentUser.is_admin || false
+      is_admin: currentUser.is_admin || false,
+      exibir_calendario: currentUser.exibir_calendario ?? true,
     };
 
     if (currentUser.senha) {
@@ -91,8 +94,12 @@ export default function UsuariosPage() {
 
     if (currentUser.id) {
       const { error } = await supabase.from('usuarios').update(userData).eq('id', currentUser.id);
-      if (error) setError('Erro ao atualizar usuário. O e-mail pode já estar em uso.');
-      else {
+      if (error) {
+        setError('Erro ao atualizar usuário. O e-mail pode já estar em uso.');
+      } else {
+        if (currentUser.id === user?.id && updateUserPreference) {
+          updateUserPreference({ exibir_calendario: currentUser.exibir_calendario ?? true });
+        }
         setIsEditing(false);
         fetchData();
       }
@@ -183,6 +190,19 @@ export default function UsuariosPage() {
               />
               <label htmlFor="is_admin" className="text-sm font-bold text-slate-700 cursor-pointer">
                 Usuário Administrador (Acesso total a todas as telas e deputados)
+              </label>
+            </div>
+
+            <div className="md:col-span-2 flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <input 
+                type="checkbox" 
+                id="exibir_calendario"
+                checked={currentUser.exibir_calendario ?? true}
+                onChange={(e) => setCurrentUser({...currentUser, exibir_calendario: e.target.checked})}
+                className="w-5 h-5 text-primary rounded focus:ring-primary" 
+              />
+              <label htmlFor="exibir_calendario" className="text-sm font-bold text-slate-700 cursor-pointer">
+                Exibir Mini-Calendário Mensal no Topo da Sidebar (Agenda Parlamentar)
               </label>
             </div>
 

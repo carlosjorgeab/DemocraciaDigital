@@ -9,6 +9,7 @@ export type User = {
   id_perfil: string | null;
   id_deputado: string | null;
   is_admin: boolean;
+  exibir_calendario?: boolean;
   perfil?: {
     nome: string;
     permissoes: string[];
@@ -21,6 +22,7 @@ type AuthContextType = {
   login: (email: string, senha: string) => Promise<{ error: string | null }>;
   logout: () => void;
   hasPermission: (menu: string) => boolean;
+  updateUserPreference: (prefs: Partial<User>) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -127,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id_perfil: data.id_perfil,
         id_deputado: data.id_deputado,
         is_admin: data.is_admin,
+        exibir_calendario: data.exibir_calendario ?? true,
         perfil: data.perfil
       };
 
@@ -144,6 +147,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return { error: 'Erro ao fazer login' };
     }
+  };
+
+  const updateUserPreference = (prefs: Partial<User>) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...prefs };
+    setUser(updatedUser);
+    localStorage.setItem('democracia_user', JSON.stringify(updatedUser));
   };
 
   const logout = () => {
@@ -167,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, hasPermission, updateUserPreference }}>
       {children}
     </AuthContext.Provider>
   );
