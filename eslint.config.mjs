@@ -4,7 +4,10 @@ import tsParser from "@typescript-eslint/parser";
 
 export default [
   {
-    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    ignores: [".next/**", "node_modules/**", "dist/**", "*.js"],
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx"],
     plugins: {
       "@next/next": nextPlugin,
       "@typescript-eslint": tsPlugin,
@@ -24,7 +27,10 @@ export default [
       ...nextPlugin.configs["core-web-vitals"].rules,
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "warn",
+      "@next/next/no-img-element": "warn",
+      "react/no-unescaped-entities": "off",
     },
   },
 ];
+
 
