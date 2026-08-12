@@ -1,5 +1,8 @@
-# 1. Base image usando Debian Slim (compatibilidade nativa com glibc/gnu)
-FROM node:20-slim AS base
+# 1. Base image usando Node 22 (exigido pelo Prisma 7 e Supabase v2)
+FROM node:22-slim AS base
+
+# Instala OpenSSL exigido pelo engine do Prisma
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # 2. Dependencies
 FROM base AS deps
@@ -18,7 +21,7 @@ COPY . .
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Gera o cliente do Prisma se o schema existir
+# Gera o Prisma Client se o schema existir
 RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
 
 # Compila o Next.js
