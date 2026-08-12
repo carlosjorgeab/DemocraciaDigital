@@ -1,7 +1,7 @@
 # 1. Base image usando Node 22 (Debian Slim)
 FROM node:22-slim AS base
 
-RUN apt-get update -y && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # 2. Dependencies
 FROM base AS deps
@@ -16,23 +16,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa telemetria e otimizações nativas
+# Desativa o LightningCSS e Telemetria
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# 🛠️ FIX DEFINITIVO PARA ARM64:
-# Baixa diretamente o binario nativo linux-arm64-gnu do lightningcss para dentro da pasta node_modules
-RUN mkdir -p node_modules/lightningcss/node && \
-    curl -fL https://unpkg.com/lightningcss-linux-arm64-gnu@1.29.1/lightningcss.linux-arm64-gnu.node \
-    -o node_modules/lightningcss/node/lightningcss.linux-arm64-gnu.node || true
-
-# Gera o Prisma Client
+# Gera o Prisma Client se o arquivo schema existir
 RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
 
 # Compila o Next.js
 RUN npm run build
 
-# 4. Runner (Imagem final de produção)
+# 4. Runner (Imagem de execução em produção)
 FROM base AS runner
 WORKDIR /app
 
