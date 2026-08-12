@@ -3,7 +3,6 @@ const config = {
   plugins: {
     '@tailwindcss/postcss': {},
     autoprefixer: {},
-    optimize: false
   },
 };
 
