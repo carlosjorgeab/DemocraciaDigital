@@ -1,9 +1,8 @@
-# 1. Base image
-FROM node:20-alpine AS base
+# 1. Base image usando Debian Slim (compatibilidade nativa com glibc/gnu)
+FROM node:20-slim AS base
 
 # 2. Dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
@@ -15,13 +14,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa o LightningCSS para evitar erro em ARM64
+# Desativa o LightningCSS e envia flags de build do Next
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Gera o cliente do Prisma se o schema existir
+RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
+
+# Compila o Next.js
 RUN npm run build
 
-# 4. Runner
+# 4. Runner (Imagem final de produção)
 FROM base AS runner
 WORKDIR /app
 
@@ -37,8 +40,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3001
-ENV PORT=3001
+EXPOSE 3000
+ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
