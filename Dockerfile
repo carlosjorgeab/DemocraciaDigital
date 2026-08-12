@@ -19,6 +19,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Garante que a pasta public exista para a etapa final
+RUN mkdir -p public
+
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
