@@ -1,7 +1,6 @@
-# 1. Base image usando Node 22 (exigido pelo Prisma 7 e Supabase v2)
+# 1. Base image usando Node 22 (Debian Slim com glibc)
 FROM node:22-slim AS base
 
-# Instala OpenSSL exigido pelo engine do Prisma
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # 2. Dependencies
@@ -17,17 +16,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa o LightningCSS e envia flags de build do Next
+# Desativa o LightningCSS nativo e otimiza o build
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Gera o Prisma Client se o schema existir
+# Gera o Prisma Client
 RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
 
-# Compila o Next.js
-RUN npm run build
+# Compila o Next.js sem turbopack no container
+RUN npx next build --no-turbo
 
-# 4. Runner (Imagem final de produção)
+# 4. Runner (Imagem final)
 FROM base AS runner
 WORKDIR /app
 
