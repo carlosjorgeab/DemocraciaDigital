@@ -8,7 +8,9 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+
+# Força a instalação das dependências opcionais de plataforma (ARM64)
+RUN npm ci --include=optional
 
 # 3. Builder
 FROM base AS builder
@@ -16,7 +18,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa o LightningCSS e Telemetria
+# Desativa otimizações nativas incompatíveis e telemetria
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -42,8 +44,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3000
-ENV PORT=3000
+EXPOSE 3001
+ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
