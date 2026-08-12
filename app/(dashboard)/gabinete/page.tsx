@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useGabinete } from '@/context/GabineteContext';
+import { getContrastTextColor } from '@/lib/colorUtils';
 import {
   Calendar, Users2, FolderKanban, Mail, PhoneCall, UserCheck, Cake,
   Building, AlertCircle, ArrowRight, CheckCircle2, Clock, Plus,
@@ -13,6 +14,11 @@ import {
 export default function GabineteDashboard() {
   const { selectedDeputado } = useDeputado();
   const { demandas, agendas, pessoas, recados, ligacoes, eventos } = useGabinete();
+
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
+  const partyTertiary = selectedDeputado?.partidos?.cor_terciaria || '#009C3B';
+  const partyPrimaryText = getContrastTextColor(partyPrimary);
 
   const [activeTab, setActiveTab] = useState<'demandas' | 'emendas'>('demandas');
 
@@ -159,7 +165,10 @@ export default function GabineteDashboard() {
   return (
     <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen font-['Inter']">
       {/* Top Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+      <div
+        style={{ background: `linear-gradient(135deg, ${partySecondary} 0%, ${partyPrimary} 100%)` }}
+        className="text-white rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden"
+      >
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -178,17 +187,17 @@ export default function GabineteDashboard() {
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <span className="bg-blue-500/30 text-blue-200 border border-blue-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                <span className="bg-white/20 text-white border border-white/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md">
                   e-Gabinete Parlamentar
                 </span>
-                <span className="text-xs text-blue-200/80 font-medium">
+                <span className="text-xs text-white/80 font-medium">
                   {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
                 </span>
               </div>
               <h1 className="text-2xl md:text-3xl font-black text-white mt-1">
                 Sua Página • {selectedDeputado?.nome || 'Gabinete Digital'}
               </h1>
-              <p className="text-slate-300 text-sm mt-0.5">
+              <p className="text-white/80 text-sm mt-0.5">
                 Central de Gestão do Mandato, Agendas, Atendimentos e Atuação Parlamentar.
               </p>
             </div>
@@ -197,14 +206,15 @@ export default function GabineteDashboard() {
           <div className="flex items-center gap-3 flex-wrap">
             <Link
               href="/gabinete/agenda"
-              className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider backdrop-blur-sm transition-all flex items-center gap-2 border border-white/10"
+              className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider backdrop-blur-sm transition-all flex items-center gap-2 border border-white/20"
             >
               <Calendar size={16} />
               Agenda
             </Link>
             <Link
               href="/gabinete/demandas"
-              className="bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider hover:bg-amber-400 transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20"
+              style={{ backgroundColor: partyTertiary || '#009C3B', color: getContrastTextColor(partyTertiary || '#009C3B') }}
+              className="font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider hover:opacity-90 transition-all flex items-center gap-2 shadow-lg"
             >
               <FolderKanban size={16} />
               Nova Demanda

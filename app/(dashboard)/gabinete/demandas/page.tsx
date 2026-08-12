@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useGabinete } from '@/context/GabineteContext';
+import { useDeputado } from '@/context/DeputadoContext';
+import { getContrastTextColor } from '@/lib/colorUtils';
 import { AtendimentoDemanda } from '@/lib/gabineteStore';
 import {
   FolderKanban, Plus, Search, Filter, Printer, BarChart3,
@@ -21,6 +23,12 @@ const getTodayDateTimeString = () => {
 };
 
 export default function DemandasPage() {
+  const { selectedDeputado } = useDeputado();
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
+  const partyTertiary = selectedDeputado?.partidos?.cor_terciaria || '#009C3B';
+  const partyPrimaryText = getContrastTextColor(partyPrimary);
+
   const { demandas, addDemanda, updateDemanda, deleteDemanda, pessoas } = useGabinete();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,7 +153,7 @@ export default function DemandasPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-wider">
+          <div style={{ color: partyPrimary }} className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
             <FolderKanban size={16} /> e-Gabinete • Atendimentos
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">Gestão de Demandas & Pleitos</h1>
@@ -163,7 +171,8 @@ export default function DemandasPage() {
           </button>
           <button
             onClick={handleOpenNewModal}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/20 text-xs uppercase tracking-wider transition-all"
+            style={{ backgroundColor: partyPrimary, color: partyPrimaryText }}
+            className="font-black px-6 py-3 rounded-2xl flex items-center gap-2 shadow-lg hover:opacity-90 text-xs uppercase tracking-wider transition-all"
           >
             <Plus size={18} /> Cadastrar Nova Demanda
           </button>

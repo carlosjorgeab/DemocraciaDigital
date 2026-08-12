@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useGabinete } from '@/context/GabineteContext';
+import { useDeputado } from '@/context/DeputadoContext';
+import { getContrastTextColor } from '@/lib/colorUtils';
 import { SolicitacaoAudiencia } from '@/lib/gabineteStore';
 import {
   UserCheck, Plus, Search, Calendar, CheckCircle2, Clock,
@@ -9,6 +11,11 @@ import {
 } from 'lucide-react';
 
 export default function AudienciasPage() {
+  const { selectedDeputado } = useDeputado();
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
+  const partyPrimaryText = getContrastTextColor(partyPrimary);
+
   const { audiencias, addAudiencia, updateAudiencia, deleteAudiencia } = useGabinete();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,7 +75,7 @@ export default function AudienciasPage() {
     <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen font-['Inter']">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-cyan-600 font-bold text-xs uppercase tracking-wider">
+          <div style={{ color: partyPrimary }} className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
             <UserCheck size={16} /> e-Gabinete • Audiências
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">Solicitações de Audiência</h1>
@@ -79,7 +86,8 @@ export default function AudienciasPage() {
 
         <button
           onClick={handleOpenNewModal}
-          className="bg-cyan-600 hover:bg-cyan-700 text-white font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 text-xs uppercase tracking-wider transition-all"
+          style={{ backgroundColor: partyPrimary, color: partyPrimaryText }}
+          className="font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:opacity-90 text-xs uppercase tracking-wider transition-all"
         >
           <Plus size={18} /> Solicitar Nova Audiência
         </button>
@@ -90,7 +98,10 @@ export default function AudienciasPage() {
           {audiencias.map((aud) => (
             <div key={aud.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-white hover:shadow-md transition-all space-y-3">
               <div className="flex items-start justify-between gap-3">
-                <span className="bg-cyan-100 text-cyan-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+                <span
+                  style={{ backgroundColor: `${partyPrimary}20`, color: partyPrimary }}
+                  className="text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase"
+                >
                   {aud.status}
                 </span>
                 <div className="flex items-center gap-1">
@@ -124,7 +135,8 @@ export default function AudienciasPage() {
                 {aud.status !== 'Agendada' && (
                   <button
                     onClick={() => updateAudiencia(aud.id, { status: 'Agendada' })}
-                    className="text-cyan-600 font-bold hover:underline"
+                    style={{ color: partyPrimary }}
+                    className="font-bold hover:underline"
                   >
                     Agendar na Pauta
                   </button>
@@ -166,7 +178,11 @@ export default function AudienciasPage() {
               </div>
               <div className="pt-4 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 bg-slate-100 font-bold rounded-xl">Cancelar</button>
-                <button type="submit" className="px-6 py-2.5 bg-cyan-600 text-white font-black rounded-xl uppercase text-xs">
+                <button
+                  type="submit"
+                  style={{ backgroundColor: partyPrimary, color: partyPrimaryText }}
+                  className="px-6 py-2.5 font-black rounded-xl uppercase text-xs hover:opacity-90"
+                >
                   {editingAudienciaId ? 'Salvar Alterações' : 'Salvar Solicitação'}
                 </button>
               </div>

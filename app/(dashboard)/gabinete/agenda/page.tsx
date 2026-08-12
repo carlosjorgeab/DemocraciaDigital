@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useGabinete } from '@/context/GabineteContext';
+import { useDeputado } from '@/context/DeputadoContext';
+import { getContrastTextColor } from '@/lib/colorUtils';
 import { AgendaCompromisso } from '@/lib/gabineteStore';
 import {
   Calendar, Calendar as CalendarIcon, Plus, MapPin, Clock, Shield, AlertCircle,
@@ -111,6 +113,12 @@ interface EventoDisplay {
 }
 
 export default function AgendaPage() {
+  const { selectedDeputado } = useDeputado();
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
+  const partyTertiary = selectedDeputado?.partidos?.cor_terciaria || '#009C3B';
+  const partyPrimaryText = getContrastTextColor(partyPrimary);
+
   const { agendas, addAgenda, updateAgenda, deleteAgenda, pessoas, eventos, addEvento, updateEvento, deleteEvento } = useGabinete();
   const searchParams = useSearchParams();
   const urlDate = searchParams ? searchParams.get('data') : null;
@@ -504,7 +512,7 @@ export default function AgendaPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-wider">
+          <div style={{ color: partyPrimary }} className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
             <CalendarIcon size={16} /> e-Gabinete • Compromissos & Pauta
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">Agenda Parlamentar</h1>
@@ -517,16 +525,18 @@ export default function AgendaPage() {
           <div className="bg-slate-100 p-1 rounded-2xl flex text-xs font-black">
             <button
               onClick={() => setActiveTab('compromissos')}
+              style={activeTab === 'compromissos' ? { backgroundColor: partyPrimary, color: partyPrimaryText } : {}}
               className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === 'compromissos' ? 'bg-white text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                activeTab === 'compromissos' ? 'shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Clock size={14} /> Pauta de Compromissos
             </button>
             <button
               onClick={() => setActiveTab('aniversarios_eventos')}
+              style={activeTab === 'aniversarios_eventos' ? { backgroundColor: partyPrimary, color: partyPrimaryText } : {}}
               className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === 'aniversarios_eventos' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                activeTab === 'aniversarios_eventos' ? 'shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Cake size={14} /> Aniversários & Eventos ({combinedEventos.length})
@@ -535,7 +545,8 @@ export default function AgendaPage() {
 
           <button
             onClick={handleOpenNewModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-black px-5 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 text-xs uppercase tracking-wider transition-all"
+            style={{ backgroundColor: partyPrimary, color: partyPrimaryText }}
+            className="font-black px-5 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:opacity-90 text-xs uppercase tracking-wider transition-all"
           >
             <Plus size={18} /> Novo Compromisso
           </button>

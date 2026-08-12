@@ -2,11 +2,18 @@
 
 import { useState } from 'react';
 import { useGabinete } from '@/context/GabineteContext';
+import { useDeputado } from '@/context/DeputadoContext';
+import { getContrastTextColor } from '@/lib/colorUtils';
 import { Oficio } from '@/lib/gabineteStore';
 import { Mail, Plus, Search, FileText, Download, CheckCircle2, Building2, Edit2, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 
 export default function OficiosPage() {
+  const { selectedDeputado } = useDeputado();
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
+  const partyPrimaryText = getContrastTextColor(partyPrimary);
+
   const { oficios, addOficio, updateOficio, deleteOficio } = useGabinete();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,7 +96,7 @@ export default function OficiosPage() {
     <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen font-['Inter']">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-purple-600 font-bold text-xs uppercase tracking-wider">
+          <div style={{ color: partyPrimary }} className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
             <Mail size={16} /> e-Gabinete • Documentos
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">Emissão de Ofícios & Memos</h1>
@@ -100,7 +107,8 @@ export default function OficiosPage() {
 
         <button
           onClick={handleOpenNewModal}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/20 text-xs uppercase tracking-wider transition-all"
+          style={{ backgroundColor: partyPrimary, color: partyPrimaryText }}
+          className="font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:opacity-90 text-xs uppercase tracking-wider transition-all"
         >
           <Plus size={18} /> Emitir Novo Ofício
         </button>

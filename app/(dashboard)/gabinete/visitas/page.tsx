@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useGabinete } from '@/context/GabineteContext';
+import { useDeputado } from '@/context/DeputadoContext';
+import { getContrastTextColor } from '@/lib/colorUtils';
 import { RegistroVisita } from '@/lib/gabineteStore';
 import { UserCheck, Plus, Search, Calendar, MapPin, FileText, CheckCircle2, Edit2, Trash2, Clock } from 'lucide-react';
 
@@ -16,6 +18,11 @@ const getTodayDateTimeString = () => {
 };
 
 export default function VisitasPage() {
+  const { selectedDeputado } = useDeputado();
+  const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
+  const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
+  const partyPrimaryText = getContrastTextColor(partyPrimary);
+
   const { visitas, addVisita, updateVisita, deleteVisita } = useGabinete();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,7 +104,7 @@ export default function VisitasPage() {
     <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen font-['Inter']">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-cyan-600 font-bold text-xs uppercase tracking-wider">
+          <div style={{ color: partyPrimary }} className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
             <UserCheck size={16} /> e-Gabinete • Atendimento Presencial
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">Registro de Visitas</h1>
@@ -108,7 +115,8 @@ export default function VisitasPage() {
 
         <button
           onClick={handleOpenNewModal}
-          className="bg-cyan-600 hover:bg-cyan-700 text-white font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 text-xs uppercase tracking-wider transition-all"
+          style={{ backgroundColor: partyPrimary, color: partyPrimaryText }}
+          className="font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:opacity-90 text-xs uppercase tracking-wider transition-all"
         >
           <Plus size={18} /> Registrar Nova Visita
         </button>

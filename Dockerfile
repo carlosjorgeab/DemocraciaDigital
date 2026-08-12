@@ -9,9 +9,9 @@ WORKDIR /app
 
 COPY package.json package-lock.json* ./
 
-# Instala dependencias e forca o pacote nativo ARM64 do lightningcss
+# Instala dependencias e forca os pacotes nativos ARM64
 RUN npm ci --include=optional
-RUN npm install lightningcss-linux-arm64-gnu --no-save
+RUN npm install lightningcss-linux-arm64-gnu @tailwindcss/oxide-linux-arm64-gnu --no-save
 
 # 3. Builder
 FROM base AS builder
