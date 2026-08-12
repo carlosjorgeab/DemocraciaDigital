@@ -16,15 +16,15 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa o LightningCSS nativo e otimiza o build
+# Desativa o LightningCSS nativo no build
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Gera o Prisma Client
 RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
 
-# Compila o Next.js sem turbopack no container
-RUN npx next build --no-turbo
+# Compila o Next.js
+RUN npm run build
 
 # 4. Runner (Imagem final)
 FROM base AS runner
