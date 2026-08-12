@@ -1,4 +1,4 @@
-# 1. Base image usando Node 22 (Debian Slim com glibc)
+# 1. Base image usando Node 22 (Debian Slim)
 FROM node:22-slim AS base
 
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
@@ -8,7 +8,8 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+# Força o download de dependências opcionais de arquitetura (ARM64)
+RUN npm ci --include=optional
 
 # 3. Builder
 FROM base AS builder
@@ -16,7 +17,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa o LightningCSS nativo no build
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -26,7 +26,7 @@ RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
 # Compila o Next.js
 RUN npm run build
 
-# 4. Runner (Imagem final)
+# 4. Runner
 FROM base AS runner
 WORKDIR /app
 
