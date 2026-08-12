@@ -9,8 +9,9 @@ WORKDIR /app
 
 COPY package.json package-lock.json* ./
 
-# Força a instalação das dependências opcionais de plataforma (ARM64)
+# Instala dependencias e forca o pacote nativo ARM64 do lightningcss
 RUN npm ci --include=optional
+RUN npm install lightningcss-linux-arm64-gnu --no-save
 
 # 3. Builder
 FROM base AS builder
@@ -18,7 +19,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Desativa otimizações nativas incompatíveis e telemetria
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -28,7 +28,7 @@ RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
 # Compila o Next.js
 RUN npm run build
 
-# 4. Runner (Imagem de execução em produção)
+# 4. Runner (Imagem de execucao)
 FROM base AS runner
 WORKDIR /app
 
