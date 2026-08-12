@@ -122,7 +122,12 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
 export function useDeputado() {
   const context = useContext(DeputadoContext);
   if (context === undefined) {
-    throw new Error('useDeputado must be used within a DeputadoProvider');
+    return {
+      deputados: [],
+      selectedDeputado: null,
+      setSelectedDeputado: () => {},
+      loading: false,
+    };
   }
   return context;
 }

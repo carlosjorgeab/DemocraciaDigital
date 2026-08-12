@@ -525,7 +525,49 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
 export function useGabinete() {
   const context = useContext(GabineteContext);
   if (!context) {
-    throw new Error('useGabinete must be used within a GabineteProvider');
+    return {
+      demandas: [],
+      audiencias: [],
+      agendas: [],
+      visitas: [],
+      ligacoes: [],
+      oficios: [],
+      pessoas: [],
+      entidades: [],
+      recados: [],
+      eventos: [],
+      addDemanda: () => {},
+      updateDemanda: () => {},
+      deleteDemanda: () => {},
+      addAgenda: () => {},
+      updateAgenda: () => {},
+      deleteAgenda: () => {},
+      addAudiencia: () => {},
+      updateAudiencia: () => {},
+      deleteAudiencia: () => {},
+      addPessoa: () => {},
+      updatePessoa: () => {},
+      deletePessoa: () => {},
+      addEntidade: () => {},
+      updateEntidade: () => {},
+      deleteEntidade: () => {},
+      addOficio: () => {},
+      updateOficio: () => {},
+      deleteOficio: () => {},
+      addVisita: () => {},
+      updateVisita: () => {},
+      deleteVisita: () => {},
+      addLigacao: () => {},
+      updateLigacao: () => {},
+      deleteLigacao: () => {},
+      addRecado: () => {},
+      updateRecado: () => {},
+      deleteRecado: () => {},
+      addEvento: () => {},
+      updateEvento: () => {},
+      deleteEvento: () => {},
+      loading: false,
+    };
   }
   return context;
 }

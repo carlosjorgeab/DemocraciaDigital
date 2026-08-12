@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
-
 export default function Error({
   error,
   reset,
@@ -9,10 +7,6 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error('App Error:', error);
-  }, [error]);
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
       <h1 className="text-3xl font-bold text-slate-800 mb-2">Ocorreu um erro no aplicativo</h1>
