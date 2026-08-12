@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import { Work_Sans, Inter } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { DeputadoProvider } from '@/context/DeputadoContext';
 import { AuthProvider } from '@/context/AuthContext';
@@ -26,7 +27,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="pt-BR" className={`${workSans.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
-        <script
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {

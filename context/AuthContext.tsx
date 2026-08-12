@@ -76,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (userData?.current_session_id && userData.current_session_id !== sessionId) {
             console.warn('Simultaneous login detected. Logging out...');
-            alert('Sua conta foi acessada em outro dispositivo. Você foi deslogado.');
+            try {
+              alert('Sua conta foi acessada em outro dispositivo. Você foi deslogado.');
+            } catch (_) {}
             logout();
           }
         }

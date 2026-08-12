@@ -10,7 +10,11 @@ try {
   supabaseUrl = 'https://zavwqwjjzqjksnpitnqz.supabase.co';
 }
 
-const supabaseKey = process.env.SUPABASE_KEY_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_KEY_SERVICE_ROLE ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inphdndxd2pqenFqa3NucGl0bnF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDgyNDQ5MywiZXhwIjoyMDkwNDAwNDkzfQ.A8ypXMHsDXqpQSSBY8XuyPOJkLM8twYvdPbpgtJA55g';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
