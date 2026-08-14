@@ -8,6 +8,7 @@ import {
 } from '@/lib/gabineteStore';
 import { useDeputado } from '@/context/DeputadoContext';
 import { supabase } from '@/lib/supabase';
+import { generateUUID } from '@/lib/utils';
 
 // Helper to check valid UUID
 const isUuid = (str?: string | null): boolean => {
@@ -135,7 +136,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
 
   // Handler functions with proper UUIDs and error handling
   const addDemanda = (demanda: Omit<AtendimentoDemanda, 'id' | 'id_deputado'> & { id?: string; data_abertura?: string }) => {
-    const newId = demanda.id && isUuid(demanda.id) ? demanda.id : crypto.randomUUID();
+    const newId = demanda.id && isUuid(demanda.id) ? demanda.id : generateUUID();
     const newDem: AtendimentoDemanda = {
       ...demanda,
       id: newId,
@@ -169,7 +170,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addAgenda = (agenda: Omit<AgendaCompromisso, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = agenda.id && isUuid(agenda.id) ? agenda.id : crypto.randomUUID();
+    const newId = agenda.id && isUuid(agenda.id) ? agenda.id : generateUUID();
     const newAg: AgendaCompromisso = {
       ...agenda,
       id: newId,
@@ -203,7 +204,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addAudiencia = (audiencia: Omit<SolicitacaoAudiencia, 'id' | 'id_deputado' | 'data_solicitacao'> & { id?: string; data_solicitacao?: string }) => {
-    const newId = audiencia.id && isUuid(audiencia.id) ? audiencia.id : crypto.randomUUID();
+    const newId = audiencia.id && isUuid(audiencia.id) ? audiencia.id : generateUUID();
     const newAud: SolicitacaoAudiencia = {
       ...audiencia,
       id: newId,
@@ -237,7 +238,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addPessoa = (pessoa: Omit<Pessoa, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = pessoa.id && isUuid(pessoa.id) ? pessoa.id : crypto.randomUUID();
+    const newId = pessoa.id && isUuid(pessoa.id) ? pessoa.id : generateUUID();
     const newPes: Pessoa = {
       ...pessoa,
       id: newId,
@@ -271,7 +272,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addEntidade = (entidade: Omit<Entidade, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = entidade.id && isUuid(entidade.id) ? entidade.id : crypto.randomUUID();
+    const newId = entidade.id && isUuid(entidade.id) ? entidade.id : generateUUID();
     const newEnt: Entidade = {
       ...entidade,
       id: newId,
@@ -304,7 +305,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addOficio = (oficio: Omit<Oficio, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = oficio.id && isUuid(oficio.id) ? oficio.id : crypto.randomUUID();
+    const newId = oficio.id && isUuid(oficio.id) ? oficio.id : generateUUID();
     const newOf: Oficio = {
       ...oficio,
       id: newId,
@@ -337,7 +338,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addVisita = (visita: Omit<RegistroVisita, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = visita.id && isUuid(visita.id) ? visita.id : crypto.randomUUID();
+    const newId = visita.id && isUuid(visita.id) ? visita.id : generateUUID();
     const newVis: RegistroVisita = {
       ...visita,
       id: newId,
@@ -371,7 +372,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addLigacao = (ligacao: Omit<LigacaoRecebida, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = ligacao.id && isUuid(ligacao.id) ? ligacao.id : crypto.randomUUID();
+    const newId = ligacao.id && isUuid(ligacao.id) ? ligacao.id : generateUUID();
     const newLig: LigacaoRecebida = {
       ...ligacao,
       id: newId,
@@ -405,7 +406,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addRecado = (recado: Omit<Recado, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = recado.id && isUuid(recado.id) ? recado.id : crypto.randomUUID();
+    const newId = recado.id && isUuid(recado.id) ? recado.id : generateUUID();
     const newRec: Recado = {
       ...recado,
       id: newId,
@@ -439,7 +440,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addEvento = (evento: Omit<EventoComemorativo, 'id' | 'id_deputado'> & { id?: string }) => {
-    const newId = evento.id && isUuid(evento.id) ? evento.id : crypto.randomUUID();
+    const newId = evento.id && isUuid(evento.id) ? evento.id : generateUUID();
     const newEv: EventoComemorativo = {
       ...evento,
       id: newId,

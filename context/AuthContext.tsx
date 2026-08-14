@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
+import { generateUUID } from '@/lib/utils';
 
 export type User = {
   id: string;
@@ -117,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: 'Credenciais inválidas' };
       }
 
-      const newSessionId = crypto.randomUUID();
+      const newSessionId = generateUUID();
       
       // Update session ID in DB
       await supabase
