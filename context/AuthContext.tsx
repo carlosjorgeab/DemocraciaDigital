@@ -145,9 +145,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       router.push('/');
       return { error: null };
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Erro detalhado no login:', err);
       setLoading(false);
-      return { error: 'Erro ao fazer login' };
+      const message = err?.message || 'Erro ao fazer login';
+      return { error: `Erro ao fazer login (${message})` };
     }
   };
 
