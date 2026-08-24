@@ -235,7 +235,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       acao: 'CRIACAO',
       entidade: 'AGENDA',
       entidade_id: newId,
-      descricao: `Criou novo compromisso na agenda: "${newAg.titulo}" em ${newAg.data}`,
+      descricao: `Criou novo compromisso na agenda: "${newAg.compromisso}" em ${newAg.data_inicio}`,
       detalhes: newAg,
     });
   };
@@ -256,7 +256,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       acao: 'EDICAO',
       entidade: 'AGENDA',
       entidade_id: id,
-      descricao: `Atualizou compromisso da agenda: "${existing?.titulo || id}"`,
+      descricao: `Atualizou compromisso da agenda: "${existing?.compromisso || id}"`,
       detalhes: updatedFields,
     });
   };
@@ -275,7 +275,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       acao: 'EXCLUSAO',
       entidade: 'AGENDA',
       entidade_id: id,
-      descricao: `Removeu compromisso da agenda: "${existing?.titulo || id}"`,
+      descricao: `Removeu compromisso da agenda: "${existing?.compromisso || id}"`,
       severidade: 'IMPORTANTE',
     });
   };

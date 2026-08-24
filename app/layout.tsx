@@ -28,18 +28,6 @@ export const dynamic = 'force-dynamic';
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="pt-BR" className={`${workSans.variable} ${inter.variable}`} suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                localStorage.setItem('theme', 'light');
-                document.documentElement.classList.remove('dark');
-              } catch (_) {}
-            `,
-          }}
-        />
-      </head>
       <body className="font-body bg-background text-on-background bg-subtle-flag min-h-screen antialiased bg-slate-50 text-slate-900" suppressHydrationWarning>
         <AuthProvider>
           <DeputadoProvider>

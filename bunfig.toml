@@ -1,0 +1,8 @@
+[install]
+backend = "copy"
+exact = false
+production = false
+
+[install.cache]
+disable = false
+dir = "/tmp/.bun-cache"
