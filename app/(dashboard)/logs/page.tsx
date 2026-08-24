@@ -21,6 +21,7 @@ import {
   Edit,
   PlusCircle,
   LogIn,
+  LogOut,
   SlidersHorizontal,
   ChevronRight,
   Database
