@@ -9,6 +9,7 @@ import {
 import { useDeputado } from '@/context/DeputadoContext';
 import { supabase } from '@/lib/supabase';
 import { generateUUID } from '@/lib/utils';
+import { logActivity } from '@/lib/auditLogStore';
 
 // Helper to check valid UUID
 const isUuid = (str?: string | null): boolean => {
@@ -147,9 +148,26 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     supabase.from('gabinete_demandas').insert(newDem).then(({ error }) => {
       if (error) console.error('Error inserting gabinete_demanda:', error);
     });
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'CRIACAO',
+      entidade: 'DEMANDA',
+      entidade_id: newId,
+      descricao: `Cadastrou nova demanda #${newDem.processo} para ${newDem.interessado_nome} (${newDem.tipo_atendimento})`,
+      detalhes: {
+        processo: newDem.processo,
+        interessado: newDem.interessado_nome,
+        assunto: newDem.assunto,
+        prioridade: newDem.prioridade,
+        valor_estimado: newDem.valor_estimado,
+      },
+      severidade: newDem.prioridade === 'Urgente' || newDem.prioridade === 'Alta' ? 'IMPORTANTE' : 'NORMAL',
+    });
   };
 
   const updateDemanda = (id: string, updatedFields: Partial<AtendimentoDemanda>) => {
+    const existing = demandas.find(d => d.id === id);
     setDemandas((prev) =>
       prev.map((d) => (d.id === id ? { ...d, ...updatedFields } : d))
     );
@@ -158,15 +176,45 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         if (error) console.error('Error updating gabinete_demanda:', error);
       });
     }
+
+    const isStatusChange = updatedFields.status && existing && existing.status !== updatedFields.status;
+    logActivity({
+      id_deputado: deputadoId,
+      acao: isStatusChange ? 'STATUS' : 'EDICAO',
+      entidade: 'DEMANDA',
+      entidade_id: id,
+      descricao: isStatusChange 
+        ? `Alterou status da demanda #${existing?.processo || id} de "${existing?.status}" para "${updatedFields.status}"`
+        : `Atualizou dados da demanda #${existing?.processo || id} (${existing?.interessado_nome || ''})`,
+      detalhes: {
+        campos_modificados: Object.keys(updatedFields),
+        dados_atualizados: updatedFields,
+        processo: existing?.processo,
+      },
+      severidade: isStatusChange ? 'IMPORTANTE' : 'NORMAL',
+    });
   };
 
   const deleteDemanda = (id: string) => {
+    const existing = demandas.find(d => d.id === id);
     setDemandas((prev) => prev.filter((d) => d.id !== id));
     if (isUuid(id)) {
       supabase.from('gabinete_demandas').delete().eq('id', id).then(({ error }) => {
         if (error) console.error('Error deleting gabinete_demanda:', error);
       });
     }
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'EXCLUSAO',
+      entidade: 'DEMANDA',
+      entidade_id: id,
+      descricao: `Excluiu a demanda #${existing?.processo || id} de ${existing?.interessado_nome || 'interessado'}`,
+      detalhes: {
+        demanda_excluida: existing,
+      },
+      severidade: 'CRITICA',
+    });
   };
 
   const addAgenda = (agenda: Omit<AgendaCompromisso, 'id' | 'id_deputado'> & { id?: string }) => {
@@ -181,9 +229,19 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     supabase.from('gabinete_agendas').insert(newAg).then(({ error }) => {
       if (error) console.error('Error inserting gabinete_agenda:', error);
     });
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'CRIACAO',
+      entidade: 'AGENDA',
+      entidade_id: newId,
+      descricao: `Criou novo compromisso na agenda: "${newAg.titulo}" em ${newAg.data}`,
+      detalhes: newAg,
+    });
   };
 
   const updateAgenda = (id: string, updatedFields: Partial<AgendaCompromisso>) => {
+    const existing = agendas.find(a => a.id === id);
     setAgendas((prev) =>
       prev.map((a) => (a.id === id ? { ...a, ...updatedFields } : a))
     );
@@ -192,15 +250,34 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         if (error) console.error('Error updating gabinete_agenda:', error);
       });
     }
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'EDICAO',
+      entidade: 'AGENDA',
+      entidade_id: id,
+      descricao: `Atualizou compromisso da agenda: "${existing?.titulo || id}"`,
+      detalhes: updatedFields,
+    });
   };
 
   const deleteAgenda = (id: string) => {
+    const existing = agendas.find(a => a.id === id);
     setAgendas((prev) => prev.filter((a) => a.id !== id));
     if (isUuid(id)) {
       supabase.from('gabinete_agendas').delete().eq('id', id).then(({ error }) => {
         if (error) console.error('Error deleting gabinete_agenda:', error);
       });
     }
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'EXCLUSAO',
+      entidade: 'AGENDA',
+      entidade_id: id,
+      descricao: `Removeu compromisso da agenda: "${existing?.titulo || id}"`,
+      severidade: 'IMPORTANTE',
+    });
   };
 
   const addAudiencia = (audiencia: Omit<SolicitacaoAudiencia, 'id' | 'id_deputado' | 'data_solicitacao'> & { id?: string; data_solicitacao?: string }) => {
@@ -215,9 +292,20 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     supabase.from('gabinete_audiencias').insert(newAud).then(({ error }) => {
       if (error) console.error('Error inserting gabinete_audiencia:', error);
     });
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'CRIACAO',
+      entidade: 'AUDIENCIA',
+      entidade_id: newId,
+      descricao: `Cadastrou solicitação de audiência com "${newAud.personalidade}" - Pauta: ${newAud.pauta}`,
+      detalhes: newAud,
+      severidade: 'IMPORTANTE',
+    });
   };
 
   const updateAudiencia = (id: string, updatedFields: Partial<SolicitacaoAudiencia>) => {
+    const existing = audiencias.find(a => a.id === id);
     setAudiencias((prev) =>
       prev.map((a) => (a.id === id ? { ...a, ...updatedFields } : a))
     );
@@ -226,15 +314,38 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         if (error) console.error('Error updating gabinete_audiencia:', error);
       });
     }
+
+    const isStatusChange = updatedFields.status && existing && existing.status !== updatedFields.status;
+    logActivity({
+      id_deputado: deputadoId,
+      acao: isStatusChange ? 'STATUS' : 'EDICAO',
+      entidade: 'AUDIENCIA',
+      entidade_id: id,
+      descricao: isStatusChange
+        ? `Alterou status da audiência com "${existing?.personalidade}" para "${updatedFields.status}"`
+        : `Atualizou dados da audiência com "${existing?.personalidade}"`,
+      detalhes: updatedFields,
+      severidade: 'IMPORTANTE',
+    });
   };
 
   const deleteAudiencia = (id: string) => {
+    const existing = audiencias.find(a => a.id === id);
     setAudiencias((prev) => prev.filter((a) => a.id !== id));
     if (isUuid(id)) {
       supabase.from('gabinete_audiencias').delete().eq('id', id).then(({ error }) => {
         if (error) console.error('Error deleting gabinete_audiencia:', error);
       });
     }
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'EXCLUSAO',
+      entidade: 'AUDIENCIA',
+      entidade_id: id,
+      descricao: `Excluiu solicitação de audiência com "${existing?.personalidade}"`,
+      severidade: 'CRITICA',
+    });
   };
 
   const addPessoa = (pessoa: Omit<Pessoa, 'id' | 'id_deputado'> & { id?: string }) => {

@@ -2,18 +2,19 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Topbar } from '@/components/Topbar';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDeputado } from '@/context/DeputadoContext';
+import { useSidebar } from '@/context/SidebarContext';
 import { GabineteProvider } from '@/context/GabineteContext';
-import { ShieldAlert } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, loading, hasPermission } = useAuth();
   const { selectedDeputado, loading: depLoading } = useDeputado();
+  const { isCollapsed } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -90,9 +91,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
       )}
 
+      {/* Check if user has permission for the current route */}
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <Topbar />
-      <main className="md:ml-64 pt-16 min-h-screen transition-all duration-300">
+      <main className={`pt-16 min-h-screen transition-all duration-300 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
         {children}
       </main>
     </GabineteProvider>

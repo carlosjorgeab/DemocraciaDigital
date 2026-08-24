@@ -1,5 +1,6 @@
 {
   "name": "Democracia Digital",
   "description": "Painel do Parlamentar para acompanhamento de emendas e projetos, incluindo integração de dados municipais do Paraná e visualização de mapas",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

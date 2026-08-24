@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { generateUUID } from '@/lib/utils';
+import { logActivity } from '@/lib/auditLogStore';
 
 export type User = {
   id: string;
@@ -143,6 +144,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSessionId(newSessionId);
       localStorage.setItem('democracia_user', JSON.stringify(userData));
       localStorage.setItem('democracia_session_id', newSessionId);
+      
+      logActivity({
+        id_deputado: userData.id_deputado,
+        usuario_email: userData.email,
+        usuario_nome: userData.perfil?.nome || userData.email.split('@')[0],
+        usuario_cargo: userData.is_admin ? 'Administrador' : 'Usuário',
+        acao: 'LOGIN',
+        entidade: 'USUARIO',
+        entidade_id: userData.id,
+        descricao: `Usuário ${userData.email} efetuou login com sucesso no sistema`,
+        severidade: 'NORMAL',
+      });
+
       setLoading(false);
       router.push('/');
       return { error: null };
@@ -162,6 +176,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    if (user) {
+      logActivity({
+        id_deputado: user.id_deputado,
+        usuario_email: user.email,
+        usuario_nome: user.perfil?.nome || user.email.split('@')[0],
+        acao: 'LOGOUT',
+        entidade: 'USUARIO',
+        entidade_id: user.id,
+        descricao: `Usuário ${user.email} encerrou a sessão no sistema`,
+        severidade: 'NORMAL',
+      });
+    }
     setUser(null);
     setSessionId(null);
     localStorage.removeItem('democracia_user');

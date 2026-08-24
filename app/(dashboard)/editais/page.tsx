@@ -2,7 +2,24 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { Plus, Search, FileSignature, Calendar, Download, Trash2, Edit2, AlertCircle, Save, X, ClipboardList, AlertTriangle } from 'lucide-react';
+import { 
+  Plus, 
+  Search, 
+  FileSignature, 
+  Calendar, 
+  Download, 
+  Trash2, 
+  Edit2, 
+  AlertCircle, 
+  Save, 
+  X, 
+  ClipboardList, 
+  AlertTriangle, 
+  Clock, 
+  Flame, 
+  BellRing,
+  Filter
+} from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 
 interface Edital {
@@ -21,6 +38,7 @@ export default function EditaisPage() {
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [editingEdital, setEditingEdital] = useState<Edital | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterUrgentOnly, setFilterUrgentOnly] = useState(false);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   
@@ -161,9 +179,28 @@ export default function EditaisPage() {
     }
   };
 
-  const filteredEditais = editais.filter(e => 
-    e.titulo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const now = new Date();
+  
+  // Calculate expiring editais (<= 5 days remaining and not expired yet)
+  const expiringEditais = editais.filter(e => {
+    if (!e.data_fim) return false;
+    const end = new Date(e.data_fim + 'T23:59:59');
+    const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diff >= 0 && diff <= 5;
+  });
+
+  const filteredEditais = editais.filter(e => {
+    const matchesSearch = e.titulo.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (filterUrgentOnly) {
+      if (!e.data_fim) return false;
+      const end = new Date(e.data_fim + 'T23:59:59');
+      const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return diff >= 0 && diff <= 5;
+    }
+    return true;
+  });
 
   if (view === 'editor') {
     return (
@@ -386,12 +423,13 @@ export default function EditaisPage() {
         </div>
       )}
 
+      {/* Header */}
       <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 ${!selectedDeputado ? 'opacity-50 pointer-events-none' : ''}`}>
         <div>
           <h2 className="text-3xl font-black font-headline text-slate-900 uppercase tracking-tight">
             Editais
           </h2>
-          <p className="text-slate-500 font-medium mt-1">Gerencie os editais e seus prazos</p>
+          <p className="text-slate-500 font-medium mt-1">Gerencie os editais, prazos e controle de encerramento</p>
         </div>
         
         <button 
@@ -408,75 +446,241 @@ export default function EditaisPage() {
         </button>
       </div>
 
-      <div className={`flex items-center bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-200 max-w-md ${!selectedDeputado ? 'opacity-50 pointer-events-none' : ''}`}>
-        <Search className="text-slate-400" size={20} />
-        <input 
-          type="text" 
-          placeholder="Buscar edital..." 
-          className="bg-transparent border-none focus:ring-0 w-full ml-2 text-slate-700"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          disabled={!selectedDeputado}
-        />
+      {/* Visual Alert Banner for Expiring Editais (< 5 days) */}
+      {selectedDeputado && expiringEditais.length > 0 && (
+        <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 border-2 border-amber-400/80 rounded-3xl p-6 shadow-lg shadow-amber-500/5 space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-amber-200/60 pb-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30 animate-pulse shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-amber-800 uppercase tracking-widest bg-amber-200/80 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <Flame size={12} className="text-orange-600" />
+                    Prazos Críticos
+                  </span>
+                  <span className="text-xs font-black text-amber-900">
+                    {expiringEditais.length} {expiringEditais.length === 1 ? 'edital encerra' : 'editais encerram'} em até 5 dias!
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-slate-900 mt-1">
+                  Atenção ao prazo limite de envio de projetos e adesões
+                </h3>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setFilterUrgentOnly(!filterUrgentOnly)}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 border shrink-0 ${
+                filterUrgentOnly 
+                  ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/20' 
+                  : 'bg-white text-amber-900 border-amber-300 hover:bg-amber-100/50 shadow-xs'
+              }`}
+            >
+              <Filter size={14} />
+              {filterUrgentOnly ? 'Ver Todos os Editais' : 'Filtrar Urgentes'}
+            </button>
+          </div>
+
+          {/* Cards of expiring editais inside banner */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {expiringEditais.map(edital => {
+              const end = new Date(edital.data_fim + 'T23:59:59');
+              const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              
+              return (
+                <div 
+                  key={edital.id}
+                  onClick={() => {
+                    setEditingEdital(edital);
+                    setFormData({
+                      titulo: edital.titulo,
+                      data_inicio: edital.data_inicio,
+                      data_fim: edital.data_fim,
+                      arquivo_pdf_base64: edital.arquivo_pdf_base64 || ''
+                    });
+                    setView('editor');
+                  }}
+                  className="bg-white/95 hover:bg-white p-4 rounded-2xl border-2 border-amber-200 hover:border-amber-400 transition-all shadow-xs cursor-pointer flex items-center justify-between gap-3 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <Clock size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 truncate group-hover:text-primary transition-colors">
+                        {edital.titulo}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-medium">
+                        Até {new Date(edital.data_fim + 'T12:00:00').toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-amber-500 text-white shadow-xs flex items-center gap-1">
+                    <AlertTriangle size={11} />
+                    {days === 0 ? 'Encerra Hoje!' : `${days} dia${days > 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Search & Filters */}
+      <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 ${!selectedDeputado ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="flex items-center bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-200 max-w-md flex-1">
+          <Search className="text-slate-400" size={20} />
+          <input 
+            type="text" 
+            placeholder="Buscar edital por título..." 
+            className="bg-transparent border-none focus:ring-0 w-full ml-2 text-slate-700 font-medium outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={!selectedDeputado}
+          />
+        </div>
+
+        {filterUrgentOnly && (
+          <div className="flex items-center gap-2 bg-amber-100 text-amber-900 px-3.5 py-2 rounded-xl text-xs font-bold border border-amber-300">
+            <AlertTriangle size={14} className="text-amber-600" />
+            <span>Exibindo apenas editais com encerramento próximo (&lt; 5 dias)</span>
+            <button 
+              onClick={() => setFilterUrgentOnly(false)}
+              className="ml-2 hover:bg-amber-200 rounded-full p-0.5 text-amber-800"
+              title="Limpar filtro"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* Grid of Editais */}
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${!selectedDeputado ? 'opacity-50 pointer-events-none' : ''}`}>
         {loading && selectedDeputado ? (
-          <div className="col-span-full py-20 text-center text-slate-500">Carregando editais...</div>
+          <div className="col-span-full py-20 text-center text-slate-500">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            Carregando editais...
+          </div>
         ) : !selectedDeputado ? (
           <div className="col-span-full py-20 text-center text-slate-500 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
             Selecione um deputado para visualizar os editais.
           </div>
         ) : filteredEditais.length === 0 ? (
           <div className="col-span-full py-20 text-center text-slate-500 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-            Nenhum edital encontrado para este deputado.
+            {filterUrgentOnly ? 'Nenhum edital com encerramento urgente no momento.' : 'Nenhum edital encontrado para este deputado.'}
           </div>
         ) : (
           filteredEditais.map(edital => {
-            const now = new Date();
             const end = edital.data_fim ? new Date(edital.data_fim + 'T23:59:59') : null;
             const daysRemaining = end ? Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 999;
             const isExpiringSoon = daysRemaining >= 0 && daysRemaining <= 5;
             const isExpired = daysRemaining < 0;
 
             return (
-              <div key={edital.id} className={`bg-white p-6 rounded-3xl shadow-sm border space-y-4 hover:shadow-md transition-shadow group relative ${isExpiringSoon ? 'border-amber-300 bg-amber-50/20' : 'border-slate-100'}`}>
-                {isExpiringSoon && (
-                  <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md animate-pulse self-start w-fit">
-                    <AlertTriangle size={12} />
-                    Urgente: Encerra em {daysRemaining === 0 ? 'hoje' : `${daysRemaining} dia(s)`}!
-                  </div>
-                )}
-
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isExpiringSoon ? 'bg-amber-500/10 text-amber-600' : 'bg-primary/10 text-primary'}`}>
-                      <FileSignature size={24} />
+              <div 
+                key={edital.id} 
+                className={`bg-white p-6 rounded-3xl shadow-sm border space-y-4 hover:shadow-md transition-all group relative flex flex-col justify-between ${
+                  isExpiringSoon 
+                    ? 'border-2 border-amber-400/90 bg-amber-50/20 shadow-amber-500/5 ring-4 ring-amber-400/10' 
+                    : isExpired
+                    ? 'border-slate-200 bg-slate-50/50 opacity-80'
+                    : 'border-slate-100 hover:border-slate-200'
+                }`}
+              >
+                <div className="space-y-4">
+                  {isExpiringSoon && (
+                    <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md shadow-amber-500/20 animate-pulse self-start w-fit">
+                      <AlertTriangle size={13} />
+                      Urgente: Encerra {daysRemaining === 0 ? 'hoje' : `em ${daysRemaining} dia(s)`}!
                     </div>
+                  )}
+
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                        isExpiringSoon 
+                          ? 'bg-amber-500/15 text-amber-600' 
+                          : isExpired 
+                          ? 'bg-slate-200 text-slate-500' 
+                          : 'bg-primary/10 text-primary'
+                      }`}>
+                        <FileSignature size={24} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-slate-900 leading-tight group-hover:text-primary transition-colors">
+                          {edital.titulo}
+                        </h3>
+                        {isExpired ? (
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-full mt-1 inline-block">
+                            Encerrado
+                          </span>
+                        ) : isExpiringSoon ? (
+                          <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-full mt-1 inline-flex items-center gap-1">
+                            <Clock size={10} /> Encerramento Próximo
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-full mt-1 inline-block">
+                            Em Aberto ({daysRemaining} dias)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-2xl flex items-center gap-3 border border-slate-100">
+                    <Calendar className="text-slate-400 shrink-0" size={18} />
                     <div>
-                      <h3 className="font-bold text-lg text-slate-900 leading-tight">{edital.titulo}</h3>
-                      {isExpired ? (
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Encerrado</span>
-                      ) : !isExpiringSoon && (
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Em Aberto ({daysRemaining} dias)</span>
-                      )}
+                      <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Período de Inscrições</p>
+                      <p className="text-xs font-bold text-slate-700 mt-0.5">
+                        {new Date(edital.data_inicio + 'T12:00:00').toLocaleDateString('pt-BR')} até{' '}
+                        {new Date(edital.data_fim + 'T12:00:00').toLocaleDateString('pt-BR')}
+                      </p>
                     </div>
                   </div>
                 </div>
 
-              <div className="bg-slate-50 p-4 rounded-2xl flex items-center gap-3">
-                 <Calendar className="text-slate-400" size={16} />
-                 <div>
-                    <p className="text-[10px] uppercase font-black tracking-widest text-slate-500">Período</p>
-                    <p className="text-sm font-bold text-slate-700">
-                      {new Date(edital.data_inicio + 'T12:00:00').toLocaleDateString('pt-BR')} até{' '}
-                      {new Date(edital.data_fim + 'T12:00:00').toLocaleDateString('pt-BR')}
-                    </p>
-                 </div>
-              </div>
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          setEditingEdital(edital);
+                          setFormData({
+                            titulo: edital.titulo,
+                            data_inicio: edital.data_inicio,
+                            data_fim: edital.data_fim,
+                            arquivo_pdf_base64: edital.arquivo_pdf_base64 || ''
+                          });
+                          setView('editor');
+                        }}
+                        className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-100"
+                        title="Editar"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(edital.id)}
+                        className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                        title="Excluir"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                    
+                    {edital.arquivo_pdf_base64 && (
+                      <button 
+                        onClick={() => handleDownload(edital.arquivo_pdf_base64!, edital.titulo)}
+                        className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl transition-colors text-xs font-bold shadow-xs"
+                      >
+                        <Download size={14} />
+                        PDF
+                      </button>
+                    )}
+                  </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <div className="flex gap-2">
                   <button 
                     onClick={() => {
                       setEditingEdital(edital);
@@ -488,52 +692,15 @@ export default function EditaisPage() {
                       });
                       setView('editor');
                     }}
-                    className="p-2 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-50"
-                    title="Editar"
+                    className="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-primary/10 hover:text-primary text-slate-600 transition-colors text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5"
                   >
-                    <Edit2 size={18} />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(edital.id)}
-                    className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
-                    title="Excluir"
-                  >
-                    <Trash2 size={18} />
+                    <span>Ver Adesões e Detalhes</span>
+                    <Plus size={14} />
                   </button>
                 </div>
-                
-                {edital.arquivo_pdf_base64 && (
-                  <button 
-                    onClick={() => handleDownload(edital.arquivo_pdf_base64!, edital.titulo)}
-                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-bold shadow-sm"
-                  >
-                    <Download size={14} />
-                    Download
-                  </button>
-                )}
               </div>
-
-              <div className="pt-4 mt-2 border-t border-slate-50">
-                <button 
-                  onClick={() => {
-                    setEditingEdital(edital);
-                    setFormData({
-                      titulo: edital.titulo,
-                      data_inicio: edital.data_inicio,
-                      data_fim: edital.data_fim,
-                      arquivo_pdf_base64: edital.arquivo_pdf_base64 || ''
-                    });
-                    setView('editor');
-                  }}
-                  className="w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-primary transition-colors"
-                >
-                  Ver Adesões
-                  <Plus size={14} className="transform transition-transform" />
-                </button>
-              </div>
-            </div>
-          );
-        })
+            );
+          })
         )}
       </div>
     </div>

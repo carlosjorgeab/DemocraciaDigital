@@ -3,6 +3,7 @@ import { Work_Sans, Inter } from 'next/font/google';
 import './globals.css';
 import { DeputadoProvider } from '@/context/DeputadoContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { SidebarProvider } from '@/context/SidebarContext';
 import { InactivityHandler } from '@/components/InactivityHandler';
 
 const workSans = Work_Sans({
@@ -42,8 +43,10 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body className="font-body bg-background text-on-background bg-subtle-flag min-h-screen antialiased bg-slate-50 text-slate-900" suppressHydrationWarning>
         <AuthProvider>
           <DeputadoProvider>
-            <InactivityHandler />
-            {children}
+            <SidebarProvider>
+              <InactivityHandler />
+              {children}
+            </SidebarProvider>
           </DeputadoProvider>
         </AuthProvider>
       </body>

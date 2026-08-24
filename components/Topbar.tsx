@@ -2,15 +2,18 @@
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Search, UserCircle, ChevronDown, Settings, Users } from 'lucide-react';
+import { Search, UserCircle, ChevronDown, Settings, Users, PanelLeftClose, PanelLeftOpen, History } from 'lucide-react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useAuth } from '@/context/AuthContext';
+import { useSidebar } from '@/context/SidebarContext';
 import { Logo } from '@/components/Logo';
 import { isWhiteOrNearWhite, getSidebarTopbarFontColor } from '@/lib/colorUtils';
+import { NotificationDropdown } from '@/components/NotificationDropdown';
 
 export function Topbar() {
   const { deputados, selectedDeputado, setSelectedDeputado } = useDeputado();
   const { user, logout } = useAuth();
+  const { isCollapsed, toggleSidebar } = useSidebar();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
@@ -41,7 +44,17 @@ export function Topbar() {
       }}
       className="fixed top-0 w-full z-40 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-md border-b border-black/10 transition-colors duration-300"
     >
-      <div className="flex items-center gap-2 md:gap-3 ml-10 md:ml-64">
+      <div className={`flex items-center gap-2 md:gap-3 ml-10 transition-all duration-300 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          title={isCollapsed ? 'Expandir Menu Lateral' : 'Recolher Menu Lateral'}
+          aria-label={isCollapsed ? 'Expandir Menu Lateral' : 'Recolher Menu Lateral'}
+          style={{ color: topbarTextColor }}
+          className="hidden md:flex items-center justify-center p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all active:scale-95"
+        >
+          {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+        </button>
         <Logo className="w-8 h-8 md:w-9 md:h-9 shrink-0" />
         <div className="flex flex-col md:flex-row md:items-center md:gap-3">
           <h1 
@@ -114,6 +127,9 @@ export function Topbar() {
               />
             </form>
 
+            {/* Notification Bell Dropdown */}
+            <NotificationDropdown topbarTextColor={topbarTextColor} isTopbarWhite={isTopbarWhite} />
+
             <div className="relative group">
               <button 
                 className="flex items-center justify-center w-10 h-10 rounded-full border-2 overflow-hidden shadow-xs active:scale-95 transition-all"
@@ -148,6 +164,13 @@ export function Topbar() {
                       >
                         <Users size={16} />
                         <span>Usuário</span>
+                      </Link>
+                      <Link 
+                        href="/logs" 
+                        className="flex items-center gap-3 px-4 py-2 text-xs font-black text-black hover:bg-slate-100 transition-colors"
+                      >
+                        <History size={16} />
+                        <span>Logs de Auditoria</span>
                       </Link>
                       <Link 
                         href="/configuracoes" 

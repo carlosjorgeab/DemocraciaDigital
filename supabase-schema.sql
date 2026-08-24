@@ -120,3 +120,26 @@ INSERT INTO municipio (nome, id_uf, latitude, longitude, populacao) VALUES
 ('Curitiba', (SELECT id FROM unidade_federacao WHERE sigla = 'PR'), -25.4284, -49.2733, 1948626),
 ('Recife', (SELECT id FROM unidade_federacao WHERE sigla = 'PE'), -8.0476, -34.8770, 1653461),
 ('Goiânia', (SELECT id FROM unidade_federacao WHERE sigla = 'GO'), -16.6869, -49.2648, 1536097);
+
+-- 8. Tabela de Logs de Auditoria do Sistema
+CREATE TABLE logs_auditoria (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_deputado UUID REFERENCES deputado(id),
+  usuario_id UUID,
+  usuario_nome VARCHAR(255) NOT NULL,
+  usuario_email VARCHAR(255) NOT NULL,
+  usuario_cargo VARCHAR(100),
+  acao VARCHAR(50) NOT NULL, -- CRIACAO, EDICAO, EXCLUSAO, STATUS, LOGIN, LOGOUT
+  entidade VARCHAR(50) NOT NULL, -- DEMANDA, AUDIENCIA, EMENDA, PROJETO, EDITAL, USUARIO, etc.
+  entidade_id VARCHAR(255),
+  descricao TEXT NOT NULL,
+  detalhes JSONB,
+  severidade VARCHAR(20) DEFAULT 'NORMAL', -- NORMAL, IMPORTANTE, CRITICA
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_logs_auditoria_deputado ON logs_auditoria(id_deputado);
+CREATE INDEX idx_logs_auditoria_entidade ON logs_auditoria(entidade);
+CREATE INDEX idx_logs_auditoria_acao ON logs_auditoria(acao);
+CREATE INDEX idx_logs_auditoria_created_at ON logs_auditoria(created_at DESC);
+

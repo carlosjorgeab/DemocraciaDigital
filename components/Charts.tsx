@@ -4,7 +4,19 @@ import { useState, useEffect } from 'react';
 import { useDeputado } from '@/context/DeputadoContext';
 import { useFilters } from '@/context/FilterContext';
 import { supabase } from '@/lib/supabase';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell 
+} from 'recharts';
 
 export function Charts() {
   const { selectedDeputado } = useDeputado();
@@ -84,7 +96,7 @@ export function Charts() {
         }
       }
 
-      const defaultColors = ['#005baa', '#009b3a', '#fedf00', '#cbd5e1'];
+      const defaultColors = ['#005baa', '#009b3a', '#fedf00', '#f97316', '#8b5cf6', '#06b6d4', '#ec4899', '#cbd5e1'];
       
       const formattedCategories = Object.entries(categoryTotals)
         .map(([name, value], index) => ({
@@ -111,15 +123,14 @@ export function Charts() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const circumference = 2 * Math.PI * 40;
-
   return (
     <>
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+        {/* Monthly Evolution Bar Chart */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-slate-100 pb-4 gap-2">
             <div>
-              <h3 className="text-xl font-headline font-bold text-slate-900">
+              <h3 className="text-xl font-headline font-black text-slate-900">
                 Evolução Mensal das Emendas
               </h3>
               <p className="text-xs text-slate-500 font-medium">Demonstrativo de emendas liberadas x em análise ao longo do ano</p>
@@ -163,50 +174,56 @@ export function Charts() {
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
-          <h4 className="text-xl font-headline font-bold text-slate-900 self-start">Impacto Social</h4>
-          <p className="text-xs text-slate-500 self-start mb-6 font-medium">Distribuição por Área Temática</p>
+        {/* Thematic Impact Overview with Recharts */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between">
+          <div>
+            <h4 className="text-xl font-headline font-black text-slate-900">Impacto Social</h4>
+            <p className="text-xs text-slate-500 font-medium mb-4">Distribuição por Área Temática</p>
+          </div>
           
-          <div className="relative w-48 h-48 mb-6">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              {categories.map((cat, i) => {
-                const percentage = total > 0 ? cat.value / total : 0;
-                const previousPercentage = categories
-                  .slice(0, i)
-                  .reduce((sum, c) => sum + (total > 0 ? c.value / total : 0), 0);
-                  
-                const strokeDasharray = `${percentage * circumference} ${circumference}`;
-                const strokeDashoffset = -(previousPercentage * circumference);
-                
-                return (
-                  <circle 
-                    key={cat.name}
-                    cx="50" cy="50" fill="transparent" r="40" 
-                    stroke={cat.color} 
-                    strokeDasharray={strokeDasharray} 
-                    strokeDashoffset={strokeDashoffset} 
-                    strokeWidth="12"
-                  />
-                );
-              })}
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-xl font-black font-headline text-slate-900">{formatCurrency(total)}</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Liberado</span>
+          <div className="w-full h-48 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categories}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={2}
+                  dataKey="value"
+                  nameKey="name"
+                >
+                  {categories.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: any) => [
+                    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value) || 0),
+                    'Liberado'
+                  ]}
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', borderColor: '#e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-base font-black font-headline text-slate-900">{formatCurrency(total)}</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Total</span>
             </div>
           </div>
           
-          <div className="w-full space-y-2.5 max-h-[160px] overflow-y-auto pr-1">
+          <div className="w-full space-y-2 max-h-[140px] overflow-y-auto pr-1 mt-2">
             {categories.length === 0 ? (
               <p className="text-xs text-slate-400 text-center py-4">Nenhuma categoria registrada.</p>
             ) : (
               categories.map(cat => (
                 <div key={cat.name} className="flex justify-between items-center text-xs font-medium text-slate-700">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }}></div>
-                    <span className="truncate max-w-[140px] font-bold">{cat.name}</span>
+                    <span className="truncate max-w-[140px] font-bold text-slate-800">{cat.name}</span>
                   </div>
-                  <span className="font-extrabold text-slate-900">{total > 0 ? Math.round((cat.value / total) * 100) : 0}%</span>
+                  <span className="font-black text-slate-900 shrink-0">{total > 0 ? Math.round((cat.value / total) * 100) : 0}%</span>
                 </div>
               ))
             )}
