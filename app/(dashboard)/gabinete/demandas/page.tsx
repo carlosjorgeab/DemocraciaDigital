@@ -8,7 +8,7 @@ import { AtendimentoDemanda } from '@/lib/gabineteStore';
 import {
   FolderKanban, Plus, Search, Filter, Printer, BarChart3,
   CheckCircle2, AlertTriangle, Clock, ArrowRight, UserCheck,
-  Building, Shield, FileText, Trash2, Edit2, Download
+  Building, Shield, FileText, Trash2, Edit2, Download, Tag, X
 } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
@@ -29,7 +29,15 @@ export default function DemandasPage() {
   const partyTertiary = selectedDeputado?.partidos?.cor_terciaria || '#009C3B';
   const partyPrimaryText = getContrastTextColor(partyPrimary);
 
-  const { demandas, addDemanda, updateDemanda, deleteDemanda, pessoas } = useGabinete();
+  const { 
+    demandas, 
+    addDemanda, 
+    updateDemanda, 
+    deleteDemanda, 
+    pessoas, 
+    tiposAtendimento = [], 
+    addTipoAtendimento 
+  } = useGabinete();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('TODOS');
@@ -40,17 +48,27 @@ export default function DemandasPage() {
   const [editingDemandaId, setEditingDemandaId] = useState<string | null>(null);
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
 
+  // Modal / Popup state for Cadastrar Novo Tipo de Atendimento
+  const [isNovoTipoModalOpen, setIsNovoTipoModalOpen] = useState(false);
+  const [novoTipoNome, setNovoTipoNome] = useState('');
+
+  // Assessores list from Pessoas e Entidades (categoria ASSESSOR)
+  const assessoresPessoas = pessoas.filter((p) => p.categoria === 'ASSESSOR');
+  const defaultAssessorNome = assessoresPessoas.length > 0 
+    ? assessoresPessoas[0].nome 
+    : 'Marcelo Guaraldo';
+
   // Form State with Data e Horario defaulting to Current Date and Time (Today)
   const [formData, setFormData] = useState({
     processo: `28${Math.floor(100 + Math.random() * 900)}/${new Date().getFullYear()}`,
     interessado_nome: '',
     assunto: '',
-    tipo_atendimento: 'Saúde',
+    tipo_atendimento: tiposAtendimento[0] || 'Saúde',
     destinatario_orgao: 'Secretaria de Saúde',
     prioridade: 'Normal',
     status: 'CADASTRADO' as any,
     valor_estimado: 0,
-    assessor_responsavel: 'Marcelo Guaraldo',
+    assessor_responsavel: defaultAssessorNome,
     data_abertura: getTodayDateTimeString(),
   });
 
@@ -60,12 +78,12 @@ export default function DemandasPage() {
       processo: `28${Math.floor(100 + Math.random() * 900)}/${new Date().getFullYear()}`,
       interessado_nome: '',
       assunto: '',
-      tipo_atendimento: 'Saúde',
+      tipo_atendimento: tiposAtendimento[0] || 'Saúde',
       destinatario_orgao: 'Secretaria de Saúde',
       prioridade: 'Normal',
       status: 'CADASTRADO',
       valor_estimado: 0,
-      assessor_responsavel: 'Marcelo Guaraldo',
+      assessor_responsavel: defaultAssessorNome,
       data_abertura: getTodayDateTimeString(),
     });
     setIsModalOpen(true);
@@ -82,10 +100,24 @@ export default function DemandasPage() {
       prioridade: dem.prioridade,
       status: dem.status,
       valor_estimado: dem.valor_estimado || 0,
-      assessor_responsavel: dem.assessor_responsavel || 'Marcelo Guaraldo',
+      assessor_responsavel: dem.assessor_responsavel || defaultAssessorNome,
       data_abertura: dem.data_abertura ? dem.data_abertura.substring(0, 16) : getTodayDateTimeString(),
     });
     setIsModalOpen(true);
+  };
+
+  // Handler for adding a new Tipo de Atendimento through popup
+  const handleSalvarNovoTipo = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = novoTipoNome.trim();
+    if (trimmed) {
+      if (addTipoAtendimento) {
+        addTipoAtendimento(trimmed);
+      }
+      setFormData((prev) => ({ ...prev, tipo_atendimento: trimmed }));
+      setNovoTipoNome('');
+      setIsNovoTipoModalOpen(false);
+    }
   };
 
   const filteredDemandas = demandas.filter((dem) => {
@@ -181,8 +213,8 @@ export default function DemandasPage() {
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-2 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="relative sm:col-span-2 md:col-span-1">
             <Search size={18} className="absolute left-4 top-3.5 text-slate-400" />
             <input
               type="text"
@@ -191,6 +223,21 @@ export default function DemandasPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
+          </div>
+
+          <div>
+            <select
+              value={filterTipo}
+              onChange={(e) => setFilterTipo(e.target.value)}
+              className="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="TODOS">Todos os Tipos / Áreas</option>
+              {tiposAtendimento.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -426,19 +473,38 @@ export default function DemandasPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1">Tipo de Atendimento / Área *</label>
-                  <select
-                    value={formData.tipo_atendimento}
-                    onChange={(e) => setFormData({ ...formData, tipo_atendimento: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                  >
-                    <option value="Saúde">Saúde / Consultas</option>
-                    <option value="Asfaltamento / Obras">Asfaltamento / Obras</option>
-                    <option value="Educação">Educação</option>
-                    <option value="Segurança">Segurança Pública</option>
-                    <option value="Habitação">Habitação</option>
-                    <option value="Outro">Outro</option>
-                  </select>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block">Tipo de Atendimento / Área *</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsNovoTipoModalOpen(true)}
+                      className="text-[10px] font-black text-amber-700 hover:text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md flex items-center gap-1 transition-all"
+                    >
+                      <Plus size={10} /> Novo Tipo
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <select
+                      value={formData.tipo_atendimento}
+                      onChange={(e) => {
+                        if (e.target.value === '__CADASTRAR_NOVO__') {
+                          setIsNovoTipoModalOpen(true);
+                        } else {
+                          setFormData({ ...formData, tipo_atendimento: e.target.value });
+                        }
+                      }}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    >
+                      {tiposAtendimento.map((tipo) => (
+                        <option key={tipo} value={tipo}>
+                          {tipo}
+                        </option>
+                      ))}
+                      <option value="__CADASTRAR_NOVO__" className="text-amber-700 font-bold bg-amber-50">
+                        ➕ + Cadastrar Novo Tipo / Área...
+                      </option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
@@ -471,13 +537,30 @@ export default function DemandasPage() {
                 </div>
 
                 <div>
-                  <label className="block mb-1">Assessor Responsável</label>
-                  <input
-                    type="text"
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block">Assessor Responsável *</label>
+                    <span className="text-[10px] text-indigo-600 font-bold">Base de Assessores</span>
+                  </div>
+                  <select
                     value={formData.assessor_responsavel}
                     onChange={(e) => setFormData({ ...formData, assessor_responsavel: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                  />
+                  >
+                    {assessoresPessoas.length > 0 ? (
+                      assessoresPessoas.map((assessor) => (
+                        <option key={assessor.id} value={assessor.nome}>
+                          {assessor.nome} {assessor.apelido ? `(${assessor.apelido})` : ''}
+                        </option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="Marcelo Guaraldo">Marcelo Guaraldo (Chefe de Gabinete)</option>
+                        <option value="Dr. Carlos Eduardo">Dr. Carlos Eduardo (Assessor Jurídico)</option>
+                        <option value="Ana Cláudia Vieira">Ana Cláudia Vieira (Assessora Parlamentar)</option>
+                        <option value="Roberto Santos">Roberto Santos (Betão) (Articulador Regional)</option>
+                      </>
+                    )}
+                  </select>
                 </div>
               </div>
 
@@ -494,6 +577,80 @@ export default function DemandasPage() {
                   className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black uppercase text-xs tracking-wider shadow-lg shadow-amber-500/20"
                 >
                   {editingDemandaId ? 'Salvar Alterações' : 'Salvar Demanda'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Popup / Modal: Cadastrar Novo Tipo de Atendimento / Área */}
+      {isNovoTipoModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[150] flex items-center justify-center p-4">
+          <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl p-6 md:p-7 space-y-5 border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
+                  <Tag size={18} />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-base">Novo Tipo de Atendimento</h3>
+                  <p className="text-[11px] text-slate-500 font-medium">Cadastre uma nova área temática para as demandas</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsNovoTipoModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarNovoTipo} className="space-y-4 text-xs font-bold text-slate-700">
+              <div>
+                <label className="block mb-1.5 text-slate-800">Nome da Área / Tipo de Atendimento *</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  placeholder="Ex: Iluminação Pública, Meio Ambiente, Esportes..."
+                  value={novoTipoNome}
+                  onChange={(e) => setNovoTipoNome(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm placeholder:font-normal"
+                />
+              </div>
+
+              {/* Existing Types Quick View */}
+              <div>
+                <span className="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
+                  Tipos já cadastrados ({tiposAtendimento.length}):
+                </span>
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 bg-slate-50 rounded-xl border border-slate-100">
+                  {tiposAtendimento.map((tipo) => (
+                    <span key={tipo} className="px-2 py-1 rounded-lg bg-white text-slate-700 border border-slate-200 text-[10px] font-bold">
+                      {tipo}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNovoTipoNome('');
+                    setIsNovoTipoModalOpen(false);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black uppercase text-xs tracking-wider shadow-md shadow-amber-500/20"
+                >
+                  Cadastrar & Selecionar
                 </button>
               </div>
             </form>

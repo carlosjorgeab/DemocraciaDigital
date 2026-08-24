@@ -1,7 +1,21 @@
 // Store and API Services for Gabinete Parlamentar (e-Gabinete)
 import { supabase } from '@/lib/supabase';
 
-export type CategoriaPessoa = 'LIDERANCA' | 'ELEITOR' | 'AUTORIDADE' | 'SERVIDOR' | 'IMPRENSA' | 'OUTRO';
+export type CategoriaPessoa = 'LIDERANCA' | 'ELEITOR' | 'AUTORIDADE' | 'SERVIDOR' | 'ASSESSOR' | 'IMPRENSA' | 'OUTRO';
+
+export const initialTiposAtendimento: string[] = [
+  'Saúde',
+  'Ação de saúde',
+  'Asfaltamento / Obras',
+  'Educação',
+  'Segurança',
+  'Habitação',
+  'Agricultura & Meio Ambiente',
+  'Assistência Social',
+  'Esporte & Cultura',
+  'Emenda Parlamentar',
+  'Outro'
+];
 
 export type Pessoa = {
   id: string;
@@ -538,6 +552,53 @@ export const initialOficios: Oficio[] = [
 ];
 
 export const initialPessoas: Pessoa[] = [
+  {
+    id: 'pes-assessor-01',
+    id_deputado: 'default',
+    nome: 'Marcelo Guaraldo',
+    apelido: 'Guaraldo',
+    profissao: 'Chefe de Gabinete',
+    bairro: 'Centro',
+    cidade: 'São Paulo',
+    uf: 'SP',
+    celular1: '(11) 98765-4321',
+    telefone_com: '(11) 3385-8000',
+    categoria: 'ASSESSOR',
+    votos_estimados: 0,
+    email: 'marcelo.guaraldo@gabinete.leg.br',
+    cadastrado_por: 'Administrador',
+  },
+  {
+    id: 'pes-assessor-02',
+    id_deputado: 'default',
+    nome: 'Nathalia Carvalho',
+    apelido: 'Nathalia',
+    profissao: 'Assessora Parlamentar',
+    bairro: 'Jardins',
+    cidade: 'São Paulo',
+    uf: 'SP',
+    celular1: '(11) 97654-3210',
+    telefone_com: '(11) 3385-8001',
+    categoria: 'ASSESSOR',
+    votos_estimados: 0,
+    email: 'nathalia.carvalho@gabinete.leg.br',
+    cadastrado_por: 'Administrador',
+  },
+  {
+    id: 'pes-assessor-03',
+    id_deputado: 'default',
+    nome: 'Saulo Vieira',
+    apelido: 'Saulo',
+    profissao: 'Assessor Político e Regional',
+    bairro: 'Moema',
+    cidade: 'São Paulo',
+    uf: 'SP',
+    celular1: '(11) 96543-2109',
+    categoria: 'ASSESSOR',
+    votos_estimados: 0,
+    email: 'saulo.vieira@gabinete.leg.br',
+    cadastrado_por: 'Administrador',
+  },
   {
     id: 'pes-01',
     id_deputado: 'default',

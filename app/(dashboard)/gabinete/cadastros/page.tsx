@@ -19,7 +19,7 @@ export default function CadastrosPage() {
 
   const { pessoas, entidades, addPessoa, updatePessoa, deletePessoa, addEntidade, updateEntidade, deleteEntidade } = useGabinete();
 
-  const [activeMainTab, setActiveMainTab] = useState<'pessoas' | 'liderancas' | 'entidades'>('pessoas');
+  const [activeMainTab, setActiveMainTab] = useState<'pessoas' | 'assessores' | 'liderancas' | 'entidades'>('pessoas');
   const [searchTerm, setSearchTerm] = useState('');
   const [isPessoaModalOpen, setIsPessoaModalOpen] = useState(false);
   const [editingPessoaId, setEditingPessoaId] = useState<string | null>(null);
@@ -115,6 +115,9 @@ export default function CadastrosPage() {
     if (activeMainTab === 'liderancas' && p.categoria !== 'LIDERANCA' && p.categoria !== 'AUTORIDADE') {
       return false;
     }
+    if (activeMainTab === 'assessores' && p.categoria !== 'ASSESSOR') {
+      return false;
+    }
     if (
       searchTerm &&
       !p.nome.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -143,6 +146,7 @@ export default function CadastrosPage() {
   };
 
   // Metrics
+  const totalAssessores = pessoas.filter((p) => p.categoria === 'ASSESSOR').length;
   const totalLiderancas = pessoas.filter((p) => p.categoria === 'LIDERANCA' || p.categoria === 'AUTORIDADE').length;
   const cadastrosIncompletos = pessoas.filter((p) => !p.celular1 || !p.bairro).length;
 
@@ -156,7 +160,7 @@ export default function CadastrosPage() {
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">Pessoas, Lideranças & Entidades</h1>
           <p className="text-slate-500 text-sm mt-0.5">
-            Base eleitoral, lideranças regionais, parceiros institucionais e higienização de contatos.
+            Base eleitoral, assessores parlamentares, lideranças regionais e parceiros institucionais.
           </p>
         </div>
 
@@ -170,11 +174,17 @@ export default function CadastrosPage() {
       </div>
 
       {/* Metrics Banner */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Total de Pessoas</span>
           <span className="text-2xl font-black text-slate-900 mt-1 block">{pessoas.length}</span>
           <span className="text-[11px] text-emerald-600 font-bold mt-1 block">Base eleitoral mapeada</span>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-indigo-200 bg-indigo-50/20 shadow-xs">
+          <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider block">Assessores Gabinete</span>
+          <span className="text-2xl font-black text-indigo-900 mt-1 block">{totalAssessores}</span>
+          <span className="text-[11px] text-indigo-600 font-bold mt-1 block">Corpo técnico e campo</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -199,7 +209,7 @@ export default function CadastrosPage() {
       {/* Main Tabs Navigation */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div className="flex bg-slate-100 p-1.5 rounded-2xl flex-wrap">
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl flex-wrap gap-1">
             <button
               onClick={() => setActiveMainTab('pessoas')}
               className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
@@ -209,6 +219,16 @@ export default function CadastrosPage() {
               }`}
             >
               Pessoas & Eleitores ({pessoas.length})
+            </button>
+            <button
+              onClick={() => setActiveMainTab('assessores')}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+                activeMainTab === 'assessores'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              Assessores ({totalAssessores})
             </button>
             <button
               onClick={() => setActiveMainTab('liderancas')}
@@ -265,7 +285,9 @@ export default function CadastrosPage() {
                   <div className="flex items-center gap-1">
                     <span
                       className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
-                        p.categoria === 'LIDERANCA'
+                        p.categoria === 'ASSESSOR'
+                          ? 'bg-indigo-100 text-indigo-900 border border-indigo-200'
+                          : p.categoria === 'LIDERANCA'
                           ? 'bg-amber-100 text-amber-900'
                           : p.categoria === 'AUTORIDADE'
                           ? 'bg-purple-100 text-purple-900'
@@ -443,16 +465,19 @@ export default function CadastrosPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block mb-1">Categoria *</label>
+                    <label className="block mb-1">Categoria / Tipo de Pessoa *</label>
                     <select
                       value={pessoaForm.categoria}
                       onChange={(e) => setPessoaForm({ ...pessoaForm, categoria: e.target.value as any })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
                       <option value="ELEITOR">Eleitor</option>
+                      <option value="ASSESSOR">Assessor Parlamentar / Gabinete</option>
                       <option value="LIDERANCA">Liderança Comunitária</option>
                       <option value="AUTORIDADE">Autoridade / Prefeito / Ver.</option>
                       <option value="SERVIDOR">Servidor Público</option>
+                      <option value="IMPRENSA">Imprensa / Mídia</option>
+                      <option value="OUTRO">Outro</option>
                     </select>
                   </div>
                 </div>

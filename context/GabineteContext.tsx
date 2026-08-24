@@ -4,7 +4,8 @@ import {
   Pessoa, Entidade, AgendaCompromisso, SolicitacaoAudiencia, AtendimentoDemanda,
   Oficio, LigacaoRecebida, RegistroVisita, Recado, EventoComemorativo,
   initialDemandas, initialAudiencias, initialAgendas, initialVisitas,
-  initialLigacoes, initialOficios, initialPessoas, initialEntidades, initialEventos
+  initialLigacoes, initialOficios, initialPessoas, initialEntidades, initialEventos,
+  initialTiposAtendimento
 } from '@/lib/gabineteStore';
 import { useDeputado } from '@/context/DeputadoContext';
 import { supabase } from '@/lib/supabase';
@@ -30,6 +31,7 @@ type GabineteContextType = {
   entidades: Entidade[];
   recados: Recado[];
   eventos: EventoComemorativo[];
+  tiposAtendimento: string[];
   
   // Actions
   addDemanda: (demanda: Omit<AtendimentoDemanda, 'id' | 'id_deputado'> & { id?: string; data_abertura?: string }) => void;
@@ -71,6 +73,8 @@ type GabineteContextType = {
   addEvento: (evento: Omit<EventoComemorativo, 'id' | 'id_deputado'> & { id?: string }) => void;
   updateEvento: (id: string, evento: Partial<EventoComemorativo>) => void;
   deleteEvento: (id: string) => void;
+
+  addTipoAtendimento: (novoTipo: string) => void;
   
   loading: boolean;
 };
@@ -92,8 +96,52 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   const [entidades, setEntidades] = useState<Entidade[]>([]);
   const [recados, setRecados] = useState<Recado[]>([]);
   const [eventos, setEventos] = useState<EventoComemorativo[]>([]);
+  const [tiposAtendimento, setTiposAtendimento] = useState<string[]>(initialTiposAtendimento);
   
   const [loading, setLoading] = useState(false);
+
+  // Load custom tiposAtendimento from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('gabinete_tipos_atendimento');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // merge unique
+            const combined = Array.from(new Set([...initialTiposAtendimento, ...parsed]));
+            setTiposAtendimento(combined);
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao ler tipos de atendimento:', e);
+      }
+    }
+  }, []);
+
+  const addTipoAtendimento = (novoTipo: string) => {
+    const trimmed = novoTipo.trim();
+    if (!trimmed) return;
+    setTiposAtendimento((prev) => {
+      if (prev.some(t => t.toLowerCase() === trimmed.toLowerCase())) {
+        return prev;
+      }
+      const updated = [...prev, trimmed];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gabinete_tipos_atendimento', JSON.stringify(updated));
+      }
+      return updated;
+    });
+
+    logActivity({
+      id_deputado: deputadoId,
+      acao: 'CRIACAO',
+      entidade: 'CONFIGURACAO',
+      descricao: `Cadastrou novo Tipo de Atendimento / Área: "${trimmed}"`,
+      detalhes: { tipo_atendimento: trimmed },
+      severidade: 'NORMAL',
+    });
+  };
 
   // Fetch real data from Supabase database
   useEffect(() => {
@@ -626,6 +674,8 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         addEvento,
         updateEvento,
         deleteEvento,
+        tiposAtendimento,
+        addTipoAtendimento,
         loading,
       }}
     >
@@ -648,6 +698,7 @@ export function useGabinete() {
       entidades: [],
       recados: [],
       eventos: [],
+      tiposAtendimento: initialTiposAtendimento,
       addDemanda: () => {},
       updateDemanda: () => {},
       deleteDemanda: () => {},
@@ -678,6 +729,7 @@ export function useGabinete() {
       addEvento: () => {},
       updateEvento: () => {},
       deleteEvento: () => {},
+      addTipoAtendimento: () => {},
       loading: false,
     };
   }

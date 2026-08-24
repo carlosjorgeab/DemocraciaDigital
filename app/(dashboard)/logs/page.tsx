@@ -41,6 +41,7 @@ export default function LogsAuditoriaPage() {
   const [logs, setLogs] = useState<LogAuditoria[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAcao, setFilterAcao] = useState<string>('TODAS');
+  const [filterSeveridade, setFilterSeveridade] = useState<string>('TODAS');
   const [filterEntidade, setFilterEntidade] = useState<string>('TODAS');
   const [filterPeriodo, setFilterPeriodo] = useState<string>('TODOS');
   const [selectedLog, setSelectedLog] = useState<LogAuditoria | null>(null);
@@ -78,6 +79,16 @@ export default function LogsAuditoriaPage() {
       // Action filter
       if (filterAcao !== 'TODAS' && log.acao !== filterAcao) return false;
 
+      // Severity filter ('CRITICA', 'IMPORTANTE', 'NORMAL')
+      if (filterSeveridade !== 'TODAS') {
+        const logSeverity = log.severidade || (log.acao === 'EXCLUSAO' ? 'CRITICA' : log.acao === 'EDICAO' ? 'IMPORTANTE' : 'NORMAL');
+        if (filterSeveridade === 'CRITICA') {
+          if (log.severidade !== 'CRITICA' && log.acao !== 'EXCLUSAO') return false;
+        } else if (logSeverity !== filterSeveridade) {
+          return false;
+        }
+      }
+
       // Entity filter
       if (filterEntidade !== 'TODAS' && log.entidade !== filterEntidade) return false;
 
@@ -93,7 +104,7 @@ export default function LogsAuditoriaPage() {
 
       return true;
     });
-  }, [logs, searchTerm, filterAcao, filterEntidade, filterPeriodo]);
+  }, [logs, searchTerm, filterAcao, filterSeveridade, filterEntidade, filterPeriodo]);
 
   // Summary Metrics
   const metrics = useMemo(() => {
@@ -140,43 +151,84 @@ export default function LogsAuditoriaPage() {
     switch (acao) {
       case 'CRIACAO':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <PlusCircle size={12} />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-lg bg-emerald-600 text-white shadow-xs">
+            <PlusCircle size={13} />
             Criação
           </span>
         );
       case 'EDICAO':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-lg bg-blue-100 text-blue-800 border border-blue-200">
-            <Edit size={12} />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-100 text-blue-800 border border-blue-300">
+            <Edit size={13} />
             Edição
           </span>
         );
       case 'EXCLUSAO':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-lg bg-rose-100 text-rose-800 border border-rose-200">
-            <Trash2 size={12} />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-lg bg-rose-600 text-white shadow-xs">
+            <Trash2 size={13} />
             Exclusão
           </span>
         );
       case 'STATUS':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-lg bg-amber-100 text-amber-800 border border-amber-200">
-            <SlidersHorizontal size={12} />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
+            <SlidersHorizontal size={13} />
             Status
           </span>
         );
       case 'LOGIN':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-lg bg-purple-100 text-purple-800 border border-purple-200">
-            <LogIn size={12} />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-purple-100 text-purple-800 border border-purple-300">
+            <LogIn size={13} />
             Login
+          </span>
+        );
+      case 'LOGOUT':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 text-slate-800 border border-slate-300">
+            <LogOut size={13} />
+            Logout
+          </span>
+        );
+      case 'EXPORTACAO':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-cyan-100 text-cyan-800 border border-cyan-300">
+            <Download size={13} />
+            Exportação
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
             {acao}
+          </span>
+        );
+    }
+  };
+
+  // Helper function to render Severity Badge
+  const renderSeverityBadge = (severidade?: 'NORMAL' | 'IMPORTANTE' | 'CRITICA', acao?: TipoAcaoLog) => {
+    const sev = severidade || (acao === 'EXCLUSAO' ? 'CRITICA' : acao === 'EDICAO' ? 'IMPORTANTE' : 'NORMAL');
+    switch (sev) {
+      case 'CRITICA':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-black rounded-lg bg-rose-100 text-rose-800 border-2 border-rose-400 shadow-xs">
+            <AlertTriangle size={12} className="text-rose-600 animate-pulse" />
+            CRÍTICA
+          </span>
+        );
+      case 'IMPORTANTE':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-black rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
+            <ShieldCheck size={11} className="text-amber-700" />
+            IMPORTANTE
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+            NORMAL
           </span>
         );
     }
@@ -284,6 +336,67 @@ export default function LogsAuditoriaPage() {
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        {/* Quick Filter Buttons / Badges */}
+        <div className="flex flex-wrap items-center gap-2 pb-1 border-b border-slate-100">
+          <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
+            <Filter size={12} /> Filtros Rápidos:
+          </span>
+          <button
+            type="button"
+            onClick={() => setFilterSeveridade(prev => prev === 'CRITICA' ? 'TODAS' : 'CRITICA')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+              filterSeveridade === 'CRITICA'
+                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-2 ring-rose-500'
+                : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+            }`}
+          >
+            <AlertTriangle size={13} className={filterSeveridade === 'CRITICA' ? 'animate-bounce' : 'text-rose-600'} />
+            🚨 Filtrar Ações Críticas & Exclusões ({metrics.critical})
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setFilterAcao(prev => prev === 'EXCLUSAO' ? 'TODAS' : 'EXCLUSAO')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              filterAcao === 'EXCLUSAO'
+                ? 'bg-rose-700 text-white shadow-md ring-2 ring-rose-600'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+            }`}
+          >
+            <Trash2 size={13} />
+            Apenas Exclusões
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterAcao(prev => prev === 'CRIACAO' ? 'TODAS' : 'CRIACAO')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              filterAcao === 'CRIACAO'
+                ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-500'
+                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+            }`}
+          >
+            <PlusCircle size={13} />
+            Apenas Criações
+          </button>
+
+          {(filterAcao !== 'TODAS' || filterSeveridade !== 'TODAS' || filterEntidade !== 'TODAS' || filterPeriodo !== 'TODOS' || searchTerm) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('');
+                setFilterAcao('TODAS');
+                setFilterSeveridade('TODAS');
+                setFilterEntidade('TODAS');
+                setFilterPeriodo('TODOS');
+              }}
+              className="ml-auto text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 hover:underline"
+            >
+              <X size={13} /> Limpar Todos os Filtros
+            </button>
+          )}
+        </div>
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -308,6 +421,22 @@ export default function LogsAuditoriaPage() {
 
           {/* Select Filters */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Filter Severidade Component */}
+            <select
+              value={filterSeveridade}
+              onChange={(e) => setFilterSeveridade(e.target.value)}
+              className={`px-3 py-2 text-xs font-black rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                filterSeveridade === 'CRITICA'
+                  ? 'bg-rose-100 border-rose-400 text-rose-800 ring-1 ring-rose-400'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
+            >
+              <option value="TODAS">Todas as Severidades</option>
+              <option value="CRITICA">🚨 Severidade: CRÍTICA (Exclusões / Sensíveis)</option>
+              <option value="IMPORTANTE">⚠️ Severidade: IMPORTANTE</option>
+              <option value="NORMAL">ℹ️ Severidade: NORMAL</option>
+            </select>
+
             {/* Filter Ação */}
             <select
               value={filterAcao}
@@ -315,11 +444,13 @@ export default function LogsAuditoriaPage() {
               className="px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="TODAS">Todas as Ações</option>
-              <option value="CRIACAO">Criação</option>
-              <option value="EDICAO">Edição</option>
-              <option value="EXCLUSAO">Exclusão</option>
+              <option value="CRIACAO">Criação (Verde)</option>
+              <option value="EDICAO">Edição (Azul)</option>
+              <option value="EXCLUSAO">Exclusão (Vermelho)</option>
               <option value="STATUS">Alteração de Status</option>
               <option value="LOGIN">Login</option>
+              <option value="LOGOUT">Logout</option>
+              <option value="EXPORTACAO">Exportação</option>
             </select>
 
             {/* Filter Entidade */}
@@ -357,11 +488,12 @@ export default function LogsAuditoriaPage() {
         {/* Filter Count Summary */}
         <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
           <span>Exibindo <strong>{filteredLogs.length}</strong> de <strong>{logs.length}</strong> eventos registrados</span>
-          {(filterAcao !== 'TODAS' || filterEntidade !== 'TODAS' || filterPeriodo !== 'TODOS' || searchTerm) && (
+          {(filterAcao !== 'TODAS' || filterSeveridade !== 'TODAS' || filterEntidade !== 'TODAS' || filterPeriodo !== 'TODOS' || searchTerm) && (
             <button
               onClick={() => {
                 setSearchTerm('');
                 setFilterAcao('TODAS');
+                setFilterSeveridade('TODAS');
                 setFilterEntidade('TODAS');
                 setFilterPeriodo('TODOS');
               }}
@@ -382,6 +514,7 @@ export default function LogsAuditoriaPage() {
                 <th className="py-3 px-4">Data & Horário</th>
                 <th className="py-3 px-4">Quem Alterou (Usuário)</th>
                 <th className="py-3 px-4">Ação</th>
+                <th className="py-3 px-4">Severidade</th>
                 <th className="py-3 px-4">Entidade</th>
                 <th className="py-3 px-4">O Que Foi Alterado (Descrição)</th>
                 <th className="py-3 px-4 text-center">Detalhes</th>
@@ -390,7 +523,7 @@ export default function LogsAuditoriaPage() {
             <tbody className="divide-y divide-slate-100 text-xs">
               {filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <History size={36} className="mx-auto mb-2 opacity-40" />
                     <p className="font-bold text-slate-600">Nenhum registro de log encontrado</p>
                     <p className="text-xs text-slate-400 mt-1">Tente ajustar os filtros de busca ou período.</p>
@@ -400,12 +533,22 @@ export default function LogsAuditoriaPage() {
                 filteredLogs.map((log) => {
                   const date = new Date(log.created_at);
                   const isRecent = (new Date().getTime() - date.getTime()) < 1000 * 60 * 60; // < 1h
+                  const isCritical = log.severidade === 'CRITICA' || log.acao === 'EXCLUSAO';
+                  const isCreation = log.acao === 'CRIACAO';
+
+                  let rowStyle = 'hover:bg-slate-50/80 transition-colors';
+                  if (isCritical) {
+                    rowStyle = 'bg-rose-50/40 hover:bg-rose-50/70 border-l-4 border-l-rose-500 transition-colors';
+                  } else if (isCreation) {
+                    rowStyle = 'bg-emerald-50/20 hover:bg-emerald-50/50 border-l-4 border-l-emerald-500 transition-colors';
+                  } else if (log.acao === 'EDICAO') {
+                    rowStyle = 'hover:bg-slate-50/80 border-l-2 border-l-blue-400 transition-colors';
+                  }
+
                   return (
                     <tr 
                       key={log.id} 
-                      className={`hover:bg-slate-50/80 transition-colors ${
-                        isRecent ? 'bg-blue-50/20' : ''
-                      }`}
+                      className={rowStyle}
                     >
                       {/* Data & Horário */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
@@ -434,6 +577,11 @@ export default function LogsAuditoriaPage() {
                       {/* Ação */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         {renderActionBadge(log.acao)}
+                      </td>
+
+                      {/* Severidade */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {renderSeverityBadge(log.severidade, log.acao)}
                       </td>
 
                       {/* Entidade */}
