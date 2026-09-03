@@ -46,9 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('theme', 'light');
 
     if (storedUser) {
-      // eslint-disable-next-line
-      setUser(JSON.parse(storedUser));
-      setSessionId(storedSession);
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed && typeof parsed === 'object') {
+          setUser(parsed);
+          setSessionId(storedSession);
+        } else {
+          localStorage.removeItem('democracia_user');
+          localStorage.removeItem('democracia_session_id');
+        }
+      } catch (e) {
+        console.warn('Invalid stored user in localStorage, clearing session:', e);
+        localStorage.removeItem('democracia_user');
+        localStorage.removeItem('democracia_session_id');
+      }
     }
     setLoading(false);
   }, []);

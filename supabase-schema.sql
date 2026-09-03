@@ -23,6 +23,18 @@ CREATE TABLE areas_tematicas (
   cor VARCHAR(20)
 );
 
+-- 3.1 Tabela de Autores de Projetos
+CREATE TABLE autores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome VARCHAR(255) NOT NULL,
+  cargo VARCHAR(100) DEFAULT 'Deputado(a) Federal',
+  partido VARCHAR(50),
+  uf VARCHAR(2),
+  id_deputado UUID REFERENCES deputado(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 4. Tabela de Projetos
 CREATE TABLE projetos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -33,7 +45,8 @@ CREATE TABLE projetos (
   status VARCHAR(50) DEFAULT 'Elaboração',
   ementa TEXT,
   tipo VARCHAR(100),
-  autor VARCHAR(255)
+  autor VARCHAR(255),
+  id_autor UUID REFERENCES autores(id)
 );
 
 -- 4.1 Tabela de Histórico dos Projetos

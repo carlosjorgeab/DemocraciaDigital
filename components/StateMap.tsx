@@ -42,11 +42,20 @@ function StateDetailMap({ uf, onBack }: { uf: string; onBack: () => void }) {
         ]);
 
         if (!geoRes.ok || !namesRes.ok) {
-          throw new Error(`Failed to fetch mapping data: ${geoRes.status} / ${namesRes.status}`);
+          throw new Error(`Falha ao obter dados geográficos: status ${geoRes.status} / ${namesRes.status}`);
         }
 
-        const geoData = await geoRes.json();
-        const namesData = await namesRes.json();
+        const geoText = await geoRes.text();
+        const namesText = await namesRes.text();
+
+        let geoData: any;
+        let namesData: any;
+        try {
+          geoData = JSON.parse(geoText);
+          namesData = JSON.parse(namesText);
+        } catch (parseErr) {
+          throw new Error("Formato de resposta inesperado do serviço geográfico (IBGE).");
+        }
 
         if (!active || !containerRef.current) return;
         if (!geoData || !geoData.features) {
