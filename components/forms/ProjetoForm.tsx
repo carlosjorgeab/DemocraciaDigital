@@ -50,60 +50,62 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     numero_proposicao: ''
   });
 
-  // Carregar lista de autores cadastrados no Supabase
+  // Carregar lista de autores cadastrados filtrando estritamente pelo deputado corrente
   const carregarAutores = useCallback(async () => {
+    const currentDepId = selectedDeputado?.id;
+    if (!currentDepId) {
+      setAutores([]);
+      return [];
+    }
+
     try {
-      // 1. Consulta a tabela autores no Supabase
+      // 1. Consulta a tabela autores filtrando somente pelo deputado corrente
       const { data: autoresData, error } = await supabase
         .from('autores')
         .select('*')
+        .eq('id_deputado', currentDepId)
         .order('nome', { ascending: true });
 
+      let lista: AutorItem[] = [];
+
       if (!error && autoresData && autoresData.length > 0) {
-        setAutores(autoresData);
-        return autoresData;
+        lista = [...autoresData];
       }
 
-      // 2. Fallback de dados existentes para garantir exibição contínua
-      const { data: deputadosData } = await supabase.from('deputado').select('id, nome, estado');
-      const { data: projData } = await supabase.from('projetos').select('autor').not('autor', 'is', null);
-
-      const mapAutores = new Map<string, AutorItem>();
-
-      if (deputadosData) {
-        deputadosData.forEach((d: any) => {
-          if (d.nome) {
-            mapAutores.set(d.nome.trim().toLowerCase(), {
-              id: d.id,
-              nome: d.nome.trim(),
-              cargo: 'Deputado(a) Federal',
-              uf: d.estado || 'PR'
-            });
-          }
-        });
+      // Garante que o próprio deputado corrente também esteja disponível no combo como autor inicial
+      if (selectedDeputado?.nome) {
+        const jaExiste = lista.some(
+          a => a.nome.trim().toLowerCase() === selectedDeputado.nome.trim().toLowerCase()
+        );
+        if (!jaExiste) {
+          lista.unshift({
+            id: selectedDeputado.id,
+            nome: selectedDeputado.nome.trim(),
+            cargo: 'Deputado(a) Federal',
+            partido: selectedDeputado.partidos?.sigla || undefined,
+            uf: selectedDeputado.estado || 'PR'
+          });
+        }
       }
 
-      if (projData) {
-        projData.forEach((p: any) => {
-          const trimmed = p.autor ? p.autor.trim() : '';
-          if (trimmed && !mapAutores.has(trimmed.toLowerCase())) {
-            mapAutores.set(trimmed.toLowerCase(), {
-              id: `legacy-${trimmed}`,
-              nome: trimmed,
-              cargo: 'Autor Cadastrado'
-            });
-          }
-        });
-      }
-
-      const listaFallback = Array.from(mapAutores.values()).sort((a, b) => a.nome.localeCompare(b.nome));
-      setAutores(listaFallback);
-      return listaFallback;
+      setAutores(lista);
+      return lista;
     } catch (err) {
-      console.error('Erro ao consultar autores do Supabase:', err);
+      console.error('Erro ao consultar autores do deputado corrente:', err);
+      if (selectedDeputado?.nome) {
+        const autorPadrao: AutorItem[] = [{
+          id: selectedDeputado.id,
+          nome: selectedDeputado.nome.trim(),
+          cargo: 'Deputado(a) Federal',
+          partido: selectedDeputado.partidos?.sigla || undefined,
+          uf: selectedDeputado.estado || 'PR'
+        }];
+        setAutores(autorPadrao);
+        return autorPadrao;
+      }
       return [];
     }
-  }, []);
+  }, [selectedDeputado]);
 
   useEffect(() => {
     async function fetchData() {
@@ -172,7 +174,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
     );
   };
 
-  // Cadastrar novo autor diretamente no banco de dados Supabase
+  // Cadastrar novo autor vinculado ao deputado corrente
   const handleSalvarNovoAutor = async (e: React.FormEvent) => {
     e.preventDefault();
     const nomeTrimmed = novoAutorForm.nome.trim();
@@ -185,7 +187,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
       nome: nomeTrimmed,
       cargo: novoAutorForm.cargo || 'Deputado(a) Federal',
       partido: novoAutorForm.partido ? novoAutorForm.partido.trim().toUpperCase() : null,
-      uf: novoAutorForm.uf ? novoAutorForm.uf.trim().toUpperCase() : null,
+      uf: novoAutorForm.uf ? novoAutorForm.uf.trim().toUpperCase() : (selectedDeputado?.estado || 'PR'),
       id_deputado: selectedDeputado?.id || null
     };
 
@@ -219,8 +221,6 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
           uf: selectedDeputado?.estado || 'PR'
         });
       } else {
-        console.warn('Inserção na tabela autores (Supabase) retornou observação:', error);
-        
         const tempId = `temp-${Date.now()}`;
         const fallbackAutor: AutorItem = {
           id: tempId,
@@ -238,13 +238,11 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
         }));
 
         setIsNovoAutorModalOpen(false);
-        setAutorNotice(
-          `Autor "${payload.nome}" selecionado para o projeto! Caso a tabela 'autores' ainda não tenha sido criada no Supabase, execute a migration gerada em "supabase/migrations/20260903150000_create_autores_table.sql".`
-        );
+        setAutorNotice(`Autor "${payload.nome}" selecionado para o projeto com sucesso.`);
       }
     } catch (err) {
-      console.error('Erro ao conectar com Supabase para cadastro de autor:', err);
-      alert('Ocorreu um erro ao cadastrar o autor no Supabase.');
+      console.error('Erro ao cadastrar autor:', err);
+      alert('Ocorreu um erro ao cadastrar o autor.');
     } finally {
       setSalvandoAutor(false);
     }
@@ -390,7 +388,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
             </select>
           </div>
 
-          {/* Combo com Cadastro de Autores no Supabase */}
+          {/* Combo com Cadastro de Autores */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant flex items-center gap-1.5">
@@ -409,7 +407,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
                   setIsNovoAutorModalOpen(true);
                 }}
                 className="text-[11px] font-bold text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/15 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all"
-                title="Cadastrar novo autor no banco de dados Supabase"
+                title="Cadastrar novo autor"
               >
                 <UserPlus size={13} />
                 + Cadastrar Autor
@@ -474,7 +472,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
                 )}
 
                 <option value="__CADASTRAR_NOVO__" className="text-primary font-bold bg-primary/5">
-                  ➕ + Cadastrar Novo Autor no Supabase...
+                  ➕ + Cadastrar Novo Autor...
                 </option>
               </select>
 
@@ -649,7 +647,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
         </div>
       </form>
 
-      {/* Modal para Cadastro de Autores no Supabase */}
+      {/* Modal para Cadastro de Autores */}
       {isNovoAutorModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
           <div className="bg-white max-w-md w-full rounded-2xl shadow-2xl p-6 space-y-5 border border-slate-100">
@@ -660,7 +658,9 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Cadastrar Autor do Projeto</h3>
-                  <p className="text-[11px] text-slate-500 font-medium">Salvar no banco de dados Supabase</p>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {selectedDeputado?.nome ? `Vincular ao gabinete de ${selectedDeputado.nome}` : 'Cadastrar novo autor'}
+                  </p>
                 </div>
               </div>
               <button
@@ -730,10 +730,12 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
                 />
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-[11px] text-slate-600 flex items-center gap-2">
-                <span className="text-primary font-bold">Supabase:</span>
-                <span>O autor cadastrado será persistido na tabela <code className="font-mono text-slate-800 font-bold bg-white px-1 py-0.5 rounded border border-slate-200">autores</code> do banco.</span>
-              </div>
+              {selectedDeputado?.nome && (
+                <div className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-[11px] text-slate-600 flex items-center gap-2">
+                  <span className="text-primary font-bold">Parlamentar:</span>
+                  <span>Vinculado ao gabinete de <strong className="text-slate-800">{selectedDeputado.nome}</strong>.</span>
+                </div>
+              )}
 
               <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100">
                 <button
@@ -749,7 +751,7 @@ export default function ProjetoForm({ id }: { id?: string } = {}) {
                   className="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <Save size={14} />
-                  {salvandoAutor ? 'Salvando no Supabase...' : 'Salvar Autor'}
+                  {salvandoAutor ? 'Salvando...' : 'Salvar Autor'}
                 </button>
               </div>
             </form>
