@@ -37,14 +37,14 @@ export default function UsuariosPage() {
   async function fetchData() {
     setLoading(true);
     
-    // Fetch users
+    // Fetch users (without exposing hashed password columns)
     const { data: usersData, error: usersError } = await supabase
       .from('usuarios')
-      .select('*, perfil:perfis(nome), deputado:deputado(nome)')
+      .select('id, email, id_perfil, id_deputado, is_admin, exibir_calendario, created_at, perfil:perfis(nome), deputado:deputado(nome)')
       .order('created_at', { ascending: false });
       
     if (!usersError && usersData) {
-      setUsuarios(usersData);
+      setUsuarios(usersData as Usuario[]);
     }
 
     // Fetch profiles
@@ -80,7 +80,8 @@ export default function UsuariosPage() {
     }
 
     setError('');
-    const userData: any = {
+    const payload: any = {
+      id: currentUser.id,
       email: currentUser.email,
       id_perfil: currentUser.is_admin ? null : currentUser.id_perfil,
       id_deputado: currentUser.is_admin ? null : currentUser.id_deputado,
@@ -89,35 +90,48 @@ export default function UsuariosPage() {
     };
 
     if (currentUser.senha) {
-      userData.senha = currentUser.senha;
+      payload.senha = currentUser.senha;
     }
 
-    if (currentUser.id) {
-      const { error } = await supabase.from('usuarios').update(userData).eq('id', currentUser.id);
-      if (error) {
-        setError('Erro ao atualizar usuário. O e-mail pode já estar em uso.');
-      } else {
-        if (currentUser.id === user?.id && updateUserPreference) {
-          updateUserPreference({ exibir_calendario: currentUser.exibir_calendario ?? true });
-        }
-        setIsEditing(false);
-        fetchData();
+    try {
+      const isUpdating = Boolean(currentUser.id);
+      const res = await fetch('/api/usuarios', {
+        method: isUpdating ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setError(data.error || 'Erro ao salvar usuário.');
+        return;
       }
-    } else {
-      const { error } = await supabase.from('usuarios').insert([userData]);
-      if (error) setError('Erro ao criar usuário. O e-mail pode já estar em uso.');
-      else {
-        setIsEditing(false);
-        fetchData();
+
+      if (currentUser.id === user?.id && updateUserPreference) {
+        updateUserPreference({ exibir_calendario: currentUser.exibir_calendario ?? true });
       }
+
+      setIsEditing(false);
+      fetchData();
+    } catch {
+      setError('Erro de comunicação ao salvar usuário.');
     }
   };
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este usuário?')) {
-      const { error } = await supabase.from('usuarios').delete().eq('id', id);
-      if (error) alert('Erro ao excluir usuário.');
-      else fetchData();
+      try {
+        const res = await fetch(`/api/usuarios?id=${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(data.error || 'Erro ao excluir usuário.');
+        } else {
+          fetchData();
+        }
+      } catch {
+        alert('Erro ao excluir usuário.');
+      }
     }
   };
 
@@ -138,7 +152,7 @@ export default function UsuariosPage() {
         {!isEditing && (
           <button 
             onClick={() => { 
-              setCurrentUser({ email: '', senha: '', id_perfil: '', id_deputado: '', is_admin: false }); 
+              setCurrentUser({ email: '', senha: '', id_perfil: '', id_deputado: '', is_admin: false, exibir_calendario: true }); 
               setIsEditing(true); 
             }}
             className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-bold hover:bg-primary/90 transition-colors"
@@ -296,7 +310,7 @@ export default function UsuariosPage() {
                           <button 
                             onClick={() => handleDelete(u.id)}
                             className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-100"
-                            disabled={u.email === 'admin'} // Prevent deleting the main admin
+                            disabled={u.email === 'admin'}
                             title={u.email === 'admin' ? 'Não é possível excluir o admin principal' : ''}
                           >
                             <Trash2 size={18} className={u.email === 'admin' ? 'opacity-30' : ''} />

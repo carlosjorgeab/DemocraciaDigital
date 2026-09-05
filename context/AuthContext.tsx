@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
-import { generateUUID } from '@/lib/utils';
 import { logActivity } from '@/lib/auditLogStore';
 
 export type User = {
@@ -37,31 +36,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check local storage for session
-    const storedUser = localStorage.getItem('democracia_user');
-    const storedSession = localStorage.getItem('democracia_session_id');
-    const storedTheme = localStorage.getItem('theme');
+    // Initial sync: check session via /api/auth/me and fallback to localStorage cache
+    const checkAuth = async () => {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
 
-    document.documentElement.classList.remove('dark');
-    localStorage.setItem('theme', 'light');
+      // 1. Fast cache hydration
+      const storedUser = localStorage.getItem('democracia_user');
+      const storedSession = localStorage.getItem('democracia_session_id');
 
-    if (storedUser) {
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed && typeof parsed === 'object') {
+            setUser(parsed);
+            setSessionId(storedSession);
+          }
+        } catch {
+          localStorage.removeItem('democracia_user');
+          localStorage.removeItem('democracia_session_id');
+        }
+      }
+
+      // 2. Server validation via HttpOnly cookie
       try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed && typeof parsed === 'object') {
-          setUser(parsed);
-          setSessionId(storedSession);
-        } else {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUser(data.user);
+            if (data.sessionId) setSessionId(data.sessionId);
+            localStorage.setItem('democracia_user', JSON.stringify(data.user));
+            if (data.sessionId) localStorage.setItem('democracia_session_id', data.sessionId);
+          }
+        } else if (res.status === 401) {
+          // Token expired or invalid
+          setUser(null);
+          setSessionId(null);
           localStorage.removeItem('democracia_user');
           localStorage.removeItem('democracia_session_id');
         }
       } catch (e) {
-        console.warn('Invalid stored user in localStorage, clearing session:', e);
-        localStorage.removeItem('democracia_user');
-        localStorage.removeItem('democracia_session_id');
+        console.warn('Erro ao validar sessão no servidor:', e);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   // Periodic check for multi-login and session status
@@ -106,8 +128,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading) {
-      const isPublicRoute = pathname?.startsWith('/p/');
-      if (!user && pathname !== '/login' && !isPublicRoute) {
+      const isPublicRoute =
+        pathname === '/login' ||
+        pathname?.startsWith('/p/') ||
+        pathname === '/folder';
+
+      if (!user && !isPublicRoute) {
         router.push('/login');
       } else if (user && pathname === '/login') {
         router.push('/');
@@ -118,35 +144,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, senha: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*, perfil:perfis(nome, permissoes)')
-        .eq('email', email)
-        .eq('senha', senha)
-        .single();
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha }),
+      });
 
-      if (error || !data) {
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
         setLoading(false);
-        return { error: 'Credenciais inválidas' };
+        return { error: data.error || 'Credenciais inválidas' };
       }
 
-      const newSessionId = generateUUID();
-      
-      // Update session ID in DB
-      await supabase
-        .from('usuarios')
-        .update({ current_session_id: newSessionId, last_activity_at: new Date().toISOString() })
-        .eq('id', data.id);
-
-      const userData: User = {
-        id: data.id,
-        email: data.email,
-        id_perfil: data.id_perfil,
-        id_deputado: data.id_deputado,
-        is_admin: data.is_admin,
-        exibir_calendario: data.exibir_calendario ?? true,
-        perfil: data.perfil
-      };
+      const userData: User = data.user;
+      const newSessionId: string = data.sessionId;
 
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
@@ -155,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSessionId(newSessionId);
       localStorage.setItem('democracia_user', JSON.stringify(userData));
       localStorage.setItem('democracia_session_id', newSessionId);
-      
+
       logActivity({
         id_deputado: userData.id_deputado,
         usuario_email: userData.email,
@@ -186,7 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('democracia_user', JSON.stringify(updatedUser));
   };
 
-  const logout = () => {
+  const logout = async () => {
     if (user) {
       logActivity({
         id_deputado: user.id_deputado,
@@ -199,6 +211,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         severidade: 'NORMAL',
       });
     }
+
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.warn('Erro ao chamar /api/auth/logout:', e);
+    }
+
     setUser(null);
     setSessionId(null);
     localStorage.removeItem('democracia_user');
@@ -213,7 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (!user) return false;
     if (user.is_admin) return true;
-    if (menu === '/' || menu === '/mapa' || menu === '/formularios') return true; // Always allowed
+    if (menu === '/' || menu === '/mapa' || menu === '/formularios') return true;
     if (!user.perfil) return false;
     return user.perfil.permissoes.includes(menu);
   };
