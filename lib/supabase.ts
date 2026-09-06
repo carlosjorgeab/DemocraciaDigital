@@ -3,15 +3,19 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
 const supabaseKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
-if (!supabaseUrl || !supabaseKey) {
-  if (typeof window !== 'undefined') {
-    console.warn('Supabase URL ou chave pública anônima não configuradas nas variáveis de ambiente.');
+const isValidHttpUrl = (urlString: string): boolean => {
+  try {
+    const url = new URL(urlString);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
   }
-}
+};
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder-anon-key'
-);
+const isConfigured = isValidHttpUrl(supabaseUrl) && !!supabaseKey;
+
+export const supabase = isConfigured
+  ? createClient(supabaseUrl, supabaseKey)
+  : createClient('https://placeholder.supabase.co', 'placeholder-anon-key');
 
 
