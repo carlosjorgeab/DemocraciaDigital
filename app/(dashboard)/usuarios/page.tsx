@@ -44,7 +44,7 @@ export default function UsuariosPage() {
       .order('created_at', { ascending: false });
       
     if (!usersError && usersData) {
-      setUsuarios(usersData as Usuario[]);
+      setUsuarios(usersData as unknown as Usuario[]);
     }
 
     // Fetch profiles
@@ -294,10 +294,10 @@ export default function UsuariosPage() {
                         {u.is_admin && <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] uppercase tracking-wider font-black rounded">Admin</span>}
                       </td>
                       <td className="p-4 text-slate-600">
-                        {u.is_admin ? 'Acesso Total' : (u.perfil?.nome || '-')}
+                        {u.is_admin ? 'Acesso Total' : ((Array.isArray(u.perfil) ? (u.perfil as any)[0]?.nome : u.perfil?.nome) || '-')}
                       </td>
                       <td className="p-4 text-slate-600">
-                        {u.is_admin ? 'Todos' : (u.deputado?.nome || '-')}
+                        {u.is_admin ? 'Todos' : ((Array.isArray(u.deputado) ? (u.deputado as any)[0]?.nome : u.deputado?.nome) || '-')}
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
