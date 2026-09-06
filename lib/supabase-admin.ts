@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
+const supabaseUrl = (process.env.NEXT__SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
 const serviceRoleKey = (
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT__SUPABASE_ANON_KEY ||
   ''
 ).trim();
 
@@ -21,22 +21,22 @@ const isConfigured = isValidHttpUrl(supabaseUrl) && !!serviceRoleKey;
 
 export const supabaseAdmin = isConfigured
   ? createClient(
-      supabaseUrl,
-      serviceRoleKey,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    )
+    supabaseUrl,
+    serviceRoleKey,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    }
+  )
   : createClient(
-      'https://placeholder.supabase.co',
-      'placeholder-service-key',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    );
+    'https://placeholder.supabase.co',
+    'placeholder-service-key',
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    }
+  );
