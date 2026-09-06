@@ -24,9 +24,6 @@ RUN mkdir -p public
 ENV TAILWIND_DISABLE_LIGHTNINGCSS=1
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Gera o Prisma Client se o arquivo schema existir
-RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
-
 # Compila o Next.js
 RUN npm run build
 

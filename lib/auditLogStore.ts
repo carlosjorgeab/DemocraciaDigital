@@ -50,117 +50,18 @@ export type LogAuditoria = {
 
 const STORAGE_KEY = 'democracia_audit_logs_v1';
 
-// Initial Mock Logs for immediate visibility and testing
-const initialLogs: LogAuditoria[] = [
-  {
-    id: 'log-01',
-    id_deputado: 'be68001f-1127-48fc-8d2d-9d9ba2ec9183',
-    usuario_nome: 'Marcelo Guaraldo',
-    usuario_email: 'marcelo.guaraldo@gabinete.leg.br',
-    usuario_cargo: 'Chefe de Gabinete',
-    acao: 'CRIACAO',
-    entidade: 'DEMANDA',
-    entidade_id: 'dem-01',
-    descricao: 'Cadastrou nova demanda #28145/2023 para Marcelo Lopes Guaraldo (Saúde)',
-    detalhes: {
-      processo: '28145/2023',
-      interessado: 'Marcelo Lopes Guaraldo',
-      valor_estimado: 150000.0,
-      prioridade: 'Alta',
-    },
-    severidade: 'IMPORTANTE',
-    created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(), // 25 mins ago
-  },
-  {
-    id: 'log-02',
-    id_deputado: 'be68001f-1127-48fc-8d2d-9d9ba2ec9183',
-    usuario_nome: 'Nathalia Carvalho',
-    usuario_email: 'nathalia.carvalho@gabinete.leg.br',
-    usuario_cargo: 'Assessora Parlamentar',
-    acao: 'CRIACAO',
-    entidade: 'AUDIENCIA',
-    entidade_id: 'aud-01',
-    descricao: 'Registrou nova solicitação de audiência com Secretário de Radiodifusão',
-    detalhes: {
-      personalidade: 'Elifas Gurgel, Secretário de Radiodifusão',
-      pauta: 'Tratar dos três processos de rádio comunitária',
-      status: 'Solicitada',
-    },
-    severidade: 'IMPORTANTE',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2h ago
-  },
-  {
-    id: 'log-03',
-    id_deputado: 'be68001f-1127-48fc-8d2d-9d9ba2ec9183',
-    usuario_nome: 'Administrador do Sistema',
-    usuario_email: 'admin@democraciadigital.leg.br',
-    usuario_cargo: 'Super Administrador',
-    acao: 'EDICAO',
-    entidade: 'EMENDA',
-    entidade_id: 'eme-092',
-    descricao: 'Atualizou valor da emenda parlamentar RP6 de R$ 500.000,00 para R$ 750.000,00',
-    detalhes: {
-      campo_alterado: 'valor',
-      valor_anterior: 500000.0,
-      valor_novo: 750000.0,
-      municipio: 'Curitiba - PR',
-      beneficiario: 'Hospital Erasto Gaertner',
-    },
-    severidade: 'CRITICA',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), // 4h ago
-  },
-  {
-    id: 'log-04',
-    id_deputado: 'be68001f-1127-48fc-8d2d-9d9ba2ec9183',
-    usuario_nome: 'Saulo Vieira',
-    usuario_email: 'saulo.vieira@gabinete.leg.br',
-    usuario_cargo: 'Assessor Político',
-    acao: 'STATUS',
-    entidade: 'DEMANDA',
-    entidade_id: 'dem-03',
-    descricao: 'Alterou o status da demanda #28142/2023 para "ENCAMINHADO"',
-    detalhes: {
-      campo_alterado: 'status',
-      valor_anterior: 'CADASTRADO',
-      valor_novo: 'ENCAMINHADO',
-      destinatario: 'UBS Central - Jardim Nayara',
-    },
-    severidade: 'NORMAL',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), // 8h ago
-  },
-  {
-    id: 'log-05',
-    id_deputado: 'be68001f-1127-48fc-8d2d-9d9ba2ec9183',
-    usuario_nome: 'Administrador do Sistema',
-    usuario_email: 'admin@democraciadigital.leg.br',
-    usuario_cargo: 'Super Administrador',
-    acao: 'LOGIN',
-    entidade: 'USUARIO',
-    descricao: 'Autenticação bem-sucedida no painel parlamentar',
-    detalhes: {
-      ip: '189.102.44.12',
-      navegador: 'Chrome 122.0.0 / macOS',
-    },
-    severidade: 'NORMAL',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-  },
-];
-
 /**
  * Recupera logs armazenados localmente e sincronizados
  */
 export function getStoredLogs(): LogAuditoria[] {
-  if (typeof window === 'undefined') return initialLogs;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialLogs));
-      return initialLogs;
-    }
+    if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
     console.error('Erro ao ler logs de auditoria:', e);
-    return initialLogs;
+    return [];
   }
 }
 
@@ -243,7 +144,6 @@ export async function logActivity(params: {
       })
       .then(({ error }) => {
         if (error) {
-          // Non-blocking log insertion error
           console.warn('Tabela logs_auditoria no Supabase:', error.message);
         }
       });
@@ -290,6 +190,9 @@ export async function fetchAuditLogs(options?: {
 
   // Fallback to local storage
   let logs = getStoredLogs();
+  if (options?.id_deputado) {
+    logs = logs.filter(l => l.id_deputado === options.id_deputado);
+  }
   if (options?.acao && options.acao !== 'TODAS') {
     logs = logs.filter(l => l.acao === options.acao);
   }

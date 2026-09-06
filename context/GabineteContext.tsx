@@ -3,8 +3,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import {
   Pessoa, Entidade, AgendaCompromisso, SolicitacaoAudiencia, AtendimentoDemanda,
   Oficio, LigacaoRecebida, RegistroVisita, Recado, EventoComemorativo,
-  initialDemandas, initialAudiencias, initialAgendas, initialVisitas,
-  initialLigacoes, initialOficios, initialPessoas, initialEntidades, initialEventos,
   initialTiposAtendimento
 } from '@/lib/gabineteStore';
 import { useDeputado } from '@/context/DeputadoContext';
@@ -17,8 +15,6 @@ const isUuid = (str?: string | null): boolean => {
   if (!str) return false;
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 };
-
-const DEFAULT_DEPUTADO_UUID = 'be68001f-1127-48fc-8d2d-9d9ba2ec9183';
 
 type GabineteContextType = {
   demandas: AtendimentoDemanda[];
@@ -84,7 +80,7 @@ const GabineteContext = createContext<GabineteContextType | undefined>(undefined
 export function GabineteProvider({ children }: { children: ReactNode }) {
   const { selectedDeputado } = useDeputado();
   const rawDeputadoId = selectedDeputado?.id;
-  const deputadoId = isUuid(rawDeputadoId) ? (rawDeputadoId as string) : DEFAULT_DEPUTADO_UUID;
+  const deputadoId = isUuid(rawDeputadoId) ? (rawDeputadoId as string) : null;
 
   const [demandas, setDemandas] = useState<AtendimentoDemanda[]>([]);
   const [audiencias, setAudiencias] = useState<SolicitacaoAudiencia[]>([]);
@@ -108,7 +104,6 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            // merge unique
             const combined = Array.from(new Set([...initialTiposAtendimento, ...parsed]));
             setTiposAtendimento(combined);
           }
@@ -133,23 +128,51 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       return updated;
     });
 
-    logActivity({
-      id_deputado: deputadoId,
-      acao: 'CRIACAO',
-      entidade: 'CONFIGURACAO',
-      descricao: `Cadastrou novo Tipo de Atendimento / Área: "${trimmed}"`,
-      detalhes: { tipo_atendimento: trimmed },
-      severidade: 'NORMAL',
-    });
+    if (deputadoId) {
+      logActivity({
+        id_deputado: deputadoId,
+        acao: 'CRIACAO',
+        entidade: 'CONFIGURACAO',
+        descricao: `Cadastrou novo Tipo de Atendimento / Área: "${trimmed}"`,
+        detalhes: { tipo_atendimento: trimmed },
+        severidade: 'NORMAL',
+      });
+    }
   };
 
-  // Fetch real data from Supabase database
+  // Fetch real data from Supabase database for the active deputado
   useEffect(() => {
+    if (!deputadoId) {
+      setDemandas([]);
+      setAgendas([]);
+      setAudiencias([]);
+      setPessoas([]);
+      setEntidades([]);
+      setOficios([]);
+      setVisitas([]);
+      setLigacoes([]);
+      setRecados([]);
+      setEventos([]);
+      setLoading(false);
+      return;
+    }
+
     async function fetchGabineteData() {
       setLoading(true);
       
       try {
-        const [resDemandas, resAgendas, resAudiencias, resPessoas, resEntidades, resOficios, resVisitas, resLigacoes, resRecados, resEventos] = await Promise.all([
+        const [
+          resDemandas,
+          resAgendas,
+          resAudiencias,
+          resPessoas,
+          resEntidades,
+          resOficios,
+          resVisitas,
+          resLigacoes,
+          resRecados,
+          resEventos
+        ] = await Promise.all([
           supabase.from('gabinete_demandas').select('*').eq('id_deputado', deputadoId),
           supabase.from('gabinete_agendas').select('*').eq('id_deputado', deputadoId),
           supabase.from('gabinete_audiencias').select('*').eq('id_deputado', deputadoId),
@@ -162,17 +185,16 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
           supabase.from('gabinete_eventos').select('*').eq('id_deputado', deputadoId),
         ]);
 
-        // Fallback to sample data if table is empty so UI is initialised cleanly
-        setDemandas(resDemandas.data && resDemandas.data.length > 0 ? resDemandas.data : initialDemandas);
-        setAgendas(resAgendas.data && resAgendas.data.length > 0 ? resAgendas.data : initialAgendas);
-        setAudiencias(resAudiencias.data && resAudiencias.data.length > 0 ? resAudiencias.data : initialAudiencias);
-        setPessoas(resPessoas.data && resPessoas.data.length > 0 ? resPessoas.data : initialPessoas);
-        setEntidades(resEntidades.data && resEntidades.data.length > 0 ? resEntidades.data : initialEntidades);
-        setOficios(resOficios.data && resOficios.data.length > 0 ? resOficios.data : initialOficios);
-        setVisitas(resVisitas.data && resVisitas.data.length > 0 ? resVisitas.data : initialVisitas);
-        setLigacoes(resLigacoes.data && resLigacoes.data.length > 0 ? resLigacoes.data : initialLigacoes);
+        setDemandas(resDemandas.data || []);
+        setAgendas(resAgendas.data || []);
+        setAudiencias(resAudiencias.data || []);
+        setPessoas(resPessoas.data || []);
+        setEntidades(resEntidades.data || []);
+        setOficios(resOficios.data || []);
+        setVisitas(resVisitas.data || []);
+        setLigacoes(resLigacoes.data || []);
         setRecados(resRecados.data || []);
-        setEventos(resEventos.data && resEventos.data.length > 0 ? resEventos.data : initialEventos);
+        setEventos(resEventos.data || []);
       } catch (e) {
         console.error('Erro ao carregar dados do gabinete do banco:', e);
       } finally {
@@ -185,6 +207,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
 
   // Handler functions with proper UUIDs and error handling
   const addDemanda = (demanda: Omit<AtendimentoDemanda, 'id' | 'id_deputado'> & { id?: string; data_abertura?: string }) => {
+    if (!deputadoId) return;
     const newId = demanda.id && isUuid(demanda.id) ? demanda.id : generateUUID();
     const newDem: AtendimentoDemanda = {
       ...demanda,
@@ -226,21 +249,23 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     }
 
     const isStatusChange = updatedFields.status && existing && existing.status !== updatedFields.status;
-    logActivity({
-      id_deputado: deputadoId,
-      acao: isStatusChange ? 'STATUS' : 'EDICAO',
-      entidade: 'DEMANDA',
-      entidade_id: id,
-      descricao: isStatusChange 
-        ? `Alterou status da demanda #${existing?.processo || id} de "${existing?.status}" para "${updatedFields.status}"`
-        : `Atualizou dados da demanda #${existing?.processo || id} (${existing?.interessado_nome || ''})`,
-      detalhes: {
-        campos_modificados: Object.keys(updatedFields),
-        dados_atualizados: updatedFields,
-        processo: existing?.processo,
-      },
-      severidade: isStatusChange ? 'IMPORTANTE' : 'NORMAL',
-    });
+    if (deputadoId) {
+      logActivity({
+        id_deputado: deputadoId,
+        acao: isStatusChange ? 'STATUS' : 'EDICAO',
+        entidade: 'DEMANDA',
+        entidade_id: id,
+        descricao: isStatusChange 
+          ? `Alterou status da demanda #${existing?.processo || id} de "${existing?.status}" para "${updatedFields.status}"`
+          : `Atualizou dados da demanda #${existing?.processo || id} (${existing?.interessado_nome || ''})`,
+        detalhes: {
+          campos_modificados: Object.keys(updatedFields),
+          dados_atualizados: updatedFields,
+          processo: existing?.processo,
+        },
+        severidade: isStatusChange ? 'IMPORTANTE' : 'NORMAL',
+      });
+    }
   };
 
   const deleteDemanda = (id: string) => {
@@ -252,20 +277,23 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    logActivity({
-      id_deputado: deputadoId,
-      acao: 'EXCLUSAO',
-      entidade: 'DEMANDA',
-      entidade_id: id,
-      descricao: `Excluiu a demanda #${existing?.processo || id} de ${existing?.interessado_nome || 'interessado'}`,
-      detalhes: {
-        demanda_excluida: existing,
-      },
-      severidade: 'CRITICA',
-    });
+    if (deputadoId) {
+      logActivity({
+        id_deputado: deputadoId,
+        acao: 'EXCLUSAO',
+        entidade: 'DEMANDA',
+        entidade_id: id,
+        descricao: `Excluiu a demanda #${existing?.processo || id} de ${existing?.interessado_nome || 'interessado'}`,
+        detalhes: {
+          demanda_excluida: existing,
+        },
+        severidade: 'CRITICA',
+      });
+    }
   };
 
   const addAgenda = (agenda: Omit<AgendaCompromisso, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = agenda.id && isUuid(agenda.id) ? agenda.id : generateUUID();
     const newAg: AgendaCompromisso = {
       ...agenda,
@@ -299,14 +327,16 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    logActivity({
-      id_deputado: deputadoId,
-      acao: 'EDICAO',
-      entidade: 'AGENDA',
-      entidade_id: id,
-      descricao: `Atualizou compromisso da agenda: "${existing?.compromisso || id}"`,
-      detalhes: updatedFields,
-    });
+    if (deputadoId) {
+      logActivity({
+        id_deputado: deputadoId,
+        acao: 'EDICAO',
+        entidade: 'AGENDA',
+        entidade_id: id,
+        descricao: `Atualizou compromisso da agenda: "${existing?.compromisso || id}"`,
+        detalhes: updatedFields,
+      });
+    }
   };
 
   const deleteAgenda = (id: string) => {
@@ -318,17 +348,20 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    logActivity({
-      id_deputado: deputadoId,
-      acao: 'EXCLUSAO',
-      entidade: 'AGENDA',
-      entidade_id: id,
-      descricao: `Removeu compromisso da agenda: "${existing?.compromisso || id}"`,
-      severidade: 'IMPORTANTE',
-    });
+    if (deputadoId) {
+      logActivity({
+        id_deputado: deputadoId,
+        acao: 'EXCLUSAO',
+        entidade: 'AGENDA',
+        entidade_id: id,
+        descricao: `Removeu compromisso da agenda: "${existing?.compromisso || id}"`,
+        severidade: 'IMPORTANTE',
+      });
+    }
   };
 
   const addAudiencia = (audiencia: Omit<SolicitacaoAudiencia, 'id' | 'id_deputado' | 'data_solicitacao'> & { id?: string; data_solicitacao?: string }) => {
+    if (!deputadoId) return;
     const newId = audiencia.id && isUuid(audiencia.id) ? audiencia.id : generateUUID();
     const newAud: SolicitacaoAudiencia = {
       ...audiencia,
@@ -364,17 +397,19 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     }
 
     const isStatusChange = updatedFields.status && existing && existing.status !== updatedFields.status;
-    logActivity({
-      id_deputado: deputadoId,
-      acao: isStatusChange ? 'STATUS' : 'EDICAO',
-      entidade: 'AUDIENCIA',
-      entidade_id: id,
-      descricao: isStatusChange
-        ? `Alterou status da audiência com "${existing?.personalidade}" para "${updatedFields.status}"`
-        : `Atualizou dados da audiência com "${existing?.personalidade}"`,
-      detalhes: updatedFields,
-      severidade: 'IMPORTANTE',
-    });
+    if (deputadoId) {
+      logActivity({
+        id_deputado: deputadoId,
+        acao: isStatusChange ? 'STATUS' : 'EDICAO',
+        entidade: 'AUDIENCIA',
+        entidade_id: id,
+        descricao: isStatusChange
+          ? `Alterou status da audiência com "${existing?.personalidade}" para "${updatedFields.status}"`
+          : `Atualizou dados da audiência com "${existing?.personalidade}"`,
+        detalhes: updatedFields,
+        severidade: 'IMPORTANTE',
+      });
+    }
   };
 
   const deleteAudiencia = (id: string) => {
@@ -386,17 +421,20 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    logActivity({
-      id_deputado: deputadoId,
-      acao: 'EXCLUSAO',
-      entidade: 'AUDIENCIA',
-      entidade_id: id,
-      descricao: `Excluiu solicitação de audiência com "${existing?.personalidade}"`,
-      severidade: 'CRITICA',
-    });
+    if (deputadoId) {
+      logActivity({
+        id_deputado: deputadoId,
+        acao: 'EXCLUSAO',
+        entidade: 'AUDIENCIA',
+        entidade_id: id,
+        descricao: `Excluiu solicitação de audiência com "${existing?.personalidade}"`,
+        severidade: 'CRITICA',
+      });
+    }
   };
 
   const addPessoa = (pessoa: Omit<Pessoa, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = pessoa.id && isUuid(pessoa.id) ? pessoa.id : generateUUID();
     const newPes: Pessoa = {
       ...pessoa,
@@ -431,6 +469,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addEntidade = (entidade: Omit<Entidade, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = entidade.id && isUuid(entidade.id) ? entidade.id : generateUUID();
     const newEnt: Entidade = {
       ...entidade,
@@ -464,6 +503,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addOficio = (oficio: Omit<Oficio, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = oficio.id && isUuid(oficio.id) ? oficio.id : generateUUID();
     const newOf: Oficio = {
       ...oficio,
@@ -497,6 +537,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addVisita = (visita: Omit<RegistroVisita, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = visita.id && isUuid(visita.id) ? visita.id : generateUUID();
     const newVis: RegistroVisita = {
       ...visita,
@@ -531,6 +572,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addLigacao = (ligacao: Omit<LigacaoRecebida, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = ligacao.id && isUuid(ligacao.id) ? ligacao.id : generateUUID();
     const newLig: LigacaoRecebida = {
       ...ligacao,
@@ -565,6 +607,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addRecado = (recado: Omit<Recado, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = recado.id && isUuid(recado.id) ? recado.id : generateUUID();
     const newRec: Recado = {
       ...recado,
@@ -599,6 +642,7 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
   };
 
   const addEvento = (evento: Omit<EventoComemorativo, 'id' | 'id_deputado'> & { id?: string }) => {
+    if (!deputadoId) return;
     const newId = evento.id && isUuid(evento.id) ? evento.id : generateUUID();
     const newEv: EventoComemorativo = {
       ...evento,
