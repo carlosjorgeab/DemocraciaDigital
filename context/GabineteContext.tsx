@@ -80,7 +80,7 @@ const GabineteContext = createContext<GabineteContextType | undefined>(undefined
 export function GabineteProvider({ children }: { children: ReactNode }) {
   const { selectedDeputado } = useDeputado();
   const rawDeputadoId = selectedDeputado?.id;
-  const deputadoId = isUuid(rawDeputadoId) ? (rawDeputadoId as string) : null;
+  const deputadoId = rawDeputadoId || null;
 
   const [demandas, setDemandas] = useState<AtendimentoDemanda[]>([]);
   const [audiencias, setAudiencias] = useState<SolicitacaoAudiencia[]>([]);
@@ -292,8 +292,13 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addAgenda = (agenda: Omit<AgendaCompromisso, 'id' | 'id_deputado'> & { id?: string }) => {
-    if (!deputadoId) return;
+  const addAgenda = async (agenda: Omit<AgendaCompromisso, 'id' | 'id_deputado'> & { id?: string }) => {
+
+    if (!deputadoId) {
+      console.error('addAgenda: deputadoId não definido');
+      return;
+    }
+
     const newId = agenda.id && isUuid(agenda.id) ? agenda.id : generateUUID();
     const newAg: AgendaCompromisso = {
       ...agenda,
@@ -301,10 +306,27 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
       id_deputado: deputadoId,
       created_at: new Date().toISOString(),
     };
+
     setAgendas((prev) => [newAg, ...prev]);
-    supabase.from('gabinete_agendas').insert(newAg).then(({ error }) => {
-      if (error) console.error('Error inserting gabinete_agenda:', error);
-    });
+
+    try {
+      const response = await fetch('/api/gabinete/agendas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAg),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Erro ao salvar agenda na API:', result);
+        return;
+      }
+
+      console.log('Agenda salva com sucesso na API:', result);
+    } catch (error) {
+      console.error('Erro na requisição de agenda:', error);
+    }
 
     logActivity({
       id_deputado: deputadoId,
@@ -316,15 +338,31 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const updateAgenda = (id: string, updatedFields: Partial<AgendaCompromisso>) => {
+  const updateAgenda = async (id: string, updatedFields: Partial<AgendaCompromisso>) => {
+
     const existing = agendas.find(a => a.id === id);
     setAgendas((prev) =>
       prev.map((a) => (a.id === id ? { ...a, ...updatedFields } : a))
     );
-    if (isUuid(id)) {
-      supabase.from('gabinete_agendas').update(updatedFields).eq('id', id).then(({ error }) => {
-        if (error) console.error('Error updating gabinete_agenda:', error);
+
+    if (!isUuid(id)) return;
+
+    try {
+      const response = await fetch(`/api/gabinete/agendas/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, id_deputado: deputadoId, ...updatedFields }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Erro ao atualizar agenda na API:', result);
+      } else {
+        console.log('Agenda atualizada na API:', result);
+      }
+    } catch (error) {
+      console.error('Erro na requisição de atualização de agenda:', error);
     }
 
     if (deputadoId) {
@@ -339,13 +377,29 @@ export function GabineteProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteAgenda = (id: string) => {
+  const deleteAgenda = async (id: string) => {
+
     const existing = agendas.find(a => a.id === id);
     setAgendas((prev) => prev.filter((a) => a.id !== id));
-    if (isUuid(id)) {
-      supabase.from('gabinete_agendas').delete().eq('id', id).then(({ error }) => {
-        if (error) console.error('Error deleting gabinete_agenda:', error);
+
+    if (!isUuid(id)) return;
+
+    try {
+      const response = await fetch(`/api/gabinete/agendas/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Erro ao excluir agenda na API:', result);
+      } else {
+        console.log('Agenda excluída na API');
+      }
+    } catch (error) {
+      console.error('Erro na requisição de exclusão de agenda:', error);
     }
 
     if (deputadoId) {

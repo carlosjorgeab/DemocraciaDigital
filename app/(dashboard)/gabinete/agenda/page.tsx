@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useGabinete } from '@/context/GabineteContext';
 import { useDeputado } from '@/context/DeputadoContext';
 import { getContrastTextColor } from '@/lib/colorUtils';
@@ -11,6 +11,8 @@ import {
   CheckCircle2, XCircle, Search, Filter, Share2, ExternalLink, MessageSquare,
   Users, Trash2, Edit2, AlertTriangle, Send, Cake, Globe, Building, Flag, UserCheck, RefreshCw
 } from 'lucide-react';
+import { generateGoogleMapsUrl, generateWazeUrl } from '@/lib/geocoding';
+import WeatherDisplay from '@/components/WeatherDisplay';
 
 // Helper date formatters
 const getTodayDateString = () => {
@@ -113,6 +115,7 @@ interface EventoDisplay {
 }
 
 export default function AgendaPage() {
+  const router = useRouter();
   const { selectedDeputado } = useDeputado();
   const partyPrimary = selectedDeputado?.partidos?.cor_primaria || '#005baa';
   const partySecondary = selectedDeputado?.partidos?.cor_secundaria || '#002776';
@@ -544,7 +547,7 @@ export default function AgendaPage() {
           </div>
 
           <button
-            onClick={handleOpenNewModal}
+            onClick={() => router.push('/gabinete/agenda/novo')}
             style={{ backgroundColor: partyPrimary, color: partyPrimaryText }}
             className="font-black px-5 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:opacity-90 text-xs uppercase tracking-wider transition-all"
           >
@@ -757,23 +760,43 @@ export default function AgendaPage() {
                               <MapPin size={14} className="text-rose-500" /> {ag.local}
                             </span>
                           )}
-                          {ag.link_maps && (
-                            <a
-                              href={ag.link_maps}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-blue-600 font-bold hover:underline flex items-center gap-1"
-                            >
-                              Abrir Mapa / Waze <ExternalLink size={12} />
-                            </a>
+                          {ag.local && (
+                            <div className="flex items-center gap-1">
+                              <a
+                                href={generateGoogleMapsUrl(ag.local)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg flex items-center gap-1 text-[10px] transition-colors"
+                              >
+                                Maps <ExternalLink size={10} />
+                              </a>
+                              <a
+                                href={generateWazeUrl(ag.local)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2 py-1 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg flex items-center gap-1 text-[10px] transition-colors"
+                              >
+                                Waze <ExternalLink size={10} />
+                              </a>
+                            </div>
                           )}
                           {ag.assessor_responsavel && (
                             <span className="text-slate-500">Assessor: <strong>{ag.assessor_responsavel}</strong></span>
                           )}
                         </div>
+                        {ag.latitude && ag.longitude && (
+                          <div className="pt-2">
+                            <WeatherDisplay
+                              latitude={ag.latitude}
+                              longitude={ag.longitude}
+                              city={ag.cidade || undefined}
+                              compact
+                            />
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-2 flex-wrap md:flex-col justify-end">
+                    <div className="flex items-center gap-2 flex-wrap md:flex-col justify-end">
                         <button
                           onClick={() => handleOpenEditModal(ag)}
                           className="bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 text-xs font-bold p-2.5 rounded-xl transition-all flex items-center gap-1"

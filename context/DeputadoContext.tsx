@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
-
 import { applyDeputyTheme } from '@/lib/colorUtils';
 
 type Deputado = {
@@ -40,74 +39,84 @@ export function DeputadoProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchDeputados() {
-      // Check if it's a public route: /p/[id]
-      const isPublicRoute = pathname?.startsWith('/p/');
-      let publicId = null;
-      
-      if (isPublicRoute) {
-        const parts = pathname?.split('/');
-        if (parts && parts.length >= 3) {
-          publicId = parts[2]; // /p/[id]/...
+      try {
+        const isPublicRoute = pathname?.startsWith('/p/');
+        let publicId = null;
+
+        if (isPublicRoute) {
+          const parts = pathname?.split('/');
+          if (parts && parts.length >= 3) {
+            publicId = parts[2];
+          }
         }
-      }
 
-      if (!isPublicRoute && !user) {
-        setDeputados([]);
-        setSelectedDeputado(null);
-        setLoading(false);
-        return;
-      }
-
-      let query = supabase
-        .from('deputado')
-        .select('*, partidos(sigla, nome, cor_primaria, cor_secundaria, cor_terciaria)');
-      
-      if (isPublicRoute && publicId) {
-        // Public pages MUST only show active deputies
-        query = query.eq('ativo', true);
-        
-        // Try to match by slug first, or fallback to id if it's a valid UUID
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(publicId);
-        if (isUuid) {
-          query = query.eq('id', publicId);
-        } else {
-          query = query.eq('slug', publicId);
+        if (!isPublicRoute && !user) {
+          if (isMounted) {
+            setDeputados([]);
+            setSelectedDeputado(null);
+            setLoading(false);
+          }
+          return;
         }
-      } else if (!user?.is_admin && user?.id_deputado) {
-        // Regular users only see their assigned deputy, but it MUST be active
-        query = query.eq('id', user.id_deputado).eq('ativo', true);
-      } else if (!user?.is_admin) {
-        // If regular user has no id_deputado, they see nothing or only active ones depending on your logic
-        // but user says "desabilite o acesso a todos os usuários que possuem o deputado que não estão ativos"
-        query = query.eq('ativo', true);
-      }
 
-      const { data, error } = await query;
-      
-      if (!error && data) {
-        setDeputados(data);
-        if (data.length > 0) {
+        let query = supabase
+          .from('deputado')
+          .select('*, partidos(sigla, nome, cor_primaria, cor_secundaria, cor_terciaria)');
+
+        if (isPublicRoute && publicId) {
+          query = query.eq('ativo', true);
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(publicId);
+          if (isUuid) {
+            query = query.eq('id', publicId);
+          } else {
+            query = query.eq('slug', publicId);
+          }
+        } else if (!user?.is_admin && user?.id_deputado) {
+          query = query.eq('id', user.id_deputado);
+        } else if (!user?.is_admin) {
+          query = query.eq('ativo', true);
+        }
+
+        const { data, error } = await query;
+        console.log('DeputadoContext fetch:', { isPublicRoute, userId: user?.id, isAdmin: user?.is_admin, count: data?.length, error });
+
+        if (!isMounted) return;
+
+        if (!error && data && data.length > 0) {
+          setDeputados(data);
           setSelectedDeputado((prev) => {
-             // If we already have a selected deputado and it exists in the fetched data, keep it!
-             if (prev && data.some(d => d.id === prev.id)) {
-               return prev;
-             }
-             // Otherwise, fallback to the default or the first one
-             return data[0];
+            if (prev && data.some((d) => d.id === prev.id)) {
+              return prev;
+            }
+            return data[0];
           });
         } else {
-           setSelectedDeputado(null);
+          setDeputados([]);
+          setSelectedDeputado(null);
         }
-      } else {
-        setSelectedDeputado(null);
+      } catch (err) {
+        console.error('Erro ao carregar deputados:', err);
+        if (isMounted) {
+          setDeputados([]);
+          setSelectedDeputado(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     }
+
     fetchDeputados();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user, pathname]);
 
-  // Apply theme colors with contrast guarantees when selectedDeputado changes
   useEffect(() => {
     applyDeputyTheme(selectedDeputado?.partidos);
   }, [selectedDeputado]);

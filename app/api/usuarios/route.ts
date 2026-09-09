@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifySessionToken, hashPassword } from '@/lib/auth-crypto';
 
 async function checkPermission(request: NextRequest): Promise<{ authorized: boolean; errorResponse?: NextResponse }> {

@@ -77,6 +77,10 @@ export type AgendaCompromisso = {
   assessor_responsavel?: string;
   solicitado_por?: string;
   alerta_sms?: boolean;
+  latitude?: number;
+  longitude?: number;
+  cidade?: string;
+  uf?: string;
   created_at?: string;
 };
 
@@ -182,3 +186,6 @@ export type EventoComemorativo = {
   nome_pessoa?: string;
   created_at?: string;
 };
+
+// Re-export weather types for convenience
+

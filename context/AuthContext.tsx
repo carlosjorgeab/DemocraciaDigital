@@ -92,22 +92,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const checkSession = async () => {
       try {
-        // 1. Fetch system configs to see if multi-login is disabled
         const { data: config } = await supabase
           .from('configuracoes_sistema')
           .select('valor')
           .eq('chave', 'disable_multi_login')
-          .single();
+          .maybeSingle();
 
         const multiLoginDisabled = config?.valor === 'true';
 
         if (multiLoginDisabled) {
-          // 2. Check if current user has a different session ID in the DB
           const { data: userData } = await supabase
             .from('usuarios')
             .select('current_session_id')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
           if (userData?.current_session_id && userData.current_session_id !== sessionId) {
             console.warn('Simultaneous login detected. Logging out...');
@@ -122,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const interval = setInterval(checkSession, 30000); // Check every 30 seconds
+    const interval = setInterval(checkSession, 30000);
     return () => clearInterval(interval);
   }, [user, sessionId]);
 
