@@ -6,7 +6,7 @@ import { LayoutDashboard, MapPin, Compass, Grid, FolderOpen } from 'lucide-react
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 
-export default function ProjetosPublicLayout({ children }: { children: React.ReactNode }) {
+export default function RelatoriasPublicLayout({ children }: { children: React.ReactNode }) {
   const { selectedDeputado, loading: depLoading } = useDeputado();
 
   if (!depLoading && !selectedDeputado) {
@@ -67,19 +67,19 @@ export default function ProjetosPublicLayout({ children }: { children: React.Rea
               <Compass size={18} className="text-slate-400" />
               <span className="hidden md:inline">Base Eleitoral</span>
             </Link>
+            <Link 
+              href={`${publicUrl}/projetos`}
+              className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 text-slate-500 hover:text-slate-700 hover:bg-white/50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+              <span className="hidden md:inline">Projetos</span>
+            </Link>
             <div 
               className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 bg-white text-primary shadow-lg shadow-primary/10 scale-105"
             >
               <Grid size={18} className="text-primary" />
-              <span className="hidden md:inline">Projetos</span>
-            </div>
-            <Link 
-              href={`${publicUrl}/relatorias`}
-              className="flex items-center gap-3 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 text-slate-500 hover:text-slate-700 hover:bg-white/50"
-            >
-              <FolderOpen size={18} className="text-slate-400" />
               <span className="hidden md:inline">Relatórias</span>
-            </Link>
+            </div>
           </div>
 
           <div className="hidden lg:block">

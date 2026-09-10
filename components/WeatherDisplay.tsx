@@ -85,7 +85,7 @@ export default function WeatherDisplay({
 
   if (compact) {
     return (
-      <div className={`bg-gradient-to-br ${getWeatherBackground(weather.weatherCode, weather.isDay)} rounded-xl p-2.5 flex items-center gap-3 shadow-sm`}>
+      <div className={`bg-gradient-to-br ${getWeatherBackground(weather.weatherCode)} rounded-xl p-2.5 flex items-center gap-3 shadow-sm`}>
         <span className="text-2xl">{weather.weatherIcon}</span>
         <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
@@ -102,7 +102,7 @@ export default function WeatherDisplay({
   }
 
   return (
-    <div className={`bg-gradient-to-br ${getWeatherBackground(weather.weatherCode, weather.isDay)} rounded-2xl p-4 shadow-sm border border-white/50`}>
+    <div className={`bg-gradient-to-br ${getWeatherBackground(weather.weatherCode)} rounded-2xl p-4 shadow-sm border border-white/50`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="text-4xl">{weather.weatherIcon}</span>

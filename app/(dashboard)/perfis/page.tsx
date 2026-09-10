@@ -22,9 +22,10 @@ const MENU_OPTIONS = [
   { id: '/gabinete/visitas', label: 'Gabinete - Registro de Visitas', category: 'Gabinete' },
   { id: '/gabinete/ligacoes', label: 'Gabinete - Ligações & Telemarketing', category: 'Gabinete' },
 
-  // Gestão Parlamentar & Orçamento
+   // Gestão Parlamentar & Orçamento
   { id: '/emendas', label: 'Emendas Impositivas', category: 'Parlamentar' },
   { id: '/projetos', label: 'Projetos de Lei / Propostas', category: 'Parlamentar' },
+  { id: '/relatoria', label: 'Relatoria / Relatórios Parlamentares', category: 'Parlamentar' },
   { id: '/editais', label: 'Editais e Chamadas Públicas', category: 'Parlamentar' },
   { id: '/ministerios', label: 'Ministérios & Órgãos', category: 'Parlamentar' },
   { id: '/base-eleitoral', label: 'Base Eleitoral', category: 'Parlamentar' },
@@ -46,7 +47,7 @@ const PROFILE_PRESETS = [
     permissoes: [
       '/gabinete', '/gabinete/agenda', '/gabinete/demandas', '/gabinete/cadastros',
       '/gabinete/audiencias', '/gabinete/oficios', '/gabinete/visitas', '/gabinete/ligacoes',
-      '/emendas', '/projetos', '/editais', '/relatorios', '/ministerios'
+      '/emendas', '/projetos', '/relatoria', '/editais', '/relatorios', '/ministerios'
     ]
   },
   {
@@ -69,7 +70,7 @@ const PROFILE_PRESETS = [
     nome: 'Gestor de Emendas & Editais',
     description: 'Foco técnico em orçamento parlamentar, indicação de recursos e monitoramento de editais',
     permissoes: [
-      '/gabinete', '/emendas', '/editais', '/projetos', '/ministerios', '/relatorios'
+      '/gabinete', '/emendas', '/editais', '/relatoria', '/ministerios', '/relatorios'
     ]
   }
 ];

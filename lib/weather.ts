@@ -155,14 +155,14 @@ export async function getWeatherForecast(lat: number, lng: number, days: number 
   }
 }
 
-export function getWeatherBackground(weatherCode: number, isDay: boolean): string {
-  if (weatherCode === 0) return isDay ? 'from-amber-100 to-blue-100' : 'from-slate-900 to-slate-800';
-  if (weatherCode <= 3) return isDay ? 'from-blue-100 to-slate-100' : 'from-slate-800 to-slate-900';
-  if (weatherCode >= 61 && weatherCode <= 67) return 'from-blue-200 to-slate-200';
-  if (weatherCode >= 71 && weatherCode <= 77) return 'from-slate-100 to-blue-50';
-  if (weatherCode >= 80 && weatherCode <= 82) return 'from-blue-200 to-slate-200';
-  if (weatherCode >= 95) return 'from-slate-600 to-slate-800';
-  return 'from-slate-100 to-slate-200';
+export function getWeatherBackground(weatherCode: number): string {
+  if (weatherCode === 0) return 'from-amber-50 to-blue-50';
+  if (weatherCode <= 3) return 'from-blue-50 to-slate-50';
+  if (weatherCode >= 61 && weatherCode <= 67) return 'from-blue-100 to-slate-50';
+  if (weatherCode >= 71 && weatherCode <= 77) return 'from-slate-50 to-blue-50';
+  if (weatherCode >= 80 && weatherCode <= 82) return 'from-blue-100 to-slate-50';
+  if (weatherCode >= 95) return 'from-slate-100 to-slate-200';
+  return 'from-slate-50 to-slate-100';
 }
 
 export function getWindDirectionLabel(degrees: number): string {

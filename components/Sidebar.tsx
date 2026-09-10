@@ -16,7 +16,6 @@ import {
   Users, 
   Building2, 
   FileSignature, 
-  Plus, 
   Flag, 
   IdCard, 
   Tags, 
@@ -110,6 +109,7 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Adesão Edital', disabled: false, id: '/formularios' },
     { href: `${basePath}/emendas`, icon: Receipt, label: 'Emendas', disabled: false, id: '/emendas' },
     { href: `${basePath}/projetos`, icon: FileText, label: 'Projetos', disabled: false, id: '/projetos' },
+    { href: `${basePath}/relatoria`, icon: FileText, label: 'Relatória', disabled: false, id: '/relatoria' },
     { href: `${basePath}/editais`, icon: FileSignature, label: 'Editais', disabled: false, id: '/editais', badge: expiringEditaisCount },
     { href: `${basePath}/ministerios`, icon: Building2, label: 'Ministérios', disabled: false, id: '/ministerios' },
     { href: '/partidos', icon: Flag, label: 'Partidos', disabled: false, id: '/partidos' },
@@ -119,33 +119,10 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: '/perfis', icon: Shield, label: 'Perfis', disabled: false, id: '/perfis' },
     { href: '/usuarios', icon: Users, label: 'Usuários', disabled: false, id: '/usuarios' },
     { href: '/logs', icon: History, label: 'Logs de Auditoria', disabled: false, id: '/logs' },
-    { 
-      href: '/emendas/nova', 
-      icon: Plus, 
-      label: 'Nova Emenda', 
-      disabled: false, 
-      id: '/emendas/nova', 
-      isButton: true, 
-      btnBg: isSidebarWhite ? partyPrimary : '#ffffff', 
-      btnText: isSidebarWhite ? '#ffffff' : partyPrimary 
-    },
-    { 
-      href: '/projetos/novo', 
-      icon: Plus, 
-      label: 'Novo Projeto', 
-      disabled: false, 
-      id: '/projetos/novo', 
-      isButton: true, 
-      btnBg: isSidebarWhite ? partySecondary : 'rgba(255, 255, 255, 0.25)', 
-      btnText: '#ffffff' 
-    },
     { href: '/configuracoes', icon: Settings, label: 'Configurações', disabled: false, id: '/configuracoes' },
   ].filter(item => {
     if (item.id === '/perfis' || item.id === '/usuarios' || item.id === '/configuracoes' || item.id === '/logs') {
       return !isPublicRoute && (user?.is_admin || hasPermission(item.id));
-    }
-    if (item.id === '/emendas/nova' || item.id === '/projetos/novo') {
-      return !isPublicRoute && hasPermission(item.id.split('/')[1]);
     }
     return hasPermission(item.id);
   });
@@ -252,24 +229,6 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
                   <Icon size={20} className="shrink-0" />
                   {!isCollapsed && <span>{item.label}</span>}
                 </div>
-              );
-            }
-
-            if (item.isButton) {
-              return (
-                <Link 
-                  key={item.href}
-                  href={item.href} 
-                  onClick={() => setIsOpen && setIsOpen(false)}
-                  style={{ backgroundColor: item.btnBg, color: item.btnText }}
-                  title={item.label}
-                  className={`w-full py-3 font-black rounded-xl shadow-md hover:opacity-90 transition-all active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-2 mt-2 border border-black/10 ${
-                    isCollapsed ? 'px-2' : ''
-                  }`}
-                >
-                  <Plus size={16} className="shrink-0" />
-                  {!isCollapsed && <span>{item.label}</span>}
-                </Link>
               );
             }
 

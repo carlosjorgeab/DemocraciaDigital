@@ -47,7 +47,7 @@ export function ThematicAreasDashboard() {
   const [areasData, setAreasData] = useState<AreaSummary[]>([]);
   const [totalInvestido, setTotalInvestido] = useState(0);
   const [totalItens, setTotalItens] = useState(0);
-  const [chartView, setChartView] = useState<'donut' | 'bars'>('donut');
+  const [chartView, setChartView] = useState<'donut' | 'bars'>('bars');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
