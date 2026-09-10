@@ -1,6 +1,7 @@
-export function Logo({ className = "w-8 h-8" }: { className?: string }) {
+export function Logo({ className = "w-8 h-8", bgLogo }: { className?: string; bgLogo?: string }) {
+  const bgStyle = bgLogo ? { backgroundColor: bgLogo } : undefined;
   return (
-    <div className={`relative inline-flex items-center justify-center rounded-2xl bg-slate-950 p-1.5 shadow-md border border-amber-400/40 shrink-0 ${className}`}>
+    <div className={`relative inline-flex items-center justify-center rounded-2xl p-1.5 shadow-md border border-amber-400/40 shrink-0 ${bgLogo ? '' : 'bg-transparent'} ${className}`} style={bgStyle}>
       <svg 
         viewBox="0 0 48 48" 
         fill="none" 

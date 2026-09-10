@@ -109,7 +109,6 @@ export function Sidebar({ isOpen = false, setIsOpen }: { isOpen?: boolean, setIs
     { href: `${basePath}/formularios`, icon: ClipboardList, label: 'Adesão Edital', disabled: false, id: '/formularios' },
     { href: `${basePath}/emendas`, icon: Receipt, label: 'Emendas', disabled: false, id: '/emendas' },
     { href: `${basePath}/projetos`, icon: FileText, label: 'Projetos', disabled: false, id: '/projetos' },
-    { href: `${basePath}/relatoria`, icon: FileText, label: 'Relatória', disabled: false, id: '/relatoria' },
     { href: `${basePath}/editais`, icon: FileSignature, label: 'Editais', disabled: false, id: '/editais', badge: expiringEditaisCount },
     { href: `${basePath}/ministerios`, icon: Building2, label: 'Ministérios', disabled: false, id: '/ministerios' },
     { href: '/partidos', icon: Flag, label: 'Partidos', disabled: false, id: '/partidos' },

@@ -55,7 +55,7 @@ export function Topbar() {
         >
           {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
         </button>
-        <Logo className="w-8 h-8 md:w-9 md:h-9 shrink-0" />
+        <Logo className="w-8 h-8 md:w-9 md:h-9 shrink-0" bgLogo={isTopbarWhite ? '#f8fafc' : undefined} />
         <div className="flex flex-col md:flex-row md:items-center md:gap-3">
           <h1 
             style={{ color: topbarTextColor }}
